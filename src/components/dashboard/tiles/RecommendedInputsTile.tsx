@@ -35,7 +35,7 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
 
   return (
     <div className="rounded-xl bg-white/10 border border-white/15 p-3 flex flex-col gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15 hover:border-white/30">
-      <Link to={`/shop/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-white/10">
+      <Link to={`/product/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-white/10">
         <img
           src={img}
           alt={product.name}
@@ -44,7 +44,7 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
         />
       </Link>
       <div className="space-y-1">
-        <Link to={`/shop/${product.id}`} className="block">
+        <Link to={`/product/${product.id}`} className="block">
           <h4 className="text-xs font-semibold text-white line-clamp-2 leading-tight min-h-[2rem]">
             {product.name}
           </h4>

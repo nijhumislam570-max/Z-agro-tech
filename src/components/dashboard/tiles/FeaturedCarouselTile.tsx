@@ -36,7 +36,7 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
     const stock = stockTone(item.stock);
     return (
       <Link
-        to={`/shop/${item.id}`}
+        to={`/product/${item.id}`}
         className="block h-full rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15"
       >
         <div className="aspect-[4/3] overflow-hidden bg-white/5">
@@ -69,7 +69,7 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
   const img = item.image || getCourseImage(item.title, item.category);
   return (
     <Link
-      to={`/academy/${item.id}`}
+      to={`/course/${item.id}`}
       className="block h-full rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15"
     >
       <div className="aspect-[4/3] overflow-hidden bg-white/5">

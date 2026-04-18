@@ -29,9 +29,9 @@ export const ProductCard = ({ product }: { product: ShopProduct }) => {
       id: product.id,
       name: product.name,
       price: product.price,
-      image_url: product.image_url || '',
+      image: product.image_url || '',
       category: product.category,
-    } as any);
+    });
     toast.success(`${product.name} added to cart`);
   };
 
