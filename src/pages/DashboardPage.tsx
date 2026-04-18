@@ -27,8 +27,10 @@ const DashboardPage = () => {
       />
       <Navbar />
       <main id="main-content" className="flex-1">
+        <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
         {/* Hero with bento grid over agri gradient */}
-        <section className="bg-agri-gradient relative">
+        <section className="bg-agri-gradient relative" aria-labelledby="dashboard-hero-heading">
+          <h2 id="dashboard-hero-heading" className="sr-only">At-a-glance overview</h2>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(0_0%_100%/0.1),_transparent_60%)] pointer-events-none" />
           <div className="relative container mx-auto px-4 sm:px-6 py-8 md:py-10">
             <BentoGrid>
