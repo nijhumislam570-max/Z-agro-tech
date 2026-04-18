@@ -41,8 +41,11 @@ interface Props {
  * downloaded when an admin actually visits /admin/recovery-analytics.
  */
 const RecoveryCharts = ({ dailyData, pieData }: Props) => {
+  // Wrap in a single host element (not a Fragment) so React.lazy can safely
+  // attach internal refs through Suspense without warning.
   return (
-    <>
+    <div className="space-y-5 contents">
+
       <div className="grid lg:grid-cols-2 gap-5">
         <Card className="border-border/50">
           <CardHeader className="p-4 pb-2">
