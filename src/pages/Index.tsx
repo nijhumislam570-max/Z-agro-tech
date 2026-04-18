@@ -22,8 +22,17 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
         title="Z Agro Tech — Premium Agriculture Supplies & Expert Courses"
-        description="Shop premium agriculture products and learn from expert-led farming courses on Z Agro Tech."
-        url="/"
+        description="Shop premium agriculture products and learn from expert-led farming courses on Z Agro Tech — Bangladesh's trusted agritech platform."
+        url="https://zagrotech.lovable.app/"
+        canonicalUrl="https://zagrotech.lovable.app/"
+        schema={{
+          type: 'Organization',
+          name: 'Z Agro Tech',
+          url: 'https://zagrotech.lovable.app',
+          logo: 'https://zagrotech.lovable.app/favicon.jpg',
+          description: 'Bangladesh\'s trusted platform for premium agriculture supplies and expert-led farming courses.',
+          sameAs: [],
+        }}
       />
       <Navbar />
       <main id="main-content" className="flex-1 @container">
