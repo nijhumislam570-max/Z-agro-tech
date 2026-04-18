@@ -1,56 +1,63 @@
 
 
-# Phase 6 — Data Integrity Plan
+# Phase 7 — Performance & Resilience Plan
 
-After auditing forms, hooks, queries, and types, the platform is **already solid on the foundations**: react-query is used everywhere with stable, granular keys; mutations consistently `invalidateQueries`; `validations.ts` is comprehensive (every domain entity has a Zod schema); RLS-typed `Database` types from Supabase flow through hooks. The genuine remaining gaps are concentrated in **3 forms still using raw `useState`** and **~12 lingering `any` types** in admin/data layers.
+After auditing bundle splitting, render-cost, error boundaries, and offline behavior, the platform is **already in solid shape**: every route is lazy-loaded, React Query caching is granular, `OfflineIndicator` is mounted globally, `ErrorBoundary` auto-recovers from chunk-load failures (stale deploy), images use `loading="lazy"`, and `OptimizedImage` enforces IO + CLS prevention. The genuine gaps are narrow and concentrated in **3 heavy admin dialogs that ship eagerly**, **2 missing error-boundary boundaries around big pages**, and **a handful of repeated `.filter()` chains that should be memoized**.
 
 ## Findings (priority-ordered)
 
-### HIGH — form & type integrity
-- **F1 — `EditProfileSheet`, `EnrollDialog`, `ProductReviewForm` use raw `useState` instead of react-hook-form.** Validation runs only on submit, errors surface via `toast` (not inline next to the field), and null vs. empty-string handling is ad-hoc. The Zod schemas (`profileSchema`, `enrollSchema`, `reviewSchema`) already exist — just not wired through `useForm + zodResolver + <Form>`. Migrate all three to RHF with inline `<FormMessage />`.
-- **F2 — `AdminEnrollments` has 4 `any` casts in the join-merge** (`(e: any) => e.user_id`, `(p: any) => …`, `(row: any): EnrollmentRow`). Same shape repeated in `AdminCustomers` (`r: any` for roles) and `AdminCoupons` (`err: any`). Replace with proper inferred types from the Supabase query response or a small `EnrollmentJoined` interface — zero `any` in these files.
-- **F3 — `AdminProducts` has `updateData: any` in `handleQuickStockUpdate` + duplicated insert/update payloads in `handleAdd`/`handleEdit`.** ~80 lines repeated. Extract a single `buildProductPayload(formData) → Partial<ProductRow>` helper and use it for both — single source of truth, fully typed.
+### HIGH — real bottlenecks
+- **B1 — `PDFImportDialog` (451 LOC) and `CSVImportDialog` (306 LOC) are eagerly imported by `AdminProducts`** even though the dialogs only render when the admin clicks "Import". Both pull in CSV/PDF parsing helpers. Lazy-load with `lazy()` + `<Suspense>` so the initial AdminProducts chunk drops by ~25-30 KB gzipped.
+- **B2 — `AdminRecoveryAnalytics` imports recharts at the top level** (`import { BarChart, Bar, LineChart, … } from 'recharts'`) — recharts is ~95 KB gzipped. `AdminAnalytics` already lazy-loads its chart panel via `lazy(() => import('@/components/admin/analytics/AnalyticsCharts'))` — apply the same pattern here. Extract the recharts JSX into `src/components/admin/analytics/RecoveryCharts.tsx`, lazy-load it.
+- **B3 — `CurriculumEditor` and `FraudAnalysisPanel` ship in their parent route chunks.** Both are conditional: `CurriculumEditor` only renders inside the AdminCourses dialog, `FraudAnalysisPanel` only on the order detail panel. Lazy-load both.
+- **B4 — No ErrorBoundary on `/checkout` or `/dashboard`.** A render error in CheckoutPage or DashboardPage crashes the whole app to the global fallback (which says "go home"). These two flows are revenue/identity critical — wrap each in its own `<ErrorBoundary>` so the user can retry without losing cart/route state. (The global one in `App.tsx` stays as the outer net.)
 
-### MEDIUM — shared data access
-- **D1 — `AdminEnrollments` does an N+1-shaped join manually (enrollments → fetch profiles by user_id).** Already batched (single `.in('user_id', userIds)` call), so not a true N+1 — but the merge logic is duplicated in `AdminEcommerceCustomers` and `useAdmin.ts`. Extract a `joinProfilesByUserId(rows, key)` util in `src/lib/dbJoins.ts`. ~30 LOC saved, fully typed.
-- **D2 — `useProfile` is plain `useState`/`useEffect` while every other entity uses react-query.** Inconsistent: dashboard data refetch, cache invalidation, and `staleTime` controls don't apply. Convert to `useQuery(['profile', userId])` + `useMutation` for the update. Lets `WishlistTab`, `OrdersTab`, etc. share the cache and auto-refresh after edit.
-- **D3 — `ProductReviewForm` directly calls `supabase.from('reviews').insert(...)` and triggers a parent refetch via callback prop.** Should be a `useMutation` that invalidates `['product-reviews', productId]` and `['product-ratings']`. Remove the `onReviewSubmitted` prop drilling.
+### MEDIUM — micro-perf & resilience
+- **R1 — `ProductDetailPage` uses `useParams()` without typing or null-check on `id`**. If somehow `:id` is empty, the query runs with `undefined` and we hit Supabase with a malformed eq. Fix: `const { id } = useParams<{ id: string }>(); if (!id) return <Navigate to="/shop" replace />;`
+- **R2 — `ShopPage` re-runs the same `.filter(p => p.image_url && p.is_active !== false)` 3× inside the same `useMemo` for the featured row.** Fold them into a single pass — saves O(n) on every product list update. Tiny but free.
+- **R3 — `OfflineIndicator` triggers a re-render on every mount because `setShowReconnected(true)` runs unconditionally inside `handleOnline`** even when the user was never offline. Already guarded by `wasOffline`, just move the timeout into `useEffect` cleanup so we don't leak the timer if the user toggles network rapidly.
+- **R4 — Service worker caches images but `OptimizedImage` already builds URLs with width params** — when a different preset is requested for the same source, we over-cache variants. Add a small `cleanupOldVariants` step in `sw.js` that caps the image cache at 80 entries (LRU-ish).
 
 ### LOW — already correct, no action
-- All query keys are arrays starting with the entity name (`['admin-orders']`, `['enrollments', userId]`, `['course', id]`) ✓
-- All mutations call `invalidateQueries` on success ✓
-- `Database` types from `src/integrations/supabase/types.ts` flow through `Tables<'orders'>`/`Tables<'products'>` etc. ✓
-- Realtime channels invalidate the right keys (`useAdminAnalytics`, `useAdminRealtimeDashboard`) ✓
-- The `error: unknown` + `instanceof Error` pattern is already standard in 90% of catches ✓
-- `incomplete_orders.user_id` is now NOT NULL (Phase 4) — orphan PII class eliminated ✓
+- All public + admin routes lazy-loaded ✓
+- React Query v5 with `staleTime` and `gcTime` tuned, retries=1, no refetch-on-focus ✓
+- Manual chunk splits: vendor-react / vendor-supabase / vendor-date ✓
+- `OfflineIndicator` mounted in App ✓
+- `ErrorBoundary` handles chunk-load reload + Sentry-style trackError ✓
+- `AdminAnalytics` already wraps in ErrorBoundary + lazy charts ✓
+- `useMemo`/`useCallback`/`memo()` used in 40+ files where it matters ✓
+- Realtime invalidation is granular by query-key, not blanket `invalidateAll` ✓
+- CourseDetailPage handles `course not found` with friendly UI ✓
+- 404 NotFound page exists ✓
 
-## Execution scope (~8 files, no new deps, no DB changes)
+## Execution scope (~7 files, no new deps)
 
 ```
-src/lib/dbJoins.ts                            (NEW — joinByKey<T,K>(rows, refKey, lookup))
-src/components/dashboard/EditProfileSheet.tsx (F1 — RHF + zodResolver(profileSchema))
-src/components/academy/EnrollDialog.tsx       (F1 — RHF + enrollSchema, inline errors)
-src/components/ProductReviewForm.tsx          (F1 + D3 — RHF + useMutation + cache invalidation)
-src/hooks/useProfile.ts                       (D2 — react-query + useMutation, keeps API stable)
-src/pages/admin/AdminEnrollments.tsx          (F2 — typed join via dbJoins, drop 4 any)
-src/pages/admin/AdminCustomers.tsx            (F2 — typed user_roles, drop 2 any)
-src/pages/admin/AdminCoupons.tsx              (F2 — error: unknown, drop 1 any)
-src/pages/admin/AdminProducts.tsx             (F3 — extract buildProductPayload, drop 1 any)
-src/hooks/useAdmin.ts                         (D1 — use joinByKey for profile/role merge)
+src/pages/admin/AdminProducts.tsx         (B1 — lazy PDFImportDialog + CSVImportDialog with Suspense)
+src/pages/admin/AdminOrders.tsx           (B3 — lazy FraudAnalysisPanel)
+src/pages/admin/AdminCourses.tsx          (B3 — lazy CurriculumEditor)
+src/components/admin/analytics/RecoveryCharts.tsx   (NEW — extract recharts JSX)
+src/pages/admin/AdminRecoveryAnalytics.tsx (B2 — use lazy RecoveryCharts + ErrorBoundary)
+src/pages/CheckoutPage.tsx                (B4 — wrap content in <ErrorBoundary>)
+src/pages/DashboardPage.tsx               (B4 — wrap tabs in <ErrorBoundary>)
+src/pages/ProductDetailPage.tsx           (R1 — typed useParams + redirect on missing id)
+src/pages/ShopPage.tsx                    (R2 — single-pass filter for featured)
+src/components/OfflineIndicator.tsx       (R3 — cleanup timeout in effect)
+public/sw.js                              (R4 — cap image cache at 80 entries)
 ```
 
 ## Out of scope (intentionally)
-- **No new Supabase tables, RLS, or migrations** — data layer is structurally fine.
-- **No react-hook-form rewrite of `AuthPage`/`CheckoutPage`/`ContactPage`/`AdminCourses`** — already done correctly.
-- **No changes to query keys** — already granular (`[entity, scope, ...filters]`).
-- **No removal of the `useFeaturedAgri`/`useDashboardData` split** — they serve different cache lifetimes intentionally.
-- **No type re-derivation from `Tables<>`** in every existing interface — only in the files we touch (incremental, low risk).
-- **No Recharts `entry: any`** in `AnalyticsCharts.tsx` — that's the library's own untyped tooltip API and changing it requires custom payload typing that adds more noise than safety.
+- **No virtualization** (react-window) — biggest list (Shop) uses infinite scroll with skeletons; admin tables paginate at ≤25 rows. Not warranted.
+- **No Suspense data boundaries** — react-query `useQuery` has its own `isLoading` flow, switching would require rewrites for marginal gain.
+- **No service-worker rewrite** — current network-first strategy is correct; only adding LRU cap.
+- **No splitting of AdminOrders (1082 LOC) / AdminProducts (878 LOC) into sub-pages** — they're monolithic but cohesive; would risk regression for ~minor maintainability win. Flag for a future refactor sprint.
+- **No framer-motion / page-transition library** — Phase 5 already settled this.
+- **No global Sentry integration** — `trackError` already pipes to analytics.
 
 ## Decision
 
 Reply with one of:
-- **"Execute all of Phase 6"** — full ~10 files, recommended.
-- **"Execute F1–F3 only"** — form RHF migration + `any` cleanup, skip the `dbJoins` extraction. ~7 files.
-- **"Skip D2 useProfile rewrite"** — leave the profile hook as-is to avoid touching dashboard plumbing.
+- **"Execute all of Phase 7"** — full ~10 files, recommended.
+- **"Execute B1–B4 only"** — bundle splits + critical error boundaries, skip the R-tier polish. ~6 files.
+- **"Skip B4 nested boundaries"** — keep only the global ErrorBoundary, do everything else.
 
