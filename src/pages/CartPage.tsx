@@ -243,7 +243,7 @@ const CartPage = () => {
                       <span>Delivery</span>
                     </div>
                     {deliveryCharge === 0 ? (
-                      <span className="text-green-600 font-medium">FREE</span>
+                      <span className="text-success font-medium">FREE</span>
                     ) : (
                       <span>৳{deliveryCharge}</span>
                     )}

@@ -84,7 +84,7 @@ export const LowStockAlert = ({ products }: LowStockAlertProps) => {
                     'text-[10px] h-5 flex-shrink-0',
                     product.stock === 0
                       ? ''
-                      : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                      : 'bg-warning-light text-warning-foreground border-warning-border'
                   )}
                 >
                   {product.stock === 0 ? 'Out of stock' : `${product.stock} left`}

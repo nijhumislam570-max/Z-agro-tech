@@ -189,9 +189,9 @@ const AdminCoupons = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
           { key: 'all', label: 'Total Coupons', value: coupons.length, icon: Ticket, iconColor: 'text-primary', iconBg: 'bg-primary/10', bgClass: 'bg-gradient-to-br from-primary/5 to-accent/5 border-primary/10 dark:from-primary/10 dark:to-accent/10 dark:border-primary/20' },
-          { key: 'active', label: 'Active', value: coupons.filter(c => c.is_active && !isExpired(c) && !isUsedUp(c)).length, icon: ToggleRight, iconColor: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/10', bgClass: 'bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50' },
-          { key: 'expired', label: 'Expired', value: coupons.filter(c => isExpired(c)).length, icon: ToggleLeft, iconColor: 'text-red-600 dark:text-red-400', iconBg: 'bg-red-500/10', bgClass: 'bg-gradient-to-br from-red-50 to-rose-50/50 border-red-100 dark:from-red-950/30 dark:to-rose-950/20 dark:border-red-900/50' },
-          { key: 'used-up', label: 'Used Up', value: coupons.filter(c => isUsedUp(c)).length, icon: Check, iconColor: 'text-amber-600 dark:text-amber-400', iconBg: 'bg-amber-500/10', bgClass: 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50' },
+          { key: 'active', label: 'Active', value: coupons.filter(c => c.is_active && !isExpired(c) && !isUsedUp(c)).length, icon: ToggleRight, iconColor: 'text-success', iconBg: 'bg-success/10', bgClass: 'bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50' },
+          { key: 'expired', label: 'Expired', value: coupons.filter(c => isExpired(c)).length, icon: ToggleLeft, iconColor: 'text-danger', iconBg: 'bg-danger/10', bgClass: 'bg-gradient-to-br from-danger-soft to-danger-soft/50 border-danger-border dark:from-danger-soft/30 dark:to-danger-soft/20 dark:border-danger-border/50' },
+          { key: 'used-up', label: 'Used Up', value: coupons.filter(c => isUsedUp(c)).length, icon: Check, iconColor: 'text-warning-foreground', iconBg: 'bg-warning/10', bgClass: 'bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50' },
         ].map(({ key, label, value, icon: Icon, iconColor, iconBg, bgClass }) => (
           <div
             key={key}
@@ -340,7 +340,7 @@ const AdminCoupons = () => {
                           className="font-mono font-bold text-sm sm:text-base flex items-center gap-1.5 hover:text-primary transition-colors"
                         >
                           {coupon.code}
-                          {copiedId === coupon.id ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                          {copiedId === coupon.id ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
                         </button>
                         <Badge variant={inactive ? 'outline' : 'default'} className="text-[10px]">
                           {getDiscountLabel(coupon)}

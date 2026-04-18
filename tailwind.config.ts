@@ -82,12 +82,34 @@ export default {
         success: {
           DEFAULT: "hsl(var(--success))",
           light: "hsl(var(--success-light))",
+          soft: "hsl(var(--success-soft))",
+          border: "hsl(var(--success-border))",
           foreground: "hsl(var(--success-foreground))",
         },
         warning: {
           DEFAULT: "hsl(var(--warning))",
           light: "hsl(var(--warning-light))",
+          soft: "hsl(var(--warning-soft))",
+          border: "hsl(var(--warning-border))",
           foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          light: "hsl(var(--info-light))",
+          soft: "hsl(var(--info-soft))",
+          border: "hsl(var(--info-border))",
+          foreground: "hsl(var(--info-foreground))",
+        },
+        danger: {
+          DEFAULT: "hsl(var(--danger))",
+          light: "hsl(var(--danger-light))",
+          soft: "hsl(var(--danger-soft))",
+          border: "hsl(var(--danger-border))",
+          foreground: "hsl(var(--danger-foreground))",
+        },
+        neutral: {
+          soft: "hsl(var(--neutral-soft))",
+          border: "hsl(var(--neutral-border))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

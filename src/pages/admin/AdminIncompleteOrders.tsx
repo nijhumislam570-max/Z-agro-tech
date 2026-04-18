@@ -49,9 +49,9 @@ const IncompleteStatCard = ({ icon: Icon, label, value, iconColor, iconBg, bgCla
 );
 
 const CompletenessBadge = ({ value }: { value: number }) => {
-  const color = value >= 80 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-    : value >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+  const color = value >= 80 ? 'bg-success-light text-success dark:bg-success-light/30 dark:text-success'
+    : value >= 50 ? 'bg-warning-light text-warning-foreground dark:bg-warning-light/30 dark:text-warning'
+    : 'bg-danger-light text-danger dark:bg-danger-light/30 dark:text-danger';
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${color}`}>{value}%</span>;
 };
 
@@ -212,20 +212,20 @@ const AdminIncompleteOrders = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
-          <IncompleteStatCard icon={ShoppingCart} label="Incomplete" value={totalIncomplete} iconColor="text-amber-600 dark:text-amber-400" iconBg="bg-amber-500/10" bgClass="bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50" active={statusFilter === 'incomplete'} onClick={() => setStatusFilter(f => f === 'incomplete' ? 'all' : 'incomplete')} />
-          <IncompleteStatCard icon={TrendingUp} label="Recovered" value={totalRecovered} iconColor="text-emerald-600 dark:text-emerald-400" iconBg="bg-emerald-500/10" bgClass="bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50" active={statusFilter === 'recovered'} onClick={() => setStatusFilter(f => f === 'recovered' ? 'all' : 'recovered')} />
-          <IncompleteStatCard icon={AlertTriangle} label="Recovery Rate" value={`${recoveryRate}%`} iconColor="text-blue-600 dark:text-blue-400" iconBg="bg-blue-500/10" bgClass="bg-gradient-to-br from-blue-50 to-indigo-50/50 border-blue-100 dark:from-blue-950/30 dark:to-indigo-950/20 dark:border-blue-900/50" onClick={() => navigate('/admin/recovery-analytics')} />
-          <IncompleteStatCard icon={DollarSign} label="Lost Revenue" value={`৳${lostRevenue.toLocaleString()}`} iconColor="text-red-600 dark:text-red-400" iconBg="bg-red-500/10" bgClass="bg-gradient-to-br from-red-50 to-rose-50/50 border-red-100 dark:from-red-950/30 dark:to-rose-950/20 dark:border-red-900/50" active={statusFilter === 'incomplete'} onClick={() => setStatusFilter(f => f === 'incomplete' ? 'all' : 'incomplete')} />
+          <IncompleteStatCard icon={ShoppingCart} label="Incomplete" value={totalIncomplete} iconColor="text-warning-foreground" iconBg="bg-warning/10" bgClass="bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50" active={statusFilter === 'incomplete'} onClick={() => setStatusFilter(f => f === 'incomplete' ? 'all' : 'incomplete')} />
+          <IncompleteStatCard icon={TrendingUp} label="Recovered" value={totalRecovered} iconColor="text-success" iconBg="bg-success/10" bgClass="bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50" active={statusFilter === 'recovered'} onClick={() => setStatusFilter(f => f === 'recovered' ? 'all' : 'recovered')} />
+          <IncompleteStatCard icon={AlertTriangle} label="Recovery Rate" value={`${recoveryRate}%`} iconColor="text-info" iconBg="bg-info/10" bgClass="bg-gradient-to-br from-info-soft to-info-soft/50 border-info-border dark:from-info-soft/30 dark:to-info-soft/20 dark:border-info-border/50" onClick={() => navigate('/admin/recovery-analytics')} />
+          <IncompleteStatCard icon={DollarSign} label="Lost Revenue" value={`৳${lostRevenue.toLocaleString()}`} iconColor="text-danger" iconBg="bg-danger/10" bgClass="bg-gradient-to-br from-danger-soft to-danger-soft/50 border-danger-border dark:from-danger-soft/30 dark:to-danger-soft/20 dark:border-danger-border/50" active={statusFilter === 'incomplete'} onClick={() => setStatusFilter(f => f === 'incomplete' ? 'all' : 'incomplete')} />
           <IncompleteStatCard icon={Trash2} label="Trashed" value={totalTrashed} iconColor="text-muted-foreground" iconBg="bg-muted" bgClass="bg-muted/30 border-border" active={statusFilter === 'trashed'} onClick={() => setStatusFilter(f => f === 'trashed' ? 'all' : 'trashed')} />
         </div>
 
         {/* Revenue Banner */}
         {lostRevenue > 0 && statusFilter !== 'trashed' && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-amber-500/10 border border-red-500/20">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-danger/10 to-warning/10 border border-danger/30">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-red-600 dark:text-red-400" />
-              <span className="font-semibold text-red-700 dark:text-red-300">৳{lostRevenue.toLocaleString()}</span>
-              <span className="text-sm text-red-600/80 dark:text-red-400/80">potential revenue from {totalIncomplete} incomplete orders</span>
+              <DollarSign className="h-5 w-5 text-danger" />
+              <span className="font-semibold text-danger">৳{lostRevenue.toLocaleString()}</span>
+              <span className="text-sm text-danger/80 dark:text-danger/80">potential revenue from {totalIncomplete} incomplete orders</span>
             </div>
           </div>
         )}
@@ -251,7 +251,7 @@ const AdminIncompleteOrders = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <CompletenessBadge value={order.completeness} />
-                      {order.status === 'recovered' && <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Recovered</Badge>}
+                      {order.status === 'recovered' && <Badge className="bg-success-light text-success dark:bg-success-light/30 dark:text-success">Recovered</Badge>}
                     </div>
                   </div>
                   {order.shipping_address && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{order.shipping_address}</p>}
@@ -326,7 +326,7 @@ const AdminIncompleteOrders = () => {
                     <TableCell><CompletenessBadge value={order.completeness} /></TableCell>
                     <TableCell>
                       {order.status === 'recovered'
-                        ? <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Recovered</Badge>
+                        ? <Badge className="bg-success-light text-success dark:bg-success-light/30 dark:text-success">Recovered</Badge>
                         : <Badge variant="outline">Incomplete</Badge>}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(order.created_at), { addSuffix: true })}</TableCell>

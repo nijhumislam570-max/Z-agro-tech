@@ -129,15 +129,15 @@ export const AdminMobileNav = ({
         </SheetClose>
 
         {totalPending > 0 && (
-          <div className="mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
-            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-amber-500/20">
-              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <div className="mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-warning/10 to-warning/10 border border-warning/30">
+            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-warning/20">
+              <AlertCircle className="h-4 w-4 text-warning-foreground" />
             </div>
             <div className="flex-1">
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+              <p className="text-xs font-semibold text-warning-foreground">
                 {totalPending} Pending Order{totalPending !== 1 ? 's' : ''}
               </p>
-              <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80">
+              <p className="text-[10px] text-warning-foreground/80 dark:text-warning/80">
                 Awaiting your action
               </p>
             </div>

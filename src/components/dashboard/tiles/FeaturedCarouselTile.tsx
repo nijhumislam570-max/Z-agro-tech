@@ -17,17 +17,17 @@ import { getCourseImage, getProductImage } from '@/lib/agriImages';
 
 function difficultyTone(level: string) {
   const l = level.toLowerCase();
-  if (l.includes('begin')) return 'bg-emerald-500/90 text-white border-transparent hover:bg-emerald-500/90';
-  if (l.includes('inter')) return 'bg-amber-500/90 text-white border-transparent hover:bg-amber-500/90';
-  if (l.includes('adv')) return 'bg-rose-500/90 text-white border-transparent hover:bg-rose-500/90';
+  if (l.includes('begin')) return 'bg-success/90 text-white border-transparent hover:bg-success/90';
+  if (l.includes('inter')) return 'bg-warning/90 text-white border-transparent hover:bg-warning/90';
+  if (l.includes('adv')) return 'bg-danger/90 text-white border-transparent hover:bg-danger/90';
   return 'bg-white/90 text-foreground hover:bg-white/90 border-transparent';
 }
 
 function stockTone(stock: number | null) {
   const s = stock ?? 0;
-  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-rose-500/90 text-white border-transparent hover:bg-rose-500/90' };
-  if (s < 5) return { label: 'Low Stock', cls: 'bg-amber-500/90 text-white border-transparent hover:bg-amber-500/90' };
-  return { label: 'In Stock', cls: 'bg-emerald-500/90 text-white border-transparent hover:bg-emerald-500/90' };
+  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-danger/90 text-white border-transparent hover:bg-danger/90' };
+  if (s < 5) return { label: 'Low Stock', cls: 'bg-warning/90 text-white border-transparent hover:bg-warning/90' };
+  return { label: 'In Stock', cls: 'bg-success/90 text-white border-transparent hover:bg-success/90' };
 }
 
 function FeaturedSlide({ item }: { item: FeaturedItem }) {

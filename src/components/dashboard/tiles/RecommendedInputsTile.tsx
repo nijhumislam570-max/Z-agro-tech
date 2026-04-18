@@ -12,9 +12,9 @@ import { getProductImage } from '@/lib/agriImages';
 
 function stockBadge(stock: number | null) {
   const s = stock ?? 0;
-  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-rose-500/90 text-white border-transparent hover:bg-rose-500/90' };
-  if (s < 5) return { label: 'Low Stock', cls: 'bg-amber-500/90 text-white border-transparent hover:bg-amber-500/90' };
-  return { label: 'In Stock', cls: 'bg-emerald-500/90 text-white border-transparent hover:bg-emerald-500/90' };
+  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-danger/90 text-white border-transparent hover:bg-danger/90' };
+  if (s < 5) return { label: 'Low Stock', cls: 'bg-warning/90 text-white border-transparent hover:bg-warning/90' };
+  return { label: 'In Stock', cls: 'bg-success/90 text-white border-transparent hover:bg-success/90' };
 }
 
 function MiniProduct({ product }: { product: RecommendedProduct }) {

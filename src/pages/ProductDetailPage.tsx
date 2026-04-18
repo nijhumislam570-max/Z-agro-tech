@@ -336,12 +336,12 @@ const ProductDetailPage = () => {
                 {product.product_type || product.category}
               </span>
               {product.stock !== null && product.stock > 0 && product.stock <= 5 && (
-                <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 font-medium px-3 py-1 rounded-full">
+                <span className="text-xs bg-warning-light text-warning-foreground dark:bg-warning-light/30 dark:text-warning font-medium px-3 py-1 rounded-full">
                   Only {product.stock} left!
                 </span>
               )}
               {product.stock !== null && product.stock > 5 && (
-                <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                <span className="text-xs text-success font-medium flex items-center gap-1">
                   <Check className="h-3 w-3" />
                   In Stock
                 </span>
@@ -366,7 +366,7 @@ const ProductDetailPage = () => {
                     key={star}
                     className={`h-4 w-4 ${
                       star <= Math.round(avgRating) 
-                        ? 'text-amber-400 fill-amber-400' 
+                        ? 'text-warning fill-amber-400' 
                         : 'text-muted-foreground/30'
                     }`}
                   />
@@ -400,7 +400,7 @@ const ProductDetailPage = () => {
                 )}
               </div>
               {savings > 0 && (
-                <p className="text-sm text-green-600 font-medium">
+                <p className="text-sm text-success font-medium">
                   You save ৳{savings.toLocaleString()} ({product.discount}% off)
                 </p>
               )}
@@ -419,15 +419,15 @@ const ProductDetailPage = () => {
             {/* Features List */}
             <div className="space-y-2">
               <div className="flex items-start gap-3 text-sm">
-                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <Check className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground">100% Authentic & Genuine Product</span>
               </div>
               <div className="flex items-start gap-3 text-sm">
-                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <Check className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground">Quality Tested & Approved</span>
               </div>
               <div className="flex items-start gap-3 text-sm">
-                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <Check className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                 <span className="text-muted-foreground">Secure & Safe Packaging</span>
               </div>
             </div>
@@ -562,7 +562,7 @@ const ProductDetailPage = () => {
                   </span>
                 )}
                 {savings > 0 && (
-                  <span className="text-xs text-green-600 font-medium ml-auto">Save ৳{savings.toLocaleString()}</span>
+                  <span className="text-xs text-success font-medium ml-auto">Save ৳{savings.toLocaleString()}</span>
                 )}
               </div>
 
@@ -662,7 +662,7 @@ const ProductDetailPage = () => {
                           key={star}
                           className={`h-4 w-4 ${
                             star <= Math.round(avgRating) 
-                              ? 'text-amber-400 fill-amber-400' 
+                              ? 'text-warning fill-amber-400' 
                               : 'text-muted-foreground/30'
                           }`}
                         />
@@ -682,7 +682,7 @@ const ProductDetailPage = () => {
                           <span className="text-sm text-muted-foreground w-8">{rating} ★</span>
                           <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-amber-400 rounded-full" 
+                              className="h-full bg-warning rounded-full" 
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -711,7 +711,7 @@ const ProductDetailPage = () => {
                                 key={star}
                                 className={`h-3 w-3 ${
                                   star <= review.rating 
-                                    ? 'text-amber-400 fill-amber-400' 
+                                    ? 'text-warning fill-amber-400' 
                                     : 'text-muted-foreground/30'
                                 }`}
                               />

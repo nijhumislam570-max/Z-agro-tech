@@ -78,7 +78,7 @@ const ProductReviewForm = ({ productId, onReviewSubmitted }: ProductReviewFormPr
             >
               <Star className={`h-7 w-7 transition-colors ${
                 star <= (hoveredRating || rating)
-                  ? 'text-amber-400 fill-amber-400'
+                  ? 'text-warning fill-warning'
                   : 'text-muted-foreground/30'
               }`} />
             </button>

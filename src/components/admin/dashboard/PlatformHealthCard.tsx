@@ -30,7 +30,7 @@ export const PlatformHealthCard = memo(
       <Card ref={ref} className="shadow-sm border-border/50">
         <CardHeader className="p-3 sm:p-4 lg:p-5 pb-2 sm:pb-3">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
+            <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
             Store Health
           </CardTitle>
         </CardHeader>
@@ -60,7 +60,7 @@ export const PlatformHealthCard = memo(
                   {stats?.totalProducts || 0} products
                 </span>
                 <span className="flex items-center gap-1 text-[10px] sm:text-xs">
-                  <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-500" />
+                  <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning" />
                   {pendingOrders} pending
                 </span>
               </div>

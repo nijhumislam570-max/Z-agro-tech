@@ -59,10 +59,10 @@ interface ContactMessage {
 }
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  unread: { label: 'Unread', icon: Mail, color: 'bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400' },
+  unread: { label: 'Unread', icon: Mail, color: 'bg-info-light text-info dark:bg-info-light/40 dark:text-info' },
   read: { label: 'Read', icon: MailOpen, color: 'bg-muted text-muted-foreground' },
-  replied: { label: 'Replied', icon: CheckCircle2, color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400' },
-  archived: { label: 'Archived', icon: XCircle, color: 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400' },
+  replied: { label: 'Replied', icon: CheckCircle2, color: 'bg-success-light text-success dark:bg-success-light/40 dark:text-success' },
+  archived: { label: 'Archived', icon: XCircle, color: 'bg-warning-light text-warning-foreground dark:bg-warning-light/40 dark:text-warning' },
 };
 
 const AdminContactMessages = () => {

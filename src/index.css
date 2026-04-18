@@ -63,13 +63,29 @@
     --sunshine-light: 38 80% 90%;
     --peach: 38 60% 80%;
     
-    /* Status colors */
-    --success: 160 60% 45%;
+    /* Status / semantic feedback colors (always reach for these) */
+    --success: 160 60% 35%;
     --success-light: 160 50% 92%;
+    --success-soft: 160 50% 96%;
+    --success-border: 160 45% 80%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 92% 45%;
     --warning-light: 38 90% 90%;
-    --warning-foreground: 38 92% 20%;
+    --warning-soft: 38 90% 96%;
+    --warning-border: 38 80% 78%;
+    --warning-foreground: 38 92% 18%;
+    --info: 210 80% 45%;
+    --info-light: 210 70% 92%;
+    --info-soft: 210 70% 96%;
+    --info-border: 210 65% 80%;
+    --info-foreground: 0 0% 100%;
+    --danger: 0 70% 45%;
+    --danger-light: 0 70% 94%;
+    --danger-soft: 0 70% 97%;
+    --danger-border: 0 60% 82%;
+    --danger-foreground: 0 0% 100%;
+    --neutral-soft: 220 15% 96%;
+    --neutral-border: 220 15% 88%;
 
     /* Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(90 30% 96%), hsl(60 40% 97%), hsl(38 60% 95%));
@@ -137,12 +153,28 @@
     --sidebar-ring: 15 80% 58%;
     
     /* Dark mode status colors */
-    --success: 160 55% 40%;
-    --success-light: 160 40% 20%;
+    --success: 160 55% 42%;
+    --success-light: 160 40% 18%;
+    --success-soft: 160 35% 14%;
+    --success-border: 160 30% 28%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 85% 50%;
-    --warning-light: 38 80% 20%;
-    --warning-foreground: 38 90% 90%;
+    --warning: 38 85% 52%;
+    --warning-light: 38 75% 18%;
+    --warning-soft: 38 60% 14%;
+    --warning-border: 38 50% 28%;
+    --warning-foreground: 38 90% 92%;
+    --info: 210 75% 55%;
+    --info-light: 210 60% 18%;
+    --info-soft: 210 50% 14%;
+    --info-border: 210 45% 28%;
+    --info-foreground: 0 0% 100%;
+    --danger: 0 65% 52%;
+    --danger-light: 0 60% 20%;
+    --danger-soft: 0 50% 14%;
+    --danger-border: 0 45% 30%;
+    --danger-foreground: 0 0% 100%;
+    --neutral-soft: 220 20% 14%;
+    --neutral-border: 220 15% 24%;
   }
 }
 

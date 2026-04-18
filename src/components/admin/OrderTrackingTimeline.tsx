@@ -141,23 +141,23 @@ export function OrderTrackingTimeline({ orderId, trackingId, consignmentId, orde
               <div className="flex flex-col items-center gap-1">
                 <div className={cn(
                   'h-8 w-8 rounded-full flex items-center justify-center transition-colors',
-                  step.status === 'completed' && 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-                  step.status === 'current' && 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 ring-2 ring-blue-400/50',
+                  step.status === 'completed' && 'bg-success-light text-success',
+                  step.status === 'current' && 'bg-info-light text-info ring-2 ring-info/40',
                   step.status === 'upcoming' && 'bg-muted text-muted-foreground',
                 )}>
                   <Icon className={cn('h-4 w-4', step.status === 'current' && step.label === 'Processing' && 'animate-spin')} />
                 </div>
                 <span className={cn(
                   'text-[10px] font-medium whitespace-nowrap',
-                  step.status === 'completed' && 'text-green-600 dark:text-green-400',
-                  step.status === 'current' && 'text-blue-600 dark:text-blue-400',
+                  step.status === 'completed' && 'text-success',
+                  step.status === 'current' && 'text-info',
                   step.status === 'upcoming' && 'text-muted-foreground',
                 )}>{step.label}</span>
               </div>
               {i < steps.length - 1 && (
                 <div className={cn(
                   'flex-1 h-0.5 mx-1 rounded-full',
-                  step.status === 'completed' ? 'bg-green-400 dark:bg-green-600' : 'bg-muted',
+                  step.status === 'completed' ? 'bg-success' : 'bg-muted',
                 )} />
               )}
             </div>

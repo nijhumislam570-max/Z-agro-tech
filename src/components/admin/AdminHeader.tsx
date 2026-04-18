@@ -161,27 +161,27 @@ export const AdminHeader = ({
               <DropdownMenuSeparator />
               {pendingOrders > 0 && (
                 <DropdownMenuItem onClick={() => navigate('/admin/orders?status=pending')} className="cursor-pointer py-3 px-3">
-                  <ShoppingCart className="h-4 w-4 mr-3 text-amber-500 flex-shrink-0" />
+                  <ShoppingCart className="h-4 w-4 mr-3 text-warning flex-shrink-0" />
                   <span className="flex-1 text-sm">{pendingOrders} pending order{pendingOrders !== 1 ? 's' : ''}</span>
-                  <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-200 text-[10px]">
+                  <Badge variant="outline" className="ml-2 bg-warning-light text-warning-foreground border-warning-border text-[10px]">
                     Action
                   </Badge>
                 </DropdownMenuItem>
               )}
               {incompleteOrders > 0 && (
                 <DropdownMenuItem onClick={() => navigate('/admin/incomplete-orders')} className="cursor-pointer py-3 px-3">
-                  <AlertCircle className="h-4 w-4 mr-3 text-orange-500 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 mr-3 text-warning-foreground flex-shrink-0" />
                   <span className="flex-1 text-sm">{incompleteOrders} abandoned cart{incompleteOrders !== 1 ? 's' : ''}</span>
-                  <Badge variant="outline" className="ml-2 bg-orange-50 text-orange-700 border-orange-200 text-[10px]">
+                  <Badge variant="outline" className="ml-2 bg-warning-light text-warning-foreground border-warning-border text-[10px]">
                     Recover
                   </Badge>
                 </DropdownMenuItem>
               )}
               {unreadMessages > 0 && (
                 <DropdownMenuItem onClick={() => navigate('/admin/messages')} className="cursor-pointer py-3 px-3">
-                  <Mail className="h-4 w-4 mr-3 text-blue-500 flex-shrink-0" />
+                  <Mail className="h-4 w-4 mr-3 text-info flex-shrink-0" />
                   <span className="flex-1 text-sm">{unreadMessages} unread message{unreadMessages !== 1 ? 's' : ''}</span>
-                  <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200 text-[10px] dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-800">
+                  <Badge variant="outline" className="ml-2 bg-info-light text-info border-info-border text-[10px] dark:bg-info-light/30 dark:text-info dark:border-info-border">
                     Reply
                   </Badge>
                 </DropdownMenuItem>

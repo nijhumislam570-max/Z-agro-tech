@@ -81,12 +81,12 @@ const RoleBadge = ({ role }: { role: string }) => {
   const config: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
     admin: {
       label: 'Admin',
-      className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+      className: 'bg-info-light text-info dark:bg-info-light/30 dark:text-info border-info-border',
       icon: <User className="h-2.5 w-2.5" />,
     },
     user: {
       label: 'Farmer',
-      className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+      className: 'bg-success-light text-success dark:bg-success-light/20 dark:text-success border-success-border',
       icon: <Sprout className="h-2.5 w-2.5" />,
     },
   };
@@ -111,10 +111,10 @@ const PaymentStatusBadge = ({
 }) => {
   const badgeClass =
     status === 'paid'
-      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+      ? 'bg-success-light text-success dark:bg-success-light/30 dark:text-success'
       : status === 'refunded'
-      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-      : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+      ? 'bg-info-light text-info dark:bg-info-light/30 dark:text-info'
+      : 'bg-warning-light text-warning-foreground dark:bg-warning-light/30 dark:text-warning';
 
   const label = status === 'paid' ? 'Paid' : status === 'refunded' ? 'Refunded' : 'Unpaid';
 
@@ -442,9 +442,9 @@ const AdminEcommerceCustomers = () => {
           label="Total Sales"
           value={formatBDT(stats.totalSales)}
           icon={DollarSign}
-          iconColor="text-emerald-600"
-          iconBg="bg-emerald-500/10"
-          bgClass="bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50"
+          iconColor="text-success"
+          iconBg="bg-success/10"
+          bgClass="bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50"
           active={paymentFilter === 'all'}
           onClick={() => setPaymentFilter('all')}
         />
@@ -452,9 +452,9 @@ const AdminEcommerceCustomers = () => {
           label="Paid"
           value={formatBDT(stats.paid)}
           icon={CreditCard}
-          iconColor="text-blue-600"
-          iconBg="bg-blue-500/10"
-          bgClass="bg-gradient-to-br from-blue-50 to-indigo-50/50 border-blue-100 dark:from-blue-950/30 dark:to-indigo-950/20 dark:border-blue-900/50"
+          iconColor="text-info"
+          iconBg="bg-info/10"
+          bgClass="bg-gradient-to-br from-info-soft to-info-soft/50 border-info-border dark:from-info-soft/30 dark:to-info-soft/20 dark:border-info-border/50"
           active={paymentFilter === 'paid'}
           onClick={() => setPaymentFilter('paid')}
         />
@@ -462,9 +462,9 @@ const AdminEcommerceCustomers = () => {
           label="Pending"
           value={formatBDT(stats.pending)}
           icon={Clock}
-          iconColor="text-amber-600"
-          iconBg="bg-amber-500/10"
-          bgClass="bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50"
+          iconColor="text-warning-foreground"
+          iconBg="bg-warning/10"
+          bgClass="bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50"
           active={paymentFilter === 'unpaid'}
           onClick={() => setPaymentFilter('unpaid')}
         />
@@ -472,9 +472,9 @@ const AdminEcommerceCustomers = () => {
           label="Total Customers"
           value={stats.totalCustomers}
           icon={Users}
-          iconColor="text-purple-600"
-          iconBg="bg-purple-500/10"
-          bgClass="bg-gradient-to-br from-purple-50 to-violet-50/50 border-purple-100 dark:from-purple-950/30 dark:to-violet-950/20 dark:border-purple-900/50"
+          iconColor="text-accent"
+          iconBg="bg-accent/10"
+          bgClass="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/30 dark:from-accent/5 dark:to-accent/5 dark:border-accent/40"
         />
       </div>
 
