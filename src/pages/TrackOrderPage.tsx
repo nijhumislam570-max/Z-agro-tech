@@ -52,41 +52,6 @@ const TrackOrderPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchAttempted, setSearchAttempted] = useState(false);
 
-  // Auto-load order from URL param
-  useEffect(() => {
-    if (orderId && user) {
-      setSearchInput(orderId);
-      fetchOrder(orderId);
-    }
-  }, [orderId, user]);
-
-  // Real-time order status updates
-  useEffect(() => {
-    const activeId = order?.id;
-    if (!activeId || !user) return;
-
-    const channel = supabase
-      .channel(`track-order-${activeId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
-          filter: `id=eq.${activeId}`,
-        },
-        (payload) => {
-          const updated = payload.new as unknown as OrderDetails;
-          setOrder((prev) => (prev ? { ...prev, ...updated } : prev));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [order?.id, user]);
-
   const fetchOrder = useCallback(async (id: string) => {
     if (!id.trim()) return;
     setIsLoading(true);
@@ -116,7 +81,7 @@ const TrackOrderPage = () => {
         setOrder(null);
         return;
       }
-      
+
       setOrder(data as unknown as OrderDetails | null);
     } catch (error) {
       logger.error('Error fetching order:', error);
@@ -126,6 +91,44 @@ const TrackOrderPage = () => {
       setIsLoading(false);
     }
   }, []);
+
+  // Auto-load order from URL param.
+  // Depend on user.id (primitive) instead of the user object reference,
+  // otherwise every Supabase token refresh emits a new user object and
+  // re-fires the fetch in a near-loop.
+  useEffect(() => {
+    if (orderId && user?.id) {
+      setSearchInput(orderId);
+      fetchOrder(orderId);
+    }
+  }, [orderId, user?.id, fetchOrder]);
+
+  // Real-time order status updates
+  useEffect(() => {
+    const activeId = order?.id;
+    if (!activeId || !user?.id) return;
+
+    const channel = supabase
+      .channel(`track-order-${activeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${activeId}`,
+        },
+        (payload) => {
+          const updated = payload.new as unknown as OrderDetails;
+          setOrder((prev) => (prev ? { ...prev, ...updated } : prev));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [order?.id, user?.id]);
 
   const handleSearch = useCallback(() => {
     if (!searchInput.trim()) {
