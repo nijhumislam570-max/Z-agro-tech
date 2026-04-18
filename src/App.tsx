@@ -109,7 +109,7 @@ const App = () => (
                       {/* Shop */}
                       <Route path="/shop" element={<ShopPage />} />
                       <Route path="/product/:id" element={<ProductDetailPage />} />
-                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
                       <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
                       <Route path="/track-order" element={<TrackOrderPage />} />
 

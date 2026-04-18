@@ -255,35 +255,39 @@ const AuthPage = () => {
       </div>
 
       {/* ─── Right Form Panel ─── */}
-      <div className="flex-1 flex items-center justify-center bg-background p-4 sm:p-6 md:p-8 lg:p-12 min-h-screen md:min-h-0 overflow-y-auto">
-        <div className="w-full max-w-[440px]">
+      <div className="flex-1 flex items-center justify-center bg-agri-gradient p-4 sm:p-6 md:p-8 lg:p-12 min-h-screen md:min-h-0 overflow-y-auto relative">
+        {/* Soft decorative blobs over agri gradient */}
+        <div className="absolute top-10 right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 left-10 w-72 h-72 bg-sunshine/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-[440px] relative z-10">
           {/* Mobile header - visible only on small screens */}
           <div className="md:hidden flex flex-col items-center mb-6">
             <Link to="/" className="inline-flex items-center gap-3 group mb-3">
               <img
                 src={logo}
-                alt="VET-MEDIX"
-                className="h-14 w-14 rounded-2xl object-contain bg-white shadow-soft border border-border/30"
+                alt="Z Agro Tech"
+                className="h-14 w-14 rounded-2xl object-contain bg-white shadow-soft border border-white/40"
               />
             </Link>
-            <h1 className="text-2xl font-display font-bold text-foreground">VET-MEDIX</h1>
-            <p className="text-muted-foreground text-sm mt-0.5">Your Complete Pet Care Platform</p>
+            <h1 className="text-2xl font-display font-bold text-white drop-shadow">Z Agro Tech</h1>
+            <p className="text-white/85 text-sm mt-0.5">Premium Agri-Inputs · Smart Farming Academy</p>
           </div>
 
           {/* Desktop header */}
           <div className="hidden md:block mb-8">
-            <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+            <h1 className="text-2xl lg:text-3xl font-display font-bold text-white drop-shadow">
               {isLogin ? 'Welcome back' : 'Create your account'}
             </h1>
-            <p className="text-muted-foreground mt-1.5">
+            <p className="text-white/85 mt-1.5">
               {isLogin
-                ? 'Sign in to continue to your dashboard'
-                : 'Join the VET-MEDIX community today'}
+                ? 'Sign in to your Krishi Clinic dashboard'
+                : 'Join Z Agro Tech — agri-inputs & masterclasses'}
             </p>
           </div>
 
-          {/* ─── Card with glassmorphism ─── */}
-          <div className="bg-card/80 backdrop-blur-xl border border-border/60 rounded-2xl shadow-[var(--shadow-card)] p-5 sm:p-7">
+          {/* ─── Glass card over agri gradient ─── */}
+          <div className="backdrop-blur-xl bg-white/85 dark:bg-card/80 border border-white/40 rounded-2xl shadow-2xl p-5 sm:p-7 transition-all duration-200">
             <Tabs
               value={activeTab}
               onValueChange={(v) => { setActiveTab(v as 'signin' | 'signup'); resetForm(); }}
