@@ -56,7 +56,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
   const { user } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
-  const wishlisted = id ? isWishlisted(id) : false;
+  const wishlisted = isWishlisted(id);
   
   useDocumentTitle(product?.name || 'Product Details');
 
