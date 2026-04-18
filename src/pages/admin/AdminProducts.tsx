@@ -667,7 +667,14 @@ const AdminProducts = () => {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Switch checked={pFeatured} onCheckedChange={(v) => handleToggleFeatured(product.id, v)} />
                           </TableCell>
-                          <TableCell>{getStockBadge(stock)}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-0.5">
+                              {getStockBadge(stock)}
+                              <span className="text-[10px] text-muted-foreground tabular-nums">
+                                {new Date(product.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
