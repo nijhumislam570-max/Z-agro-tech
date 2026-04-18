@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  Shield,
   GraduationCap,
   Users,
   Mail,
@@ -86,11 +85,17 @@ interface AdminSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   pendingOrders?: number;
-  pendingVerifications?: number;
-  pendingDoctors?: number;
+  incompleteOrders?: number;
+  unreadMessages?: number;
 }
 
-export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0 }: AdminSidebarProps) => {
+export const AdminSidebar = ({
+  collapsed,
+  onToggle,
+  pendingOrders = 0,
+  incompleteOrders = 0,
+  unreadMessages = 0,
+}: AdminSidebarProps) => {
   const location = useLocation();
 
   const sectionsWithBadges = navSections.map((section) => ({
@@ -99,11 +104,17 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0 }: AdminSi
       if (item.path === '/admin/orders' && pendingOrders > 0) {
         return { ...item, badge: pendingOrders, badgeVariant: 'destructive' as const };
       }
+      if (item.path === '/admin/incomplete-orders' && incompleteOrders > 0) {
+        return { ...item, badge: incompleteOrders, badgeVariant: 'outline' as const };
+      }
+      if (item.path === '/admin/messages' && unreadMessages > 0) {
+        return { ...item, badge: unreadMessages, badgeVariant: 'default' as const };
+      }
       return item;
     }),
   }));
 
-  const totalPending = pendingOrders;
+  const totalPending = pendingOrders + incompleteOrders + unreadMessages;
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -115,7 +126,6 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0 }: AdminSi
           collapsed ? 'w-[72px]' : 'w-[260px]',
         )}
       >
-        {/* Header with Logo */}
         <div
           className={cn(
             'relative p-4 border-b border-border/40',
@@ -161,7 +171,6 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0 }: AdminSi
           )}
         </div>
 
-        {/* Navigation */}
         <nav className={cn('flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}>
           <div className="space-y-6">
             {sectionsWithBadges.map((section, sectionIdx) => (
@@ -257,7 +266,6 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0 }: AdminSi
           </div>
         </nav>
 
-        {/* Footer */}
         <div className="mt-auto border-t border-border/40 bg-gradient-to-t from-muted/30 to-transparent">
           <div className={cn('p-2', collapsed && 'px-3')}>
             <Button

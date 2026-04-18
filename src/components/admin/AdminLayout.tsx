@@ -31,18 +31,18 @@ export const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => 
     queryFn: async () => {
       const [
         { count: pendingOrders },
-        { count: pendingVerifications },
-        { count: pendingDoctors },
+        { count: incompleteOrders },
+        { count: unreadMessages },
       ] = await Promise.all([
-        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('clinics').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending'),
-        supabase.from('doctors').select('*', { count: 'exact', head: true }).eq('verification_status', 'pending'),
+        supabase.from('orders').select('*', { count: 'exact', head: true }).eq('status', 'pending').is('trashed_at', null),
+        supabase.from('incomplete_orders').select('*', { count: 'exact', head: true }).eq('status', 'incomplete').is('trashed_at', null),
+        supabase.from('contact_messages').select('*', { count: 'exact', head: true }).eq('status', 'unread'),
       ]);
 
       return {
         pendingOrders: pendingOrders || 0,
-        pendingVerifications: pendingVerifications || 0,
-        pendingDoctors: pendingDoctors || 0,
+        incompleteOrders: incompleteOrders || 0,
+        unreadMessages: unreadMessages || 0,
       };
     },
     enabled: isAdmin,
@@ -52,28 +52,26 @@ export const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/20">
-      {/* Fixed Sidebar - Desktop Only */}
-      <AdminSidebar 
-        collapsed={collapsed} 
+      <AdminSidebar
+        collapsed={collapsed}
         onToggle={toggleSidebar}
         pendingOrders={pendingCounts?.pendingOrders}
-        pendingVerifications={pendingCounts?.pendingVerifications}
-        pendingDoctors={pendingCounts?.pendingDoctors}
+        incompleteOrders={pendingCounts?.incompleteOrders}
+        unreadMessages={pendingCounts?.unreadMessages}
       />
-      
-      {/* Main Content Area - Offset by sidebar width on desktop */}
+
       <div className={cn(
         "min-h-screen flex flex-col transition-[margin] duration-300 ease-in-out",
         collapsed ? "md:ml-[72px]" : "md:ml-[260px]"
       )}>
-        <AdminHeader 
-          title={title} 
-          subtitle={subtitle} 
-          onToggleSidebar={toggleSidebar} 
+        <AdminHeader
+          title={title}
+          subtitle={subtitle}
+          onToggleSidebar={toggleSidebar}
           collapsed={collapsed}
           pendingOrders={pendingCounts?.pendingOrders}
-          pendingVerifications={pendingCounts?.pendingVerifications}
-          pendingDoctors={pendingCounts?.pendingDoctors}
+          incompleteOrders={pendingCounts?.incompleteOrders}
+          unreadMessages={pendingCounts?.unreadMessages}
         />
         <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
           {children}
