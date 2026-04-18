@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -19,6 +19,8 @@ import {
   Star,
   Eye,
   EyeOff,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -109,6 +111,8 @@ const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [quickStockEdit, setQuickStockEdit] = useState<{ id: string; stock: string } | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(emptyFormData);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 25;
 
 
   const stats = useMemo(() => {
@@ -144,6 +148,19 @@ const AdminProducts = () => {
     }
     return list;
   }, [products, debouncedSearch, stockFilter]);
+
+  // Pagination derived state
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
+    [filteredProducts, safePage],
+  );
+
+  // Reset to page 0 when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, stockFilter]);
 
   const resetForm = useCallback(() => setFormData(emptyFormData), []);
 
