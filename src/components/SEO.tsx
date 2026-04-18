@@ -195,8 +195,21 @@ export const SEO = ({
       if (existingScript) {
         existingScript.remove();
       }
-      
-      const jsonLd = generateJsonLd(schema);
+
+      const schemas = Array.isArray(schema) ? schema : [schema];
+      const jsonLd =
+        schemas.length === 1
+          ? generateJsonLd(schemas[0])
+          : {
+              '@context': 'https://schema.org',
+              '@graph': schemas.map((s) => {
+                const node = generateJsonLd(s) as Record<string, unknown>;
+                // strip the per-node @context — already on the wrapper
+                const { ['@context']: _ctx, ...rest } = node;
+                return rest;
+              }),
+            };
+
       const script = document.createElement('script');
       script.id = 'seo-jsonld';
       script.type = 'application/ld+json';
