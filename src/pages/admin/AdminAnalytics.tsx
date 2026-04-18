@@ -4,11 +4,7 @@ import {
   TrendingUp,
   ShoppingCart,
   Users,
-  Building2,
-  CalendarDays,
-  PawPrint,
   Package,
-  Stethoscope,
   RefreshCw,
   Mail,
   ShieldCheck,
@@ -20,7 +16,6 @@ import { AnalyticsDateFilter } from '@/components/admin/AnalyticsDateFilter';
 import { AnalyticsExport } from '@/components/admin/AnalyticsExport';
 import { AnalyticsPageSkeleton, ChartSkeleton } from '@/components/admin/AnalyticsSkeleton';
 import { LowStockAlert } from '@/components/admin/LowStockAlert';
-import { VerificationFunnelSection } from '@/components/admin/VerificationFunnel';
 import { Button } from '@/components/ui/button';
 import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
@@ -163,10 +158,10 @@ const AdminAnalytics = () => {
           {/* Platform Stats — render immediately */}
           <div className="mb-4 sm:mb-6 mt-4 sm:mt-6">
             <h2 className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2">
-              <Building2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               Platform Overview
             </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3 lg:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
               <AnalyticsStatCard
                 title="Total Users"
                 value={analytics?.totalUsers || 0}
@@ -174,30 +169,6 @@ const AdminAnalytics = () => {
                 subtitle={`${analytics?.newUsersThisMonth || 0} new this month`}
                 iconClassName="bg-blue-100 dark:bg-blue-900/30"
                 href="/admin/customers"
-              />
-              <AnalyticsStatCard
-                title="Doctors"
-                value={analytics?.totalDoctors || 0}
-                icon={<Stethoscope className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-600" />}
-                subtitle={`${analytics?.verifiedDoctors || 0} verified`}
-                iconClassName="bg-cyan-100 dark:bg-cyan-900/30"
-                href="/admin/doctors"
-              />
-              <AnalyticsStatCard
-                title="Clinics"
-                value={analytics?.clinicStats.total || 0}
-                icon={<Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-teal-600" />}
-                subtitle={`${analytics?.clinicStats.verified || 0} verified`}
-                iconClassName="bg-teal-100 dark:bg-teal-900/30"
-                href="/admin/clinics"
-              />
-              <AnalyticsStatCard
-                title="Appointments"
-                value={analytics?.appointmentStats.total || 0}
-                icon={<CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-rose-600" />}
-                subtitle={`${analytics?.appointmentStats.completed || 0} completed`}
-                iconClassName="bg-rose-100 dark:bg-rose-900/30"
-                href="/admin/clinics"
               />
               <AnalyticsStatCard
                 title="Products"
@@ -208,36 +179,23 @@ const AdminAnalytics = () => {
                 href="/admin/products"
               />
               <AnalyticsStatCard
-                title="Pets & Posts"
-                value={analytics?.totalPets || 0}
-                icon={<PawPrint className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />}
-                subtitle={`${analytics?.totalPosts || 0} posts`}
-                iconClassName="bg-amber-100 dark:bg-amber-900/30"
-                href="/admin/social"
-              />
-              <AnalyticsStatCard
                 title="Messages"
                 value={analytics?.unreadMessages || 0}
                 icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5 text-pink-600" />}
                 subtitle="Unread contacts"
                 iconClassName="bg-pink-100 dark:bg-pink-900/30"
+                href="/admin/messages"
+              />
+              <AnalyticsStatCard
+                title="Total Orders"
+                value={analytics?.totalOrders || 0}
+                icon={<ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />}
+                subtitle={`${analytics?.activeOrders || 0} active`}
+                iconClassName="bg-amber-100 dark:bg-amber-900/30"
+                href="/admin/orders"
               />
             </div>
           </div>
-
-          {/* Verification Funnels */}
-          {analytics && (
-            <div className="mb-4 sm:mb-6">
-              <h2 className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 sm:mb-3 flex items-center gap-2">
-                <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                Verification Pipeline
-              </h2>
-              <VerificationFunnelSection
-                clinicFunnel={analytics.clinicVerificationFunnel}
-                doctorFunnel={analytics.doctorVerificationFunnel}
-              />
-            </div>
-          )}
         </>
       )}
     </AdminLayout>

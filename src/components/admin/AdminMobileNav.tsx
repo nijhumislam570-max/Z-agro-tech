@@ -1,25 +1,22 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  Truck, 
-  ShoppingBag, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Package,
+  Truck,
+  ShoppingBag,
+  Settings,
   ArrowLeft,
   BarChart3,
   BarChart4,
-  Building2,
-  MessageCircleHeart,
   ChevronRight,
-  Shield,
-  ShieldCheck,
   Sparkles,
+  Leaf,
   AlertCircle,
-  Stethoscope,
   Mail,
   Ticket,
   MapPin,
-  FileText
+  GraduationCap,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { prefetchRoute } from '@/lib/imageUtils';
@@ -49,7 +46,7 @@ const navSections: NavSection[] = [
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/admin', description: 'Overview & stats' },
       { icon: BarChart3, label: 'Analytics', path: '/admin/analytics', description: 'Reports & insights' },
-    ]
+    ],
   },
   {
     title: 'E-Commerce',
@@ -57,31 +54,29 @@ const navSections: NavSection[] = [
     items: [
       { icon: Package, label: 'Products', path: '/admin/products', description: 'Manage inventory' },
       { icon: Truck, label: 'Orders', path: '/admin/orders', description: 'Process orders' },
-      { icon: ShoppingBag, label: 'Customers', path: '/admin/ecommerce-customers', description: 'Payments & buyers' },
+      { icon: ShoppingBag, label: 'Customers', path: '/admin/ecommerce-customers', description: 'Buyers & payments' },
       { icon: Ticket, label: 'Coupons', path: '/admin/coupons', description: 'Discount codes' },
       { icon: MapPin, label: 'Delivery Zones', path: '/admin/delivery-zones', description: 'Zone pricing' },
-      { icon: AlertCircle, label: 'Incomplete Orders', path: '/admin/incomplete-orders', description: 'Abandoned checkouts' },
+      { icon: AlertCircle, label: 'Incomplete Orders', path: '/admin/incomplete-orders', description: 'Abandoned carts' },
       { icon: BarChart4, label: 'Recovery Analytics', path: '/admin/recovery-analytics', description: 'Recovery insights' },
-    ]
+    ],
   },
   {
-    title: 'Platform',
-    icon: Building2,
+    title: 'Academy',
+    icon: GraduationCap,
     items: [
-      { icon: Building2, label: 'Clinics', path: '/admin/clinics', description: 'Verify & manage' },
-      { icon: Stethoscope, label: 'Doctors', path: '/admin/doctors', description: 'Verify doctors' },
-      { icon: MessageCircleHeart, label: 'Social', path: '/admin/social', description: 'Posts & content' },
-      { icon: FileText, label: 'Content Hub', path: '/admin/cms', description: 'Articles & blog' },
-      { icon: ShieldCheck, label: 'User Management', path: '/admin/customers', description: 'Roles & permissions' },
-      { icon: Mail, label: 'Messages', path: '/admin/messages', description: 'Contact submissions' },
-    ]
+      { icon: GraduationCap, label: 'Courses', path: '/admin/courses', description: 'Manage courses' },
+      { icon: Users, label: 'Enrollments', path: '/admin/enrollments', description: 'Student enrollments' },
+    ],
   },
   {
     title: 'System',
     icon: Settings,
     items: [
+      { icon: Users, label: 'User Management', path: '/admin/customers', description: 'Roles & permissions' },
+      { icon: Mail, label: 'Messages', path: '/admin/messages', description: 'Contact submissions' },
       { icon: Settings, label: 'Settings', path: '/admin/settings', description: 'Configuration' },
-    ]
+    ],
   },
 ];
 
@@ -91,25 +86,18 @@ interface AdminMobileNavProps {
   pendingDoctors?: number;
 }
 
-export const AdminMobileNav = ({ pendingOrders = 0, pendingVerifications = 0, pendingDoctors = 0 }: AdminMobileNavProps) => {
+export const AdminMobileNav = ({ pendingOrders = 0 }: AdminMobileNavProps) => {
   const location = useLocation();
-  const totalPending = pendingOrders + pendingVerifications + pendingDoctors;
+  const totalPending = pendingOrders;
 
-  // Add badges dynamically
-  const sectionsWithBadges = navSections.map(section => ({
+  const sectionsWithBadges = navSections.map((section) => ({
     ...section,
-    items: section.items.map(item => {
+    items: section.items.map((item) => {
       if (item.path === '/admin/orders' && pendingOrders > 0) {
         return { ...item, badge: pendingOrders, badgeVariant: 'destructive' as const };
       }
-      if (item.path === '/admin/clinics' && pendingVerifications > 0) {
-        return { ...item, badge: pendingVerifications, badgeVariant: 'default' as const };
-      }
-      if (item.path === '/admin/doctors' && pendingDoctors > 0) {
-        return { ...item, badge: pendingDoctors, badgeVariant: 'default' as const };
-      }
       return item;
-    })
+    }),
   }));
 
   return (
@@ -124,10 +112,10 @@ export const AdminMobileNav = ({ pendingOrders = 0, pendingVerifications = 0, pe
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-lg bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                VET-MEDIX
+                Z AGRO TECH
               </span>
               <div className="flex items-center gap-1.5">
-                <Shield className="h-3 w-3 text-primary" />
+                <Leaf className="h-3 w-3 text-primary" />
                 <span className="text-[10px] font-medium text-primary uppercase tracking-wider">
                   Admin Panel
                 </span>
@@ -136,7 +124,6 @@ export const AdminMobileNav = ({ pendingOrders = 0, pendingVerifications = 0, pe
           </Link>
         </SheetClose>
 
-        {/* Quick Stats */}
         {totalPending > 0 && (
           <div className="mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
             <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-amber-500/20">
@@ -144,14 +131,10 @@ export const AdminMobileNav = ({ pendingOrders = 0, pendingVerifications = 0, pe
             </div>
             <div className="flex-1">
               <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                {totalPending} Pending Action{totalPending !== 1 ? 's' : ''}
+                {totalPending} Pending Order{totalPending !== 1 ? 's' : ''}
               </p>
               <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80">
-                {pendingOrders > 0 && `${pendingOrders} order${pendingOrders !== 1 ? 's' : ''}`}
-                {pendingOrders > 0 && (pendingVerifications > 0 || pendingDoctors > 0) && ' • '}
-                {pendingVerifications > 0 && `${pendingVerifications} clinic${pendingVerifications !== 1 ? 's' : ''}`}
-                {pendingVerifications > 0 && pendingDoctors > 0 && ' • '}
-                {pendingDoctors > 0 && `${pendingDoctors} doctor${pendingDoctors !== 1 ? 's' : ''}`}
+                Awaiting your action
               </p>
             </div>
           </div>
@@ -162,22 +145,19 @@ export const AdminMobileNav = ({ pendingOrders = 0, pendingVerifications = 0, pe
       <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 space-y-5">
         {sectionsWithBadges.map((section) => (
           <div key={section.title}>
-            {/* Section Header */}
             <div className="flex items-center gap-2 px-2 mb-2">
-              {section.icon && (
-                <section.icon className="h-3.5 w-3.5 text-muted-foreground/50" />
-              )}
+              {section.icon && <section.icon className="h-3.5 w-3.5 text-muted-foreground/50" />}
               <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">
                 {section.title}
               </span>
             </div>
 
-            {/* Navigation Items */}
             <div className="space-y-1.5">
               {section.items.map((item) => {
-                const isActive = location.pathname === item.path || 
+                const isActive =
+                  location.pathname === item.path ||
                   (item.path !== '/admin' && location.pathname.startsWith(item.path));
-                
+
                 return (
                   <SheetClose asChild key={item.path}>
                     <Link
@@ -185,61 +165,62 @@ export const AdminMobileNav = ({ pendingOrders = 0, pendingVerifications = 0, pe
                       onTouchStart={() => prefetchRoute(item.path)}
                       onMouseEnter={() => prefetchRoute(item.path)}
                       className={cn(
-                        "relative flex items-center gap-3 px-3 py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98]",
-                        isActive 
-                          ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/20" 
-                          : "text-foreground bg-muted/30 hover:bg-muted/60 active:bg-muted"
+                        'relative flex items-center gap-3 px-3 py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98]',
+                        isActive
+                          ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/20'
+                          : 'text-foreground bg-muted/30 hover:bg-muted/60 active:bg-muted',
                       )}
                     >
-                      {/* Icon */}
-                      <div className={cn(
-                        "flex items-center justify-center h-10 w-10 rounded-xl flex-shrink-0 transition-all duration-200",
-                        isActive 
-                          ? "bg-white/20" 
-                          : "bg-gradient-to-br from-primary/10 to-accent/10"
-                      )}>
-                        <item.icon className={cn(
-                          "h-5 w-5",
-                          isActive ? "text-primary-foreground" : "text-primary"
-                        )} />
+                      <div
+                        className={cn(
+                          'flex items-center justify-center h-10 w-10 rounded-xl flex-shrink-0 transition-all duration-200',
+                          isActive ? 'bg-white/20' : 'bg-gradient-to-br from-primary/10 to-accent/10',
+                        )}
+                      >
+                        <item.icon
+                          className={cn('h-5 w-5', isActive ? 'text-primary-foreground' : 'text-primary')}
+                        />
                       </div>
 
-                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <p className={cn(
-                          "text-sm font-semibold truncate",
-                          isActive ? "text-primary-foreground" : "text-foreground"
-                        )}>
+                        <p
+                          className={cn(
+                            'text-sm font-semibold truncate',
+                            isActive ? 'text-primary-foreground' : 'text-foreground',
+                          )}
+                        >
                           {item.label}
                         </p>
                         {item.description && (
-                          <p className={cn(
-                            "text-[11px] truncate",
-                            isActive ? "text-primary-foreground/70" : "text-muted-foreground"
-                          )}>
+                          <p
+                            className={cn(
+                              'text-[11px] truncate',
+                              isActive ? 'text-primary-foreground/70' : 'text-muted-foreground',
+                            )}
+                          >
                             {item.description}
                           </p>
                         )}
                       </div>
 
-                      {/* Badge */}
                       {item.badge && item.badge > 0 && (
-                        <Badge 
-                          variant={item.badgeVariant || 'default'} 
+                        <Badge
+                          variant={item.badgeVariant || 'default'}
                           className={cn(
-                            "h-6 min-w-6 px-2 text-[11px] font-bold",
-                            isActive && "bg-white/20 text-white border-white/30"
+                            'h-6 min-w-6 px-2 text-[11px] font-bold',
+                            isActive && 'bg-white/20 text-white border-white/30',
                           )}
                         >
                           {item.badge}
                         </Badge>
                       )}
 
-                      {/* Chevron */}
-                      <ChevronRight className={cn(
-                        "h-4 w-4 flex-shrink-0 opacity-40",
-                        isActive && "text-primary-foreground opacity-60"
-                      )} />
+                      <ChevronRight
+                        className={cn(
+                          'h-4 w-4 flex-shrink-0 opacity-40',
+                          isActive && 'text-primary-foreground opacity-60',
+                        )}
+                      />
                     </Link>
                   </SheetClose>
                 );

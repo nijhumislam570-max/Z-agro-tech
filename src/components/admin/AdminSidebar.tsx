@@ -1,27 +1,24 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  Truck, 
-  ShoppingBag, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Package,
+  Truck,
+  ShoppingBag,
+  Settings,
   ArrowLeft,
   BarChart3,
   BarChart4,
-  Building2,
-  MessageCircleHeart,
-  Headset,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   Shield,
-  ShieldCheck,
-  Stethoscope,
+  GraduationCap,
+  Users,
   Mail,
   Ticket,
   MapPin,
-  FileText,
-  AlertCircle
+  AlertCircle,
+  Leaf,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { prefetchRoute } from '@/lib/imageUtils';
@@ -51,7 +48,7 @@ const navSections: NavSection[] = [
     items: [
       { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
       { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
-    ]
+    ],
   },
   {
     title: 'E-Commerce',
@@ -64,27 +61,24 @@ const navSections: NavSection[] = [
       { icon: MapPin, label: 'Delivery Zones', path: '/admin/delivery-zones' },
       { icon: AlertCircle, label: 'Incomplete Orders', path: '/admin/incomplete-orders' },
       { icon: BarChart4, label: 'Recovery Analytics', path: '/admin/recovery-analytics' },
-    ]
+    ],
   },
   {
-    title: 'Platform',
-    icon: Building2,
+    title: 'Academy',
+    icon: GraduationCap,
     items: [
-      { icon: Building2, label: 'Clinics', path: '/admin/clinics' },
-      { icon: Stethoscope, label: 'Doctors', path: '/admin/doctors' },
-      { icon: MessageCircleHeart, label: 'Social', path: '/admin/social' },
-      { icon: FileText, label: 'Content Hub', path: '/admin/cms' },
-      { icon: ShieldCheck, label: 'User Management', path: '/admin/customers' },
-      { icon: Mail, label: 'Messages', path: '/admin/messages' },
-      { icon: Headset, label: 'Support Chat', path: '/admin/support-chat' },
-    ]
+      { icon: GraduationCap, label: 'Courses', path: '/admin/courses' },
+      { icon: Users, label: 'Enrollments', path: '/admin/enrollments' },
+    ],
   },
   {
     title: 'System',
     icon: Settings,
     items: [
+      { icon: Users, label: 'User Management', path: '/admin/customers' },
+      { icon: Mail, label: 'Messages', path: '/admin/messages' },
       { icon: Settings, label: 'Settings', path: '/admin/settings' },
-    ]
+    ],
   },
 ];
 
@@ -96,46 +90,40 @@ interface AdminSidebarProps {
   pendingDoctors?: number;
 }
 
-export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVerifications = 0, pendingDoctors = 0 }: AdminSidebarProps) => {
+export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0 }: AdminSidebarProps) => {
   const location = useLocation();
 
-  // Add badges dynamically
-  const sectionsWithBadges = navSections.map(section => ({
+  const sectionsWithBadges = navSections.map((section) => ({
     ...section,
-    items: section.items.map(item => {
+    items: section.items.map((item) => {
       if (item.path === '/admin/orders' && pendingOrders > 0) {
         return { ...item, badge: pendingOrders, badgeVariant: 'destructive' as const };
       }
-      if (item.path === '/admin/clinics' && pendingVerifications > 0) {
-        return { ...item, badge: pendingVerifications, badgeVariant: 'default' as const };
-      }
-      if (item.path === '/admin/doctors' && pendingDoctors > 0) {
-        return { ...item, badge: pendingDoctors, badgeVariant: 'default' as const };
-      }
       return item;
-    })
+    }),
   }));
 
-  const totalPending = pendingOrders + pendingVerifications + pendingDoctors;
+  const totalPending = pendingOrders;
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside 
+      <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 hidden md:flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
-          "bg-gradient-to-b from-background via-background to-muted/20",
-          "border-r border-border/40 shadow-xl",
-          collapsed ? "w-[72px]" : "w-[260px]"
+          'fixed inset-y-0 left-0 z-50 hidden md:flex flex-col transition-all duration-300 ease-in-out overflow-hidden',
+          'bg-gradient-to-b from-background via-background to-muted/20',
+          'border-r border-border/40 shadow-xl',
+          collapsed ? 'w-[72px]' : 'w-[260px]',
         )}
       >
         {/* Header with Logo */}
-        <div className={cn(
-          "relative p-4 border-b border-border/40",
-          "bg-gradient-to-r from-primary/5 via-accent/5 to-transparent"
-        )}>
-          {/* Subtle glow effect */}
+        <div
+          className={cn(
+            'relative p-4 border-b border-border/40',
+            'bg-gradient-to-r from-primary/5 via-accent/5 to-transparent',
+          )}
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50" />
-          
+
           <Link to="/admin" className="relative flex items-center gap-3 group">
             {collapsed ? (
               <div className="relative mx-auto">
@@ -150,10 +138,10 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
                 </div>
                 <div className="flex flex-col">
                   <span className="font-display font-bold text-base bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
-                    VET-MEDIX
+                    Z AGRO TECH
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <Shield className="h-3 w-3 text-primary" />
+                    <Leaf className="h-3 w-3 text-primary" />
                     <span className="text-[10px] font-medium text-primary uppercase tracking-wider">
                       Admin Panel
                     </span>
@@ -163,7 +151,6 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
             )}
           </Link>
 
-          {/* Status indicator */}
           {!collapsed && totalPending > 0 && (
             <div className="mt-3 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
               <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
@@ -175,65 +162,59 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
         </div>
 
         {/* Navigation */}
-        <nav className={cn(
-          "flex-1 overflow-y-auto py-4",
-          collapsed ? "px-2" : "px-3"
-        )}>
+        <nav className={cn('flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}>
           <div className="space-y-6">
             {sectionsWithBadges.map((section, sectionIdx) => (
               <div key={section.title}>
-                {/* Section Header */}
                 {!collapsed && (
                   <div className="flex items-center gap-2 px-3 mb-2">
-                    {section.icon && (
-                      <section.icon className="h-3 w-3 text-muted-foreground/50" />
-                    )}
+                    {section.icon && <section.icon className="h-3 w-3 text-muted-foreground/50" />}
                     <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">
                       {section.title}
                     </span>
                   </div>
                 )}
 
-                {/* Collapsed section divider */}
                 {collapsed && sectionIdx > 0 && (
                   <div className="mx-auto w-8 h-px bg-gradient-to-r from-transparent via-border to-transparent mb-3" />
                 )}
 
-                {/* Navigation Items */}
                 <div className="space-y-1">
                   {section.items.map((item) => {
-                    const isActive = location.pathname === item.path || 
+                    const isActive =
+                      location.pathname === item.path ||
                       (item.path !== '/admin' && location.pathname.startsWith(item.path));
-                    
+
                     const navLink = (
                       <Link
                         key={item.path}
                         to={item.path}
                         onMouseEnter={() => prefetchRoute(item.path)}
                         className={cn(
-                          "relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200",
-                          collapsed ? "px-3 py-2.5 justify-center mx-auto" : "px-3 py-2.5",
-                          isActive 
-                            ? "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25" 
-                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                          isActive && "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-6 before:rounded-full before:bg-primary-foreground/30"
+                          'relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200',
+                          collapsed ? 'px-3 py-2.5 justify-center mx-auto' : 'px-3 py-2.5',
+                          isActive
+                            ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
+                            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                          isActive &&
+                            "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-6 before:rounded-full before:bg-primary-foreground/30",
                         )}
                       >
-                        <item.icon className={cn(
-                          "flex-shrink-0 transition-transform duration-200",
-                          collapsed ? "h-5 w-5" : "h-4 w-4",
-                          !isActive && "group-hover:scale-110"
-                        )} />
+                        <item.icon
+                          className={cn(
+                            'flex-shrink-0 transition-transform duration-200',
+                            collapsed ? 'h-5 w-5' : 'h-4 w-4',
+                          )}
+                        />
                         {!collapsed && (
                           <>
                             <span className="flex-1 whitespace-nowrap">{item.label}</span>
                             {item.badge && item.badge > 0 && (
-                              <Badge 
-                                variant={item.badgeVariant || 'default'} 
+                              <Badge
+                                variant={item.badgeVariant || 'default'}
                                 className={cn(
-                                  "h-5 min-w-5 px-1.5 text-[10px] font-bold animate-pulse",
-                                  isActive && "bg-white/20 text-white border-white/30",
-                                  !isActive && item.badgeVariant === 'destructive' && "bg-destructive/90"
+                                  'h-5 min-w-5 px-1.5 text-[10px] font-bold animate-pulse',
+                                  isActive && 'bg-white/20 text-white border-white/30',
                                 )}
                               >
                                 {item.badge}
@@ -241,7 +222,6 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
                             )}
                           </>
                         )}
-                        {/* Collapsed badge */}
                         {collapsed && item.badge && item.badge > 0 && (
                           <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center shadow-lg animate-pulse">
                             {item.badge > 9 ? '9+' : item.badge}
@@ -253,11 +233,9 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
                     if (collapsed) {
                       return (
                         <Tooltip key={item.path}>
-                          <TooltipTrigger asChild>
-                            {navLink}
-                          </TooltipTrigger>
-                          <TooltipContent 
-                            side="right" 
+                          <TooltipTrigger asChild>{navLink}</TooltipTrigger>
+                          <TooltipContent
+                            side="right"
                             className="flex items-center gap-2 font-medium bg-popover/95 backdrop-blur-sm"
                           >
                             {item.label}
@@ -281,15 +259,14 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
 
         {/* Footer */}
         <div className="mt-auto border-t border-border/40 bg-gradient-to-t from-muted/30 to-transparent">
-          {/* Collapse Toggle */}
-          <div className={cn("p-2", collapsed && "px-3")}>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+          <div className={cn('p-2', collapsed && 'px-3')}>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onToggle}
               className={cn(
-                "w-full flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all duration-200",
-                collapsed ? "justify-center px-2 h-10" : "justify-start px-3 h-9"
+                'w-full flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all duration-200',
+                collapsed ? 'justify-center px-2 h-10' : 'justify-start px-3 h-9',
               )}
             >
               {collapsed ? (
@@ -303,8 +280,7 @@ export const AdminSidebar = ({ collapsed, onToggle, pendingOrders = 0, pendingVe
             </Button>
           </div>
 
-          {/* Back to Site */}
-          <div className={cn("p-3 pt-0", collapsed && "p-2 pt-0")}>
+          <div className={cn('p-3 pt-0', collapsed && 'p-2 pt-0')}>
             {collapsed ? (
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -17,7 +17,7 @@ import logo from '@/assets/logo.jpeg';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { GlobalSearch } from '@/components/GlobalSearch';
+
 
 interface AdminHeaderProps {
   title: string;
@@ -123,11 +123,6 @@ export const AdminHeader = ({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          {/* Search - Desktop and Tablet */}
-          <div className="hidden md:flex w-40 lg:w-48 xl:w-56">
-            <GlobalSearch variant="admin" className="w-full" />
-          </div>
-
           {/* Refresh Button - Hidden on mobile */}
           <TooltipProvider>
             <Tooltip>
