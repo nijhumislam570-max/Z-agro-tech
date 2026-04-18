@@ -2,10 +2,31 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GraduationCap, PlayCircle } from 'lucide-react';
-import { useMyEnrollments } from '@/hooks/useEnrollments';
+import { GraduationCap, Calendar, Clock } from 'lucide-react';
+import { useMyEnrollments, type EnrollmentStatus } from '@/hooks/useEnrollments';
+import { cn } from '@/lib/utils';
+
+const statusStyle: Record<EnrollmentStatus, string> = {
+  pending: 'bg-accent/15 text-accent border-accent/30',
+  confirmed: 'bg-primary/15 text-primary border-primary/30',
+  completed: 'bg-success/15 text-success border-success/30',
+  cancelled: 'bg-muted text-muted-foreground border-border',
+};
+
+const statusLabel: Record<EnrollmentStatus, string> = {
+  pending: 'Pending review',
+  confirmed: 'Confirmed',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
+function formatDate(d: string | null | undefined) {
+  if (!d) return null;
+  try {
+    return new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch { return null; }
+}
 
 export const CoursesTab = () => {
   const { data: enrollments, isLoading } = useMyEnrollments();
@@ -14,7 +35,7 @@ export const CoursesTab = () => {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {Array.from({ length: 2 }).map((_, i) => (
-          <Skeleton key={i} className="h-40 w-full rounded-xl" />
+          <Skeleton key={i} className="h-44 w-full rounded-xl" />
         ))}
       </div>
     );
@@ -29,7 +50,7 @@ export const CoursesTab = () => {
           </div>
           <div>
             <h3 className="font-semibold text-foreground">No courses yet</h3>
-            <p className="text-sm text-muted-foreground mt-1">Enroll in a course to start learning.</p>
+            <p className="text-sm text-muted-foreground mt-1">Enroll in a training cohort to start learning.</p>
           </div>
           <Link to="/academy">
             <Button className="gap-2"><GraduationCap className="h-4 w-4" /> Browse academy</Button>
@@ -41,41 +62,55 @@ export const CoursesTab = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {enrollments.map((e) => (
-        <Card key={e.id} className="overflow-hidden">
-          <CardContent className="p-4 sm:p-5 space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <GraduationCap className="h-5 w-5 text-primary" />
+      {enrollments.map((e) => {
+        const status = (e.status as EnrollmentStatus) ?? 'pending';
+        const batchDate = formatDate(e.batch?.start_date);
+        return (
+          <Card key={e.id} className="overflow-hidden">
+            <CardContent className="p-4 sm:p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-foreground line-clamp-1">
+                    {e.course?.title ?? 'Untitled course'}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <Badge variant="outline" className={cn('text-xs', statusStyle[status])}>
+                      {statusLabel[status]}
+                    </Badge>
+                    {e.course?.duration_label && (
+                      <Badge variant="outline" className="text-xs gap-1 font-normal">
+                        <Clock className="h-3 w-3" /> {e.course.duration_label}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-foreground line-clamp-1">
-                  {e.course?.title ?? 'Untitled course'}
-                </h4>
-                {e.course?.difficulty && (
-                  <Badge variant="outline" className="mt-1 capitalize text-xs">
-                    {e.course.difficulty}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Progress</span>
-                <span>{e.progress}%</span>
-              </div>
-              <Progress value={e.progress} className="h-2" />
-            </div>
-            {e.course && (
-              <Link to={`/course/${e.course.id}`}>
-                <Button size="sm" variant="secondary" className="w-full gap-2">
-                  <PlayCircle className="h-4 w-4" /> Continue
-                </Button>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+
+              {e.batch && (
+                <div className="rounded-lg bg-muted/40 p-2.5 text-xs">
+                  <p className="font-medium text-foreground">{e.batch.name}</p>
+                  {batchDate && (
+                    <p className="text-muted-foreground inline-flex items-center gap-1 mt-0.5">
+                      <Calendar className="h-3 w-3" /> Starts {batchDate}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {e.course && (
+                <Link to={`/course/${e.course.id}`}>
+                  <Button size="sm" variant="secondary" className="w-full">
+                    View course
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

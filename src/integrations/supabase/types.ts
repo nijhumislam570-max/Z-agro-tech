@@ -698,45 +698,119 @@ export type Database = {
         }
         Relationships: []
       }
+      course_batches: {
+        Row: {
+          course_id: string
+          created_at: string
+          end_date: string | null
+          enrolled_count: number | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          total_seats: number | null
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          end_date?: string | null
+          enrolled_count?: number | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          total_seats?: number | null
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          end_date?: string | null
+          enrolled_count?: number | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          total_seats?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_batches_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
+          audience: string | null
+          category: string | null
           created_at: string
+          curriculum: Json | null
           description: string | null
           difficulty: string
+          duration_label: string | null
           id: string
           instructor_id: string | null
           is_active: boolean
+          language: string | null
+          mode: string | null
           price: number
+          provides_certificate: boolean | null
           thumbnail_url: string | null
           title: string
           updated_at: string
           video_url: string | null
+          whatsapp_message: string | null
+          whatsapp_number: string | null
         }
         Insert: {
+          audience?: string | null
+          category?: string | null
           created_at?: string
+          curriculum?: Json | null
           description?: string | null
           difficulty?: string
+          duration_label?: string | null
           id?: string
           instructor_id?: string | null
           is_active?: boolean
+          language?: string | null
+          mode?: string | null
           price?: number
+          provides_certificate?: boolean | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
           video_url?: string | null
+          whatsapp_message?: string | null
+          whatsapp_number?: string | null
         }
         Update: {
+          audience?: string | null
+          category?: string | null
           created_at?: string
+          curriculum?: Json | null
           description?: string | null
           difficulty?: string
+          duration_label?: string | null
           id?: string
           instructor_id?: string | null
           is_active?: boolean
+          language?: string | null
+          mode?: string | null
           price?: number
+          provides_certificate?: boolean | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
           video_url?: string | null
+          whatsapp_message?: string | null
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
@@ -1023,27 +1097,46 @@ export type Database = {
       }
       enrollments: {
         Row: {
+          batch_id: string | null
+          contact_phone: string | null
           course_id: string
           enrolled_at: string
           id: string
+          notes: string | null
           progress: number
+          status: string | null
           user_id: string
         }
         Insert: {
+          batch_id?: string | null
+          contact_phone?: string | null
           course_id: string
           enrolled_at?: string
           id?: string
+          notes?: string | null
           progress?: number
+          status?: string | null
           user_id: string
         }
         Update: {
+          batch_id?: string | null
+          contact_phone?: string | null
           course_id?: string
           enrolled_at?: string
           id?: string
+          notes?: string | null
           progress?: number
+          status?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "enrollments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "course_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "enrollments_course_id_fkey"
             columns: ["course_id"]

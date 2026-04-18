@@ -5,6 +5,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import HeroSection from '@/components/home/HeroSection';
 import FeaturedProductsGrid from '@/components/home/FeaturedProductsGrid';
 import FeaturedCoursesGrid from '@/components/home/FeaturedCoursesGrid';
+import TrustStatsStrip from '@/components/home/TrustStatsStrip';
 import { Card, CardContent } from '@/components/ui/card';
 import { Sprout, ShieldCheck, Truck } from 'lucide-react';
 
@@ -49,6 +50,7 @@ const Index = () => {
 
         <FeaturedProductsGrid />
         <FeaturedCoursesGrid />
+        <TrustStatsStrip />
       </main>
       <Footer />
     </div>
