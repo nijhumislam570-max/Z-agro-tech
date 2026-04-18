@@ -1,20 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import type { AdminOrder } from '@/types/database';
 
-export type AppRole = 'admin' | 'user' | 'doctor' | 'clinic_owner';
+/** Z Agro Tech application role. Legacy 'doctor'/'clinic_owner' retired. */
+export type AppRole = 'admin' | 'user';
 
 export const useAdmin = () => {
-  const { roles, isLoading: roleLoading, isAdmin, isClinicOwner, isDoctor } = useUserRole();
+  const { roles, isLoading: roleLoading, isAdmin } = useUserRole();
 
   return {
-    userRoles: roles.map(r => ({ role: r })),
+    userRoles: roles.map((r) => ({ role: r })),
     roleLoading,
     isAdmin,
-    isClinicOwner,
-    isDoctor,
     roles,
   };
 };
