@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -65,7 +65,10 @@ import { createOrderNotification } from '@/lib/notifications';
 import { SendToCourierDialog } from '@/components/admin/SendToCourierDialog';
 import { RejectOrderDialog } from '@/components/admin/RejectOrderDialog';
 import { FraudRiskBadge } from '@/components/admin/FraudRiskBadge';
-import { FraudAnalysisPanel } from '@/components/admin/FraudAnalysisPanel';
+// Lazy — fraud panel only renders when an order is opened in the side sheet
+const FraudAnalysisPanel = lazy(() =>
+  import('@/components/admin/FraudAnalysisPanel').then((m) => ({ default: m.FraudAnalysisPanel })),
+);
 import { OrderStatsBar } from '@/components/admin/OrderStatsBar';
 import { OrderTrackingTimeline } from '@/components/admin/OrderTrackingTimeline';
 import { OrderCardsSkeleton, OrderTableSkeleton, OrderStatsBarSkeleton } from '@/components/admin/OrdersSkeleton';
@@ -916,9 +919,11 @@ const AdminOrders = () => {
                 </div>
               )}
 
-              {/* Fraud Risk Analysis Panel */}
+              {/* Fraud Risk Analysis Panel — lazy-loaded chunk */}
               {fraudAnalysisMap.get(selectedOrder.id) && (
-                <FraudAnalysisPanel analysis={fraudAnalysisMap.get(selectedOrder.id)!} />
+                <Suspense fallback={null}>
+                  <FraudAnalysisPanel analysis={fraudAnalysisMap.get(selectedOrder.id)!} />
+                </Suspense>
               )}
               
               {/* Shipping Address */}
