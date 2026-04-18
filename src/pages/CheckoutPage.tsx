@@ -74,7 +74,7 @@ const paymentMethods = [
   },
 ];
 
-const CheckoutPage = () => {
+const CheckoutPageInner = () => {
   useDocumentTitle('Checkout');
   const { items, totalAmount, clearCart, totalItems } = useCart();
   const { user } = useAuth();
