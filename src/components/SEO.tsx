@@ -68,7 +68,30 @@ interface BreadcrumbSchema {
   items: BreadcrumbItem[];
 }
 
-type Schema = OrganizationSchema | LocalBusinessSchema | ProductSchema | CourseSchema | BreadcrumbSchema;
+interface ItemListEntry {
+  name: string;
+  url: string;
+  image?: string;
+  price?: number;
+  priceCurrency?: string;
+}
+
+interface ItemListSchema {
+  type: 'ItemList';
+  name: string;
+  description?: string;
+  url?: string;
+  itemListType?: 'Product' | 'Course' | 'Thing';
+  items: ItemListEntry[];
+}
+
+type Schema =
+  | OrganizationSchema
+  | LocalBusinessSchema
+  | ProductSchema
+  | CourseSchema
+  | BreadcrumbSchema
+  | ItemListSchema;
 
 interface SEOProps {
   // Page meta
