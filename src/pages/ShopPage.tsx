@@ -349,13 +349,38 @@ const ShopPage = () => {
       ? 'grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
       : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6';
 
+  // Build ItemList schema from up to 10 visible products for storefront SEO
+  const shopItemListItems = useMemo(
+    () =>
+      sortedProducts.slice(0, 10).map((p) => ({
+        name: p.name,
+        url: `https://zagrotech.lovable.app/product/${p.id}`,
+        image: p.image_url || undefined,
+        price: p.discount ? Math.round(p.price * (1 - p.discount / 100)) : p.price,
+        priceCurrency: 'BDT',
+      })),
+    [sortedProducts],
+  );
+
   return (
     <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
-      <SEO 
+      <SEO
         title="Shop — Premium Agriculture Supplies"
         description="Shop premium seeds, fertilizers, crop-protection, tools and farm equipment from trusted suppliers. Fast nationwide delivery across Bangladesh."
         url="https://zagrotech.lovable.app/shop"
-        schema={{ type: 'Organization', name: 'Z Agro Tech Shop', url: 'https://zagrotech.lovable.app/shop', description: 'Premium agriculture supplies in Bangladesh' }}
+        canonicalUrl="https://zagrotech.lovable.app/shop"
+        schema={
+          shopItemListItems.length > 0
+            ? {
+                type: 'ItemList',
+                name: 'Z Agro Tech Shop — Featured Products',
+                description: 'Premium agriculture supplies in Bangladesh',
+                url: 'https://zagrotech.lovable.app/shop',
+                itemListType: 'Product',
+                items: shopItemListItems,
+              }
+            : undefined
+        }
       />
       <Navbar />
       
