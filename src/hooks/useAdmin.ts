@@ -60,7 +60,12 @@ export const useAdminStats = () => {
         completedEnrollments: num('completedEnrollments'),
         unreadMessages: num('unreadMessages'),
         incompleteOrders: num('incompleteOrders'),
-        recentOrders: (Array.isArray(stats.recentOrders) ? stats.recentOrders : []) as Array<Record<string, unknown>>,
+        recentOrders: (Array.isArray(stats.recentOrders) ? stats.recentOrders : []) as Array<{
+          id: string;
+          total_amount: number;
+          status: string | null;
+          created_at: string;
+        }>,
       };
     },
     enabled: isAdmin,
