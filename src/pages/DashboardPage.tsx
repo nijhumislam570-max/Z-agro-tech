@@ -13,6 +13,7 @@ import LearningPathTile from '@/components/dashboard/tiles/LearningPathTile';
 import RecommendedInputsTile from '@/components/dashboard/tiles/RecommendedInputsTile';
 import RecentOrderTile from '@/components/dashboard/tiles/RecentOrderTile';
 import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
+import FeaturedCarouselTile from '@/components/dashboard/tiles/FeaturedCarouselTile';
 
 const DashboardPage = () => {
   useDocumentTitle('Dashboard');
@@ -33,6 +34,7 @@ const DashboardPage = () => {
             <BentoGrid>
               <KPIMarqueeTile />
               <QuickActionsTile />
+              <FeaturedCarouselTile />
               <LearningPathTile />
               <RecommendedInputsTile />
               <RecentOrderTile />

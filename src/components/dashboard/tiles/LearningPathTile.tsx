@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, ArrowRight } from 'lucide-react';
 import { useMyEnrollments } from '@/hooks/useEnrollments';
+import { getCourseImage } from '@/lib/agriImages';
 
 export default function LearningPathTile() {
   const { data, isLoading } = useMyEnrollments();
@@ -39,19 +40,13 @@ export default function LearningPathTile() {
           </div>
         ) : (
           <>
-            <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-white/10 border border-white/15">
-              {latest.course?.thumbnail_url ? (
-                <img
-                  src={latest.course.thumbnail_url}
-                  alt={latest.course.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <GraduationCap className="h-10 w-10 text-white/50" />
-                </div>
-              )}
+            <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-white/10 border border-white/15 group">
+              <img
+                src={latest.course?.thumbnail_url || getCourseImage(latest.course?.title, null)}
+                alt={latest.course?.title ?? 'Course'}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
               <Badge className="absolute top-2 left-2 bg-white/90 text-foreground hover:bg-white/90 capitalize">
                 {latest.status ?? 'pending'}
               </Badge>

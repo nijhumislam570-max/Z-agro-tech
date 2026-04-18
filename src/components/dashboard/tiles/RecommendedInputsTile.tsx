@@ -8,6 +8,14 @@ import { Sprout, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCart } from '@/contexts/CartContext';
 import { useRecommendedProducts, type RecommendedProduct } from '@/hooks/useDashboardData';
+import { getProductImage } from '@/lib/agriImages';
+
+function stockBadge(stock: number | null) {
+  const s = stock ?? 0;
+  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-rose-500/90 text-white border-transparent hover:bg-rose-500/90' };
+  if (s < 5) return { label: 'Low Stock', cls: 'bg-amber-500/90 text-white border-transparent hover:bg-amber-500/90' };
+  return { label: 'In Stock', cls: 'bg-emerald-500/90 text-white border-transparent hover:bg-emerald-500/90' };
+}
 
 function MiniProduct({ product }: { product: RecommendedProduct }) {
   const { addItem } = useCart();
@@ -22,21 +30,18 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
     toast.success(`${product.name} added to cart`);
   };
 
+  const img = product.image_url || getProductImage(product.name, product.category);
+  const badge = stockBadge(product.stock);
+
   return (
-    <div className="rounded-xl bg-white/10 border border-white/15 p-3 flex flex-col gap-2 transition-all duration-200 hover:bg-white/15 hover:border-white/30">
+    <div className="rounded-xl bg-white/10 border border-white/15 p-3 flex flex-col gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15 hover:border-white/30">
       <Link to={`/shop/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-white/10">
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Sprout className="h-8 w-8 text-white/50" />
-          </div>
-        )}
+        <img
+          src={img}
+          alt={product.name}
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          loading="lazy"
+        />
       </Link>
       <div className="space-y-1">
         <Link to={`/shop/${product.id}`} className="block">
@@ -46,9 +51,7 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
         </Link>
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-bold text-white">৳{Number(product.price).toFixed(0)}</span>
-          <Badge className="bg-emerald-500/30 text-white border-emerald-300/40 text-[10px] px-1.5 py-0 hover:bg-emerald-500/30">
-            In stock
-          </Badge>
+          <Badge className={`${badge.cls} text-[10px] px-1.5 py-0`}>{badge.label}</Badge>
         </div>
       </div>
       <Button size="sm" variant="secondary" className="w-full h-8 text-xs" onClick={onAdd}>
