@@ -1,20 +1,22 @@
+import { forwardRef } from 'react';
 import { GlassCard } from '../GlassCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, Package, BookOpenCheck, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardKPIs } from '@/hooks/useDashboardData';
 
-function StatChip({
-  icon: Icon,
-  label,
-  value,
-}: {
+type StatChipProps = {
   icon: typeof GraduationCap;
   label: string;
   value: number | string;
-}) {
+};
+
+const StatChip = forwardRef<HTMLDivElement, StatChipProps>(({ icon: Icon, label, value }, ref) => {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-3 min-w-[140px]">
+    <div
+      ref={ref}
+      className="flex items-center gap-3 rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 px-4 py-3 min-w-[140px]"
+    >
       <div className="h-9 w-9 rounded-lg bg-white/20 flex items-center justify-center">
         <Icon className="h-4 w-4 text-white" />
       </div>
@@ -24,7 +26,8 @@ function StatChip({
       </div>
     </div>
   );
-}
+});
+StatChip.displayName = 'StatChip';
 
 export default function KPIMarqueeTile() {
   const { user } = useAuth();

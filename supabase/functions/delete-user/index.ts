@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://vetmedix.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
     // Prevent deletion of the primary admin account
     const { data: targetUser } = await adminClient.auth.admin.getUserById(user_id)
-    if (targetUser?.user?.email === 'vetmedix.25@gmail.com') {
+    if (targetUser?.user?.email === 'nijhumislam570@gmail.com') {
       return new Response(JSON.stringify({ error: 'The primary admin account cannot be deleted' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
