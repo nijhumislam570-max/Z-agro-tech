@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
+import { indexBy, groupBy, uniqueKeys, joinByKey } from '@/lib/dbJoins';
 import type { AdminOrder } from '@/types/database';
+
+interface ProfileLite {
+  user_id: string;
+  full_name: string | null;
+  phone: string | null;
+}
 
 /** Z Agro Tech application role. */
 export type AppRole = 'admin' | 'user';
