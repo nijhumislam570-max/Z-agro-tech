@@ -102,7 +102,7 @@ serve(async (req) => {
       const res = await fetch(url.toString(), {
         headers: {
           "Accept": "application/json",
-          "User-Agent": "VetMedix/1.0 (Lovable Cloud geocoder)",
+          "User-Agent": "ZAgroTech/1.0 (Lovable Cloud geocoder)",
         },
       });
 

@@ -59,9 +59,24 @@ export const OrdersTab = () => {
           <Card className="overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-hover hover:border-primary/40 cursor-pointer">
             <CardContent className="p-4 sm:p-5 flex flex-col gap-3">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
+                {(() => {
+                  const firstItem = Array.isArray(order.items) ? (order.items[0] as { image?: string; name?: string } | undefined) : undefined;
+                  const thumb = firstItem?.image;
+                  return thumb ? (
+                    <div className="h-12 w-12 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border/60">
+                      <img
+                        src={thumb}
+                        alt={firstItem?.name ?? 'Order item'}
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Package className="h-5 w-5 text-primary" />
+                    </div>
+                  );
+                })()}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-foreground">Order #{order.id.slice(0, 8)}</p>

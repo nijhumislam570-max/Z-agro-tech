@@ -13,10 +13,10 @@ const quickLinks = [
 ];
 
 const categories = [
-  { label: 'Seeds', path: '/shop?category=seeds' },
-  { label: 'Fertilizers', path: '/shop?category=fertilizers' },
-  { label: 'Tools', path: '/shop?category=agriculture-tools' },
-  { label: 'Equipment', path: '/shop?category=equipment' },
+  { label: 'Crops & Seeds', path: '/shop?type=Crops' },
+  { label: 'Livestock & Feed', path: '/shop?type=Livestock' },
+  { label: 'Fertilizer & Soil', path: '/shop?type=Fertilizer' },
+  { label: 'Tools & Equipment', path: '/shop?type=Equipment' },
 ];
 
 const socials = [
