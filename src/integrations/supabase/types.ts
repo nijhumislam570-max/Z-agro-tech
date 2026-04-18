@@ -698,6 +698,48 @@ export type Database = {
         }
         Relationships: []
       }
+      courses: {
+        Row: {
+          created_at: string
+          description: string | null
+          difficulty: string
+          id: string
+          instructor_id: string | null
+          is_active: boolean
+          price: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          id?: string
+          instructor_id?: string | null
+          is_active?: boolean
+          price?: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          id?: string
+          instructor_id?: string | null
+          is_active?: boolean
+          price?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       delivery_zones: {
         Row: {
           charge: number
@@ -975,6 +1017,38 @@ export type Database = {
             columns: ["created_by_clinic_id"]
             isOneToOne: false
             referencedRelation: "clinics_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enrollments: {
+        Row: {
+          course_id: string
+          enrolled_at: string
+          id: string
+          progress: number
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          enrolled_at?: string
+          id?: string
+          progress?: number
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          enrolled_at?: string
+          id?: string
+          progress?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]
