@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.gpteng.co;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob: https: http:;
+      media-src 'self' blob: https:;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com;
+      frame-src 'self' https://*.google.com https://*.google.com.bd https://*.googleusercontent.com https://maps.google.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      upgrade-insecure-requests;
+    " />
+    
+    <!-- Primary Meta Tags -->
+    <title>VET-MEDIX - Pet Care, Social Network & Veterinary Services in Bangladesh</title>
+    <meta name="description" content="VET-MEDIX is Bangladesh's premier pet care platform. Create pet profiles, share moments, shop premium pet supplies, and book veterinary appointments - all in one place." />
+    <meta name="author" content="VET-MEDIX" />
+    <meta name="theme-color" content="#f97316" />
+    <meta name="keywords" content="pet care, veterinary, pet shop, pet social network, Bangladesh, dog food, cat food, pet medicine, vet clinic" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://vetmedix.lovable.app/" />
+    <meta property="og:title" content="VET-MEDIX - Pet Care, Social Network & Vet Services" />
+    <meta property="og:description" content="Bangladesh's premier pet care platform. Create pet profiles, shop premium supplies, and book vet appointments." />
+    <meta property="og:image" content="https://vetmedix.lovable.app/og-image.png" />
+    <meta property="og:site_name" content="VET-MEDIX" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://vetmedix.lovable.app/" />
+    <meta name="twitter:title" content="VET-MEDIX - Pet Care & Social Network" />
+    <meta name="twitter:description" content="Bangladesh's premier pet care platform for pet lovers." />
+    <meta name="twitter:image" content="https://vetmedix.lovable.app/og-image.png" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://vetmedix.lovable.app/" />
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cucxodrbperhbpbdkoyj.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://cucxodrbperhbpbdkoyj.supabase.co" />
+    <!-- Preconnect to Supabase storage for images -->
+    <link rel="preconnect" href="https://cucxodrbperhbpbdkoyj.supabase.co/storage" crossorigin />
+    
+    <!-- Preload critical fonts with optimized subset -->
+    <link 
+      rel="preload" 
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@400;600;700&display=swap" 
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@400;600;700&display=swap" />
+    </noscript>
+    
+    <!-- Sitemap for SEO crawlers -->
+    <link rel="sitemap" type="application/xml" href="https://cucxodrbperhbpbdkoyj.supabase.co/functions/v1/sitemap" />
+    
+    <!-- Preload LCP hero image so it starts loading before JS parses -->
+    <link rel="preload" as="image" href="/src/assets/hero-cat-social.png" fetchpriority="high" />
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="VetMedix" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.jpg" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
