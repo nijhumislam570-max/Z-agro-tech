@@ -16,24 +16,36 @@ export const HeroSection = () => (
     </div>
 
     <div className="container mx-auto px-4 sm:px-6 py-16 sm:py-20 lg:py-28 relative z-10">
-      <div className="max-w-3xl mx-auto text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/70 backdrop-blur-md border border-primary/15 text-sm font-medium text-foreground shadow-soft">
+      <div className="max-w-3xl mx-auto text-center space-y-6 animate-page-enter">
+        <div
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/70 backdrop-blur-md border border-primary/15 text-sm font-medium text-foreground shadow-soft animate-fade-in"
+          style={{ animationDelay: '60ms', animationFillMode: 'both' }}
+        >
           <Sprout className="h-4 w-4 text-primary" />
           <span>Cultivating innovation in agriculture</span>
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-foreground">
+        <h1
+          className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-foreground animate-slide-up"
+          style={{ animationDelay: '120ms', animationFillMode: 'both' }}
+        >
           Grow smarter with{' '}
           <span className="bg-gradient-to-r from-primary to-[hsl(142,45%,38%)] bg-clip-text text-transparent">
             Z Agro Tech
           </span>
         </h1>
 
-        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+        <p
+          className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in"
+          style={{ animationDelay: '220ms', animationFillMode: 'both' }}
+        >
           Premium agriculture supplies and expert-led farming courses, all in one trusted platform built for modern farmers.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+        <div
+          className="flex flex-col sm:flex-row gap-3 justify-center pt-2 animate-fade-in"
+          style={{ animationDelay: '320ms', animationFillMode: 'both' }}
+        >
           <Link to="/shop">
             <Button size="lg" className="gap-2 rounded-full px-7 h-12 shadow-button">
               <ShoppingBag className="h-4 w-4" />

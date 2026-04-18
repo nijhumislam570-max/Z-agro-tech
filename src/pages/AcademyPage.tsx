@@ -168,22 +168,34 @@ const AcademyPage = () => {
           {!isLoading && filtered.length === 0 && (
             <div className="text-center py-16 bg-card rounded-2xl border border-border/60 mt-4">
               <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <h3 className="font-semibold text-foreground">No matching courses</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                Try a different category or clear your search — new cohorts open regularly.
-              </p>
-              {(category !== 'all' || search) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setCategory('all');
-                    setSearch('');
-                  }}
-                  className="mt-4"
-                >
-                  Reset filters
-                </Button>
+              {totalCourses === 0 ? (
+                <>
+                  <h3 className="font-semibold text-foreground">New cohorts launching soon</h3>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+                    We're preparing our next batch of expert-led farming masterclasses. Check back shortly or
+                    browse the shop for agri-supplies in the meantime.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-foreground">No matching courses</h3>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+                    Try a different category or clear your search — new cohorts open regularly.
+                  </p>
+                  {(category !== 'all' || search) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCategory('all');
+                        setSearch('');
+                      }}
+                      className="mt-4"
+                    >
+                      Reset filters
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           )}

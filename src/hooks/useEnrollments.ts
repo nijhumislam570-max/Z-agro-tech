@@ -81,7 +81,10 @@ export function useEnroll() {
     },
     onSuccess: (_, payload) => {
       toast.success("Request received! We'll be in touch shortly.");
+      // Invalidate both the prefix key and the user-scoped key explicitly so
+      // any consumer (with or without the user id in their key) refetches.
       qc.invalidateQueries({ queryKey: ['enrollments'] });
+      qc.invalidateQueries({ queryKey: ['enrollments', user?.id] });
       qc.invalidateQueries({ queryKey: ['enrollment', user?.id, payload.courseId] });
     },
     onError: (e: Error) => toast.error(e.message ?? 'Could not enroll'),
