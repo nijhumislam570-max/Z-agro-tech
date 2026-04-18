@@ -12,6 +12,7 @@ import { logger } from '@/lib/logger';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { passwordSchema } from '@/lib/validations';
 import { useAuth } from '@/contexts/AuthContext';
+import SEO from '@/components/SEO';
 
 const ResetPasswordPage = () => {
   useDocumentTitle('Reset Password');
@@ -138,6 +139,11 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+      <SEO
+        title="Reset Password"
+        description="Set a new password for your Z Agro Tech account."
+        noIndex
+      />
       <Card className="w-full max-w-md shadow-card rounded-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

@@ -21,6 +21,7 @@ import MobileNav from '@/components/MobileNav';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useDeliveryCharge } from '@/hooks/useDeliveryCharge';
 import type { CartItem as CartItemType } from '@/contexts/CartContext';
+import SEO from '@/components/SEO';
 
 // Memoized cart item component
 const CartItem = memo(({
@@ -180,6 +181,7 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-36 md:pb-8">
+      <SEO title="Shopping Cart" description="Review items in your Z Agro Tech cart." noIndex />
       <Navbar />
       
       {/* Breadcrumb */}

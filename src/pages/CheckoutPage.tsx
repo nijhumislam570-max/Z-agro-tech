@@ -42,6 +42,7 @@ import {
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
+import SEO from '@/components/SEO';
 
 const paymentMethods = [
   {
@@ -352,6 +353,7 @@ const CheckoutPageInner = () => {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-36 md:pb-8">
+      <SEO title="Checkout" description="Securely complete your Z Agro Tech order." noIndex />
       <Navbar />
       
       {/* Breadcrumb */}

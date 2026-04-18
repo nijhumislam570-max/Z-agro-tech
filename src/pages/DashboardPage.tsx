@@ -29,6 +29,7 @@ const DashboardPageInner = () => {
         title="Dashboard — Z Agro Tech"
         description="Your personalized farm hub: orders, courses, and recommended agri-inputs."
         url="/dashboard"
+        noIndex
       />
       <Navbar />
       <main id="main-content" className="flex-1 animate-page-enter">
