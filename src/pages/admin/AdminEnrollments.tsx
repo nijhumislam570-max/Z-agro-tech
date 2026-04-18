@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { GraduationCap, Search, Loader2, Phone } from 'lucide-react';
+import { GraduationCap, Search, Phone, Inbox, Filter, BookOpen } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
+import { EnrollmentsSkeleton } from '@/components/admin/EnrollmentsSkeleton';
+import { Button } from '@/components/ui/button';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { supabase } from '@/integrations/supabase/client';
@@ -180,18 +183,65 @@ const AdminEnrollmentsContent = () => {
         </Select>
       </div>
 
-      <Card className="border-border/50">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      {isLoading ? (
+        <EnrollmentsSkeleton />
+      ) : filtered.length === 0 ? (
+        <Card className="border-border/50">
+          <CardContent className="p-0">
+            <div className="text-center py-16 px-4">
+              {(() => {
+                const hasFilters = search || statusFilter !== 'all';
+                if (hasFilters) {
+                  return (
+                    <>
+                      <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="font-medium text-foreground mb-1">No matching enrollments</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Try adjusting your search or status filter.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSearchInput('');
+                          setStatusFilter('all');
+                        }}
+                      >
+                        Clear filters
+                      </Button>
+                    </>
+                  );
+                }
+                if (enrollments.length === 0) {
+                  return (
+                    <>
+                      <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="font-medium text-foreground mb-1">No enrollments yet</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Once students enroll in courses, they'll appear here.
+                      </p>
+                      <Button asChild size="sm">
+                        <Link to="/admin/courses">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Manage courses
+                        </Link>
+                      </Button>
+                    </>
+                  );
+                }
+                return (
+                  <>
+                    <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No enrollments found</p>
+                  </>
+                );
+              })()}
             </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">No enrollments found</p>
-            </div>
-          ) : (
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-border/50">
+          <CardContent className="p-0">
             <>
               {/* Mobile cards */}
               <div className="sm:hidden divide-y divide-border">
