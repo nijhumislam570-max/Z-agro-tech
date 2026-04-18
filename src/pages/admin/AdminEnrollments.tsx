@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { GraduationCap, Search, Phone, Inbox, Filter, BookOpen } from 'lucide-react';
+import { GraduationCap, Search, Phone, Inbox, Filter, BookOpen, X, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { EnrollmentsSkeleton } from '@/components/admin/EnrollmentsSkeleton';
@@ -62,6 +63,8 @@ const AdminEnrollmentsContent = () => {
   const [searchInput, setSearchInput] = useState('');
   const search = useDebounce(searchInput, 300);
   const [statusFilter, setStatusFilter] = useState<EnrollmentStatus | 'all'>('all');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const { data: enrollments = [], isLoading } = useQuery({
     queryKey: ['admin-enrollments'],
@@ -132,6 +135,47 @@ const AdminEnrollmentsContent = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] });
   };
 
+  // Clear selection whenever filters change so stale IDs don't linger
+  useEffect(() => {
+    setSelected(new Set());
+  }, [search, statusFilter]);
+
+  const toggleOne = (id: string, checked: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const allVisibleSelected = filtered.length > 0 && filtered.every((r) => selected.has(r.id));
+  const someVisibleSelected = filtered.some((r) => selected.has(r.id)) && !allVisibleSelected;
+
+  const toggleAllVisible = (checked: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) filtered.forEach((r) => next.add(r.id));
+      else filtered.forEach((r) => next.delete(r.id));
+      return next;
+    });
+  };
+
+  const bulkUpdate = async (status: EnrollmentStatus) => {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from('enrollments').update({ status }).in('id', ids);
+    setBulkLoading(false);
+    if (error) {
+      toast.error('Bulk update failed');
+      return;
+    }
+    toast.success(`${ids.length} enrollment${ids.length > 1 ? 's' : ''} marked as ${status}`);
+    setSelected(new Set());
+    queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] });
+  };
+
   return (
     <AdminLayout title="Enrollments" subtitle="Manage course enrollments and student progress">
       {/* Stats */}
@@ -182,6 +226,56 @@ const AdminEnrollmentsContent = () => {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Bulk action toolbar */}
+      {selected.size > 0 && (
+        <div className="sticky top-0 z-10 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 p-2.5 shadow-sm backdrop-blur">
+          <span className="text-xs sm:text-sm font-medium text-foreground px-1">
+            {selected.size} selected
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              disabled={bulkLoading}
+              onClick={() => bulkUpdate('confirmed')}
+            >
+              {bulkLoading ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-1" />}
+              Confirm
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              disabled={bulkLoading}
+              onClick={() => bulkUpdate('completed')}
+            >
+              Complete
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs text-danger hover:text-danger"
+              disabled={bulkLoading}
+              onClick={() => bulkUpdate('cancelled')}
+            >
+              <XCircle className="h-3.5 w-3.5 mr-1" />
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 text-xs"
+              disabled={bulkLoading}
+              onClick={() => setSelected(new Set())}
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <EnrollmentsSkeleton />
@@ -246,9 +340,16 @@ const AdminEnrollmentsContent = () => {
             <div className="sm:hidden divide-y divide-border">
               {filtered.map((row) => {
                 const status = (row.status || 'pending') as EnrollmentStatus;
+                const isChecked = selected.has(row.id);
                 return (
-                  <div key={row.id} className="p-3 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
+                  <div key={row.id} className={`p-3 space-y-2 ${isChecked ? 'bg-primary/5' : ''}`}>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(c) => toggleOne(row.id, c === true)}
+                        aria-label="Select enrollment"
+                        className="mt-0.5"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">
                           {row.profile?.full_name || 'Unnamed Student'}
@@ -289,6 +390,13 @@ const AdminEnrollmentsContent = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={allVisibleSelected ? true : someVisibleSelected ? 'indeterminate' : false}
+                        onCheckedChange={(c) => toggleAllVisible(c === true)}
+                        aria-label="Select all visible"
+                      />
+                    </TableHead>
                     <TableHead>Student</TableHead>
                     <TableHead>Course</TableHead>
                     <TableHead>Batch</TableHead>
@@ -300,8 +408,16 @@ const AdminEnrollmentsContent = () => {
                 <TableBody>
                   {filtered.map((row) => {
                     const status = (row.status || 'pending') as EnrollmentStatus;
+                    const isChecked = selected.has(row.id);
                     return (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.id} data-state={isChecked ? 'selected' : undefined}>
+                        <TableCell className="w-10">
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(c) => toggleOne(row.id, c === true)}
+                            aria-label="Select enrollment"
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">
                           {row.profile?.full_name || 'Unnamed'}
                         </TableCell>
