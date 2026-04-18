@@ -160,8 +160,23 @@ const AdminProducts = () => {
     } else if (stockFilter === 'inactive') {
       list = list.filter(p => !p.is_active);
     }
-    return list;
-  }, [products, debouncedSearch, stockFilter]);
+    // Sort
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const sorted = [...list].sort((a, b) => {
+      switch (sortKey) {
+        case 'name':
+          return a.name.localeCompare(b.name) * dir;
+        case 'price':
+          return ((a.price ?? 0) - (b.price ?? 0)) * dir;
+        case 'stock':
+          return ((a.stock ?? 0) - (b.stock ?? 0)) * dir;
+        case 'created_at':
+        default:
+          return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+      }
+    });
+    return sorted;
+  }, [products, debouncedSearch, stockFilter, sortKey, sortDir]);
 
   // Pagination derived state
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
