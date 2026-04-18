@@ -4,6 +4,7 @@ import { useAdmin, useAdminStats } from '@/hooks/useAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
 import { ECommerceOverview } from '@/components/admin/dashboard/ECommerceOverview';
+import { AcademyOverview } from '@/components/admin/dashboard/AcademyOverview';
 import { RecentOrdersList } from '@/components/admin/dashboard/RecentOrdersList';
 import { QuickActionsCard } from '@/components/admin/dashboard/QuickActionsCard';
 import { PlatformHealthCard } from '@/components/admin/dashboard/PlatformHealthCard';
@@ -24,6 +25,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout title="Dashboard" subtitle="Welcome back! Here's your platform overview.">
       <ECommerceOverview stats={stats} />
+      <AcademyOverview stats={stats} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 min-h-[320px]">
         {recentOrdersMemo}

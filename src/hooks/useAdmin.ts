@@ -48,6 +48,8 @@ export const useAdminStats = () => {
         totalCourses: stats.totalCourses || 0,
         totalEnrollments: stats.totalEnrollments || 0,
         pendingEnrollments: stats.pendingEnrollments || 0,
+        confirmedEnrollments: stats.confirmedEnrollments || 0,
+        completedEnrollments: stats.completedEnrollments || 0,
         unreadMessages: stats.unreadMessages || 0,
         incompleteOrders: stats.incompleteOrders || 0,
         recentOrders: stats.recentOrders || [],
