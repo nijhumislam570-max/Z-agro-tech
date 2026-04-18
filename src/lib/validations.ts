@@ -39,28 +39,6 @@ export const signupSchema = z.object({
 
 export type SignupFormData = z.infer<typeof signupSchema>;
 
-// Clinic owner signup validation
-export const clinicOwnerSignupSchema = signupSchema.extend({
-  clinicName: z
-    .string()
-    .min(1, 'Clinic name is required')
-    .max(200, 'Clinic name must be less than 200 characters')
-    .regex(noXSSRegex, 'Clinic name cannot contain < or > characters'),
-  clinicAddress: z
-    .string()
-    .max(500, 'Address must be less than 500 characters')
-    .regex(noXSSRegex, 'Address cannot contain < or > characters')
-    .optional()
-    .or(z.literal('')),
-  clinicPhone: z
-    .string()
-    .max(20, 'Phone must be less than 20 characters')
-    .optional()
-    .or(z.literal('')),
-});
-
-export type ClinicOwnerSignupFormData = z.infer<typeof clinicOwnerSignupSchema>;
-
 // Appointment validation schema
 export const appointmentSchema = z.object({
   date: z.string().min(1, 'Date is required'),
