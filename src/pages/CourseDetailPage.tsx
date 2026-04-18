@@ -50,18 +50,28 @@ const CourseDetailPage = () => {
         image={course?.thumbnail_url ?? undefined}
         url={`https://zagrotech.lovable.app/course/${id}`}
         canonicalUrl={`https://zagrotech.lovable.app/course/${id}`}
-        schema={course ? {
-          type: 'Course',
-          name: course.title,
-          description: course.description ?? undefined,
-          image: course.thumbnail_url ?? undefined,
-          url: `https://zagrotech.lovable.app/course/${id}`,
-          price: course.price,
-          priceCurrency: 'BDT',
-          language: course.language ?? 'en',
-          difficulty: course.difficulty,
-          duration: course.duration_label ?? undefined,
-        } : undefined}
+        schema={course ? [
+          {
+            type: 'Course',
+            name: course.title,
+            description: course.description ?? undefined,
+            image: course.thumbnail_url ?? undefined,
+            url: `https://zagrotech.lovable.app/course/${id}`,
+            price: course.price,
+            priceCurrency: 'BDT',
+            language: course.language ?? 'en',
+            difficulty: course.difficulty,
+            duration: course.duration_label ?? undefined,
+          },
+          {
+            type: 'BreadcrumbList',
+            items: [
+              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
+              { name: 'Academy', url: 'https://zagrotech.lovable.app/academy' },
+              { name: course.title, url: `https://zagrotech.lovable.app/course/${id}` },
+            ],
+          },
+        ] : undefined}
       />
       <Navbar />
       <main id="main-content" className="flex-1 container mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-8 animate-page-enter">

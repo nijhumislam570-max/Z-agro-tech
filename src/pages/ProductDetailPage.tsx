@@ -242,10 +242,9 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
         image={product.image_url || undefined}
         url={`https://zagrotech.lovable.app/product/${product.id}`}
         type="product"
-        schema={productSchema}
+        schema={[productSchema, breadcrumbSchema]}
         canonicalUrl={`https://zagrotech.lovable.app/product/${product.id}`}
       />
-      <SEO schema={breadcrumbSchema} />
       <Navbar />
       
       {/* Breadcrumb */}
