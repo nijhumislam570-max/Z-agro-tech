@@ -47,9 +47,20 @@ export const useCheckoutTracking = (
   const debouncedAddress = useDebounce(formData.address, 2000);
   const debouncedDivision = useDebounce(formData.division, 2000);
 
-  // Create initial record on mount
+  // Create initial record only when we have a non-empty cart and a signed-in user.
+  // If the cart is emptied (e.g. user removes all items), reset so a new record
+  // can be created if items reappear later.
   useEffect(() => {
-    if (!user || items.length === 0 || hasCreated.current) return;
+    if (!user) return;
+
+    if (items.length === 0) {
+      // Cart cleared — allow a fresh record next time items are added.
+      hasCreated.current = false;
+      incompleteOrderId.current = null;
+      return;
+    }
+
+    if (hasCreated.current) return;
 
     const createRecord = async () => {
       try {

@@ -71,7 +71,7 @@ export default function MasterclassTile() {
               )}
             </div>
             <Button asChild variant="secondary" className="w-full">
-              <Link to={`/academy/${data.id}`}>
+              <Link to={`/course/${data.id}`}>
                 Enroll Now <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
