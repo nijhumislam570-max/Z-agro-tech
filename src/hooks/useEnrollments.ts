@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import type { Course } from './useCourses';
+import type { CourseBatch } from './useCourseBatches';
+
+export type EnrollmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 export interface Enrollment {
   id: string;
@@ -10,7 +13,12 @@ export interface Enrollment {
   course_id: string;
   enrolled_at: string;
   progress: number;
+  batch_id: string | null;
+  status: EnrollmentStatus;
+  contact_phone: string | null;
+  notes: string | null;
   course?: Course;
+  batch?: CourseBatch | null;
 }
 
 export function useMyEnrollments() {
@@ -21,11 +29,11 @@ export function useMyEnrollments() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('enrollments')
-        .select('*, course:courses(*)')
+        .select('*, course:courses(*), batch:course_batches(*)')
         .eq('user_id', user!.id)
         .order('enrolled_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as Enrollment[];
+      return (data || []) as unknown as Enrollment[];
     },
   });
 }
@@ -38,31 +46,43 @@ export function useIsEnrolled(courseId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('enrollments')
-        .select('id')
+        .select('id, status')
         .eq('user_id', user!.id)
         .eq('course_id', courseId!)
         .maybeSingle();
       if (error) throw error;
-      return !!data;
+      return data ?? null;
     },
   });
+}
+
+export interface EnrollPayload {
+  courseId: string;
+  batchId?: string | null;
+  contactPhone?: string | null;
+  notes?: string | null;
 }
 
 export function useEnroll() {
   const { user } = useAuth();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (courseId: string) => {
+    mutationFn: async (payload: EnrollPayload) => {
       if (!user) throw new Error('Sign in required');
-      const { error } = await supabase
-        .from('enrollments')
-        .insert({ user_id: user.id, course_id: courseId });
+      const { error } = await supabase.from('enrollments').insert({
+        user_id: user.id,
+        course_id: payload.courseId,
+        batch_id: payload.batchId ?? null,
+        contact_phone: payload.contactPhone ?? null,
+        notes: payload.notes ?? null,
+        status: 'pending',
+      });
       if (error) throw error;
     },
-    onSuccess: (_, courseId) => {
-      toast.success('Enrolled successfully!');
+    onSuccess: (_, payload) => {
+      toast.success("Request received! We'll be in touch shortly.");
       qc.invalidateQueries({ queryKey: ['enrollments'] });
-      qc.invalidateQueries({ queryKey: ['enrollment', user?.id, courseId] });
+      qc.invalidateQueries({ queryKey: ['enrollment', user?.id, payload.courseId] });
     },
     onError: (e: Error) => toast.error(e.message ?? 'Could not enroll'),
   });
