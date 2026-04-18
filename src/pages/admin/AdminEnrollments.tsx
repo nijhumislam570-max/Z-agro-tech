@@ -340,9 +340,16 @@ const AdminEnrollmentsContent = () => {
             <div className="sm:hidden divide-y divide-border">
               {filtered.map((row) => {
                 const status = (row.status || 'pending') as EnrollmentStatus;
+                const isChecked = selected.has(row.id);
                 return (
-                  <div key={row.id} className="p-3 space-y-2">
-                    <div className="flex items-start justify-between gap-2">
+                  <div key={row.id} className={`p-3 space-y-2 ${isChecked ? 'bg-primary/5' : ''}`}>
+                    <div className="flex items-start gap-2">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(c) => toggleOne(row.id, c === true)}
+                        aria-label="Select enrollment"
+                        className="mt-0.5"
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">
                           {row.profile?.full_name || 'Unnamed Student'}
