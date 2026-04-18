@@ -1,31 +1,44 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useCourse } from '@/hooks/useCourses';
-import { useEnroll, useIsEnrolled } from '@/hooks/useEnrollments';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCourse, COURSE_CATEGORIES, COURSE_MODES } from '@/hooks/useCourses';
+import { useCourseBatches } from '@/hooks/useCourseBatches';
+import { useIsEnrolled } from '@/hooks/useEnrollments';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { GraduationCap, PlayCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import {
+  GraduationCap, ArrowLeft, CheckCircle2, Award, Clock, MapPin, Users, Sparkles,
+} from 'lucide-react';
+import { CurriculumList } from '@/components/academy/CurriculumList';
+import { BatchPicker } from '@/components/academy/BatchPicker';
+import { EnrollDialog } from '@/components/academy/EnrollDialog';
 
 const CourseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const { data: course, isLoading } = useCourse(id);
-  const { data: isEnrolled } = useIsEnrolled(id);
-  const enroll = useEnroll();
+  const { data: batches } = useCourseBatches(id);
+  const { data: enrollment } = useIsEnrolled(id);
+  const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
+  const [enrollOpen, setEnrollOpen] = useState(false);
 
   useDocumentTitle(course?.title ?? 'Course');
 
-  const handleEnroll = () => {
-    if (!user) { navigate('/auth'); return; }
-    if (id) enroll.mutate(id);
-  };
+  const categoryLabel = useMemo(
+    () => COURSE_CATEGORIES.find((c) => c.value === course?.category)?.label ?? null,
+    [course?.category],
+  );
+  const modeLabel = useMemo(
+    () => COURSE_MODES.find((m) => m.value === course?.mode)?.label ?? null,
+    [course?.mode],
+  );
+
+  const activeBatch = batches?.find((b) => b.id === selectedBatch) ?? null;
+  const hasOpenBatch = batches?.some((b) => b.status === 'open' || b.status === 'filling') ?? false;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -43,12 +56,11 @@ const CourseDetailPage = () => {
           </div>
         ) : !course ? (
           <Card className="py-16 text-center">
-            <CardContent>
-              <p className="text-muted-foreground">Course not found.</p>
-            </CardContent>
+            <CardContent><p className="text-muted-foreground">Course not found.</p></CardContent>
           </Card>
         ) : (
           <div className="grid lg:grid-cols-3 gap-8">
+            {/* MAIN */}
             <div className="lg:col-span-2 space-y-6">
               <div className="aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center">
                 {course.thumbnail_url ? (
@@ -57,46 +69,102 @@ const CourseDetailPage = () => {
                   <GraduationCap className="h-24 w-24 text-primary/30" />
                 )}
               </div>
-              <div>
-                <Badge variant="outline" className="capitalize mb-3">{course.difficulty}</Badge>
-                <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground mb-3">{course.title}</h1>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                  {course.description ?? 'No description provided.'}
-                </p>
+
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {categoryLabel && <Badge variant="secondary">{categoryLabel}</Badge>}
+                  <Badge variant="outline" className="capitalize">{course.difficulty}</Badge>
+                  {course.duration_label && (
+                    <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />{course.duration_label}</Badge>
+                  )}
+                  {modeLabel && (
+                    <Badge variant="outline" className="gap-1"><MapPin className="h-3 w-3" />{modeLabel}</Badge>
+                  )}
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-display font-bold text-foreground">{course.title}</h1>
+                {course.audience && (
+                  <p className="text-base text-muted-foreground italic">For: {course.audience}</p>
+                )}
+                {course.description && (
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{course.description}</p>
+                )}
               </div>
+
+              {course.curriculum.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-xl font-display font-semibold text-foreground flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" /> What you'll learn
+                  </h2>
+                  <CurriculumList items={course.curriculum} />
+                </div>
+              )}
+
+              {course.provides_certificate && (
+                <Card className="border-success/30 bg-success/5">
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <Award className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-foreground">Certificate of completion</p>
+                      <p className="text-sm text-muted-foreground">Earn an industry-recognized certificate after finishing the course.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
+            {/* SIDEBAR */}
             <aside className="lg:col-span-1">
               <Card className="sticky top-20">
                 <CardContent className="p-6 space-y-4">
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Price</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Course fee</p>
                     <p className="text-3xl font-bold text-primary">
                       {course.price > 0 ? `৳${course.price}` : 'Free'}
                     </p>
                   </div>
-                  {isEnrolled ? (
+
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground inline-flex items-center gap-1">
+                      <Users className="h-3 w-3" /> Available batches
+                    </p>
+                    <BatchPicker
+                      batches={batches ?? []}
+                      selectedId={selectedBatch}
+                      onSelect={setSelectedBatch}
+                    />
+                  </div>
+
+                  {enrollment ? (
                     <div className="rounded-xl bg-success/10 border border-success/30 p-4 flex items-center gap-3 text-success">
                       <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-                      <p className="text-sm font-medium">You're enrolled in this course</p>
+                      <p className="text-sm font-medium">
+                        {enrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
+                      </p>
                     </div>
                   ) : (
                     <Button
                       size="lg"
-                      className="w-full gap-2"
-                      onClick={handleEnroll}
-                      disabled={enroll.isPending}
+                      className="w-full"
+                      onClick={() => setEnrollOpen(true)}
+                      disabled={!hasOpenBatch && (batches?.length ?? 0) > 0}
                     >
-                      <PlayCircle className="h-4 w-4" />
-                      {enroll.isPending ? 'Enrolling…' : user ? 'Enroll now' : 'Sign in to enroll'}
+                      Enroll now
                     </Button>
                   )}
+
                   <p className="text-xs text-muted-foreground text-center">
-                    Lifetime access · Self-paced learning
+                    Live cohort · Certificate included
                   </p>
                 </CardContent>
               </Card>
             </aside>
+
+            <EnrollDialog
+              open={enrollOpen}
+              onOpenChange={setEnrollOpen}
+              course={course}
+              batch={activeBatch}
+            />
           </div>
         )}
       </main>

@@ -1,19 +1,22 @@
+import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useCourses } from '@/hooks/useCourses';
+import { useCourses, type CourseCategory } from '@/hooks/useCourses';
 import { CourseCard } from '@/components/academy/CourseCard';
 import { CourseSkeleton } from '@/components/academy/CourseSkeleton';
+import { CourseCategoryChips } from '@/components/academy/CourseCategoryChips';
 import { GraduationCap } from 'lucide-react';
 
 const AcademyPage = () => {
   useDocumentTitle('Academy');
-  const { data: courses, isLoading } = useCourses();
+  const [category, setCategory] = useState<CourseCategory | 'all'>('all');
+  const { data: courses, isLoading } = useCourses({ category });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO title="Academy — Z Agro Tech" description="Expert-led agriculture and farming courses." url="/academy" />
+      <SEO title="Academy — Z Agro Tech" description="Expert-led agriculture and farming training cohorts." url="/academy" />
       <Navbar />
       <main id="main-content" className="flex-1 @container">
         <section className="bg-gradient-to-b from-secondary/40 to-background py-12 sm:py-16">
@@ -22,11 +25,12 @@ const AcademyPage = () => {
               <GraduationCap className="h-3.5 w-3.5" /> Z Agro Academy
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-foreground mb-3">
-              Learn modern farming
+              Hands-on training cohorts
             </h1>
-            <p className="text-muted-foreground text-base sm:text-lg">
-              Curated courses by industry experts to help you grow smarter, faster, and more sustainably.
+            <p className="text-muted-foreground text-base sm:text-lg mb-6">
+              Learn modern farming from certified experts. Live batches, practical curriculum, and a certificate at the end.
             </p>
+            <CourseCategoryChips value={category} onChange={setCategory} />
           </div>
         </section>
 
@@ -39,8 +43,8 @@ const AcademyPage = () => {
           {!isLoading && (!courses || courses.length === 0) && (
             <div className="text-center py-16 bg-card rounded-2xl border border-border/60 mt-4">
               <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <h3 className="font-semibold text-foreground">No courses available yet</h3>
-              <p className="text-sm text-muted-foreground mt-1">Check back soon — new courses are added regularly.</p>
+              <h3 className="font-semibold text-foreground">No courses in this category yet</h3>
+              <p className="text-sm text-muted-foreground mt-1">Try a different category — new cohorts open regularly.</p>
             </div>
           )}
         </section>
