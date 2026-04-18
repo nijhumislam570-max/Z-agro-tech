@@ -63,6 +63,8 @@ const AdminEnrollmentsContent = () => {
   const [searchInput, setSearchInput] = useState('');
   const search = useDebounce(searchInput, 300);
   const [statusFilter, setStatusFilter] = useState<EnrollmentStatus | 'all'>('all');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   const { data: enrollments = [], isLoading } = useQuery({
     queryKey: ['admin-enrollments'],
