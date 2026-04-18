@@ -9,8 +9,6 @@ import {
   ShieldCheck,
   User,
   Download,
-  Stethoscope,
-  Building2,
   ChevronLeft,
   ChevronRight,
   Trash2,
@@ -66,7 +64,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { downloadCSV } from '@/lib/csvParser';
 import { usePagination } from '@/hooks/usePagination';
 
-type RoleFilter = 'all' | 'user' | 'admin' | 'doctor' | 'clinic_owner';
+type RoleFilter = 'all' | 'user' | 'admin';
 
 const AdminCustomers = () => {
   useDocumentTitle('User Management - Admin');
@@ -88,11 +86,9 @@ const AdminCustomers = () => {
 
   // Stats computed from data
   const stats = useMemo(() => {
-    if (!customers) return { total: 0, admins: 0, doctors: 0, clinicOwners: 0, users: 0 };
+    if (!customers) return { total: 0, admins: 0, users: 0 };
     const admins = customers.filter(c => c.user_roles?.some((r: any) => r.role === 'admin')).length;
-    const doctors = customers.filter(c => c.user_roles?.some((r: any) => r.role === 'doctor')).length;
-    const clinicOwners = customers.filter(c => c.user_roles?.some((r: any) => r.role === 'clinic_owner')).length;
-    return { total: customers.length, admins, doctors, clinicOwners, users: customers.length - admins - doctors - clinicOwners };
+    return { total: customers.length, admins, users: customers.length - admins };
   }, [customers]);
 
   // Filter customers
@@ -134,7 +130,7 @@ const AdminCustomers = () => {
     setRoleFilter(prev => prev === role ? 'all' : role);
   }, []);
 
-  const updateUserRole = useCallback(async (userId: string, role: 'admin' | 'user' | 'doctor' | 'clinic_owner') => {
+  const updateUserRole = useCallback(async (userId: string, role: 'admin' | 'user') => {
     try {
       const { data: existingRole } = await supabase
         .from('user_roles')
@@ -155,54 +151,7 @@ const AdminCustomers = () => {
         if (error) throw error;
       }
 
-      // When assigning doctor role, ensure a doctors record exists
-      if (role === 'doctor') {
-        const { data: existingDoctor } = await supabase
-          .from('doctors')
-          .select('id')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-        if (!existingDoctor) {
-          // Get user profile name for the doctor record
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', userId)
-            .maybeSingle();
-
-          await supabase.from('doctors').insert({
-            user_id: userId,
-            name: profile?.full_name || 'Doctor',
-            verification_status: 'not_submitted',
-          });
-        }
-      }
-
-      // When assigning clinic_owner role, ensure a clinics record exists
-      if (role === 'clinic_owner') {
-        const { data: existingClinic } = await supabase
-          .from('clinics')
-          .select('id')
-          .eq('owner_user_id', userId)
-          .maybeSingle();
-
-        if (!existingClinic) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('user_id', userId)
-            .maybeSingle();
-
-          await supabase.from('clinics').insert({
-            owner_user_id: userId,
-            name: `${profile?.full_name || 'New'}'s Clinic`,
-            verification_status: 'not_submitted',
-          });
-        }
-      }
-
-      toast.success(`User role updated to ${role.replace('_', ' ')}`);
+      toast.success(`User role updated to ${role}`);
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update role';
@@ -215,10 +164,6 @@ const AdminCustomers = () => {
     switch (role) {
       case 'admin':
         return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
-      case 'doctor':
-        return <Badge className="bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300"><Stethoscope className="h-3 w-3 mr-1" />Doctor</Badge>;
-      case 'clinic_owner':
-        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"><Building2 className="h-3 w-3 mr-1" />Clinic Owner</Badge>;
       default:
         return <Badge variant="outline"><User className="h-3 w-3 mr-1" />User</Badge>;
     }
@@ -265,12 +210,11 @@ const AdminCustomers = () => {
   return (
     <AdminLayout title="User Management" subtitle="Manage platform users, roles & permissions">
       {/* Stats Bar — clickable to filter */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
           { key: 'all' as RoleFilter, label: 'Total Users', value: stats.total, icon: Users, iconColor: 'text-primary', iconBg: 'bg-primary/10', bgClass: 'bg-gradient-to-br from-primary/5 to-accent/5 border-primary/10 dark:from-primary/10 dark:to-accent/10 dark:border-primary/20' },
+          { key: 'user' as RoleFilter, label: 'Users', value: stats.users, icon: User, iconColor: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/10', bgClass: 'bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50' },
           { key: 'admin' as RoleFilter, label: 'Admins', value: stats.admins, icon: ShieldCheck, iconColor: 'text-purple-600 dark:text-purple-400', iconBg: 'bg-purple-500/10', bgClass: 'bg-gradient-to-br from-purple-50 to-violet-50/50 border-purple-100 dark:from-purple-950/30 dark:to-violet-950/20 dark:border-purple-900/50' },
-          { key: 'doctor' as RoleFilter, label: 'Doctors', value: stats.doctors, icon: Stethoscope, iconColor: 'text-teal-600 dark:text-teal-400', iconBg: 'bg-teal-500/10', bgClass: 'bg-gradient-to-br from-teal-50 to-cyan-50/50 border-teal-100 dark:from-teal-950/30 dark:to-cyan-950/20 dark:border-teal-900/50' },
-          { key: 'clinic_owner' as RoleFilter, label: 'Clinic Owners', value: stats.clinicOwners, icon: Building2, iconColor: 'text-amber-600 dark:text-amber-400', iconBg: 'bg-amber-500/10', bgClass: 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50' },
         ].map(({ key, label, value, icon: Icon, iconColor, iconBg, bgClass }) => {
           const isActive = roleFilter === key;
           return (
@@ -322,8 +266,6 @@ const AdminCustomers = () => {
               <SelectItem value="all">All Roles</SelectItem>
               <SelectItem value="user">User</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="doctor">Doctor</SelectItem>
-              <SelectItem value="clinic_owner">Clinic Owner</SelectItem>
             </SelectContent>
           </Select>
           <Button 
@@ -389,13 +331,6 @@ const AdminCustomers = () => {
                       <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'user')}>
                         <User className="h-4 w-4 mr-2" />Set as User
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'doctor')}>
-                        <Stethoscope className="h-4 w-4 mr-2" />Set as Doctor
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'clinic_owner')}>
-                        <Building2 className="h-4 w-4 mr-2" />Set as Clinic Owner
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'admin')} className="text-purple-600">
                         <ShieldCheck className="h-4 w-4 mr-2" />Set as Admin
                       </DropdownMenuItem>
@@ -463,13 +398,6 @@ const AdminCustomers = () => {
                             <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'user')}>
                               <User className="h-4 w-4 mr-2" />Set as User
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'doctor')}>
-                              <Stethoscope className="h-4 w-4 mr-2" />Set as Doctor
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'clinic_owner')}>
-                              <Building2 className="h-4 w-4 mr-2" />Set as Clinic Owner
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'admin')} className="text-purple-600">
                               <ShieldCheck className="h-4 w-4 mr-2" />Set as Admin
                             </DropdownMenuItem>
