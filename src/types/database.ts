@@ -34,7 +34,7 @@ export interface Profile {
 export interface Order {
   id: string;
   user_id: string;
-  items: any;
+  items: OrderItem[];
   total_amount: number;
   shipping_address: string | null;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';

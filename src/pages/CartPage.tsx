@@ -19,16 +19,18 @@ import Navbar from '@/components/Navbar';
 import { Separator } from '@/components/ui/separator';
 import MobileNav from '@/components/MobileNav';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { useDeliveryCharge } from '@/hooks/useDeliveryCharge';
+import type { CartItem as CartItemType } from '@/contexts/CartContext';
 
 // Memoized cart item component
-const CartItem = memo(({ 
-  item, 
-  onUpdateQuantity, 
-  onRemove, 
-  onNavigate 
-}: { 
-  item: any; 
-  onUpdateQuantity: (id: string, qty: number) => void; 
+const CartItem = memo(({
+  item,
+  onUpdateQuantity,
+  onRemove,
+  onNavigate,
+}: {
+  item: CartItemType;
+  onUpdateQuantity: (id: string, qty: number) => void;
   onRemove: (id: string) => void;
   onNavigate: (path: string) => void;
 }) => (
@@ -121,7 +123,9 @@ const CartPage = () => {
   const { items, updateQuantity, removeItem, totalAmount, clearCart, totalItems } = useCart();
   const navigate = useNavigate();
 
-  const deliveryCharge = totalAmount >= 500 ? 0 : 60;
+  // Single source of truth for delivery — same hook used in CheckoutPage.
+  // Cart preview uses no division (subtotal-based), checkout passes division.
+  const { charge: deliveryCharge } = useDeliveryCharge(totalAmount);
   const grandTotal = totalAmount + deliveryCharge;
 
   const handleNavigate = useCallback((path: string) => {

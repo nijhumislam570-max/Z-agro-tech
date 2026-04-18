@@ -678,6 +678,7 @@ export type Database = {
       }
     }
     Functions: {
+      cleanup_expired_incomplete_orders: { Args: never; Returns: number }
       create_order_with_stock: {
         Args: {
           p_coupon_id?: string

@@ -58,6 +58,12 @@ export const useAdminStats = () => {
   });
 };
 
+/**
+ * Returns ALL products for the admin catalog. The admin Products page
+ * filters and searches client-side, so we keep this as a flat array.
+ * For very large catalogs (>500 SKUs) consider migrating consumers to a
+ * paginated variant — see useAdminOrders for the pattern.
+ */
 export const useAdminProducts = () => {
   const { isAdmin } = useAdmin();
 
@@ -66,11 +72,13 @@ export const useAdminProducts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('id, name, description, price, compare_price, category, product_type, image_url, stock, badge, discount, is_active, is_featured, sku, created_at')
+        .select(
+          'id, name, description, price, compare_price, category, product_type, image_url, stock, badge, discount, is_active, is_featured, sku, created_at',
+        )
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
     enabled: isAdmin,
   });

@@ -73,8 +73,21 @@ const CourseDetailPage = () => {
             <Skeleton className="h-64 rounded-2xl" />
           </div>
         ) : !course ? (
-          <Card className="py-16 text-center">
-            <CardContent><p className="text-muted-foreground">Course not found.</p></CardContent>
+          <Card className="border-dashed">
+            <CardContent className="py-16 text-center space-y-4">
+              <div className="mx-auto h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+                <GraduationCap className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <div className="space-y-1.5">
+                <h1 className="text-xl font-display font-bold text-foreground">Course not found</h1>
+                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                  This course may have been removed or the link is incorrect. Browse the Academy to discover other expert-led farming courses.
+                </p>
+              </div>
+              <Link to="/academy" className="inline-block">
+                <Button className="gap-2"><ArrowLeft className="h-4 w-4" /> Back to Academy</Button>
+              </Link>
+            </CardContent>
           </Card>
         ) : (
           <div className="grid lg:grid-cols-3 gap-8">
