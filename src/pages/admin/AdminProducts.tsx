@@ -308,7 +308,7 @@ const AdminProducts = () => {
       // Auto-sync badge with stock status
       const product = products?.find(p => p.id === productId);
       const currentBadge = product?.badge;
-      const updateData: any = { stock: newStock };
+      const updateData: { stock: number; badge?: string | null } = { stock: newStock };
       if (newStock > 0 && currentBadge?.toLowerCase() === 'stock out') {
         updateData.badge = null;
       } else if (newStock === 0) {
