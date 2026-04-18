@@ -92,3 +92,63 @@ export const productFormSchema = z.object({
   sku: z.string().max(50).regex(noXSSRegex).optional().nullable().or(z.literal('')),
 });
 export type ProductFormData = z.infer<typeof productFormSchema>;
+
+// ========== Admin Course ==========
+
+export const courseFormSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be less than 200 characters')
+    .regex(noXSSRegex, 'Title cannot contain < or > characters'),
+  description: z
+    .string()
+    .max(4000, 'Description must be less than 4000 characters')
+    .regex(noXSSRegex, 'Description cannot contain < or > characters')
+    .optional()
+    .or(z.literal('')),
+  audience: z
+    .string()
+    .max(200, 'Audience must be less than 200 characters')
+    .regex(noXSSRegex, 'Audience cannot contain < or > characters')
+    .optional()
+    .or(z.literal('')),
+  price: z.coerce
+    .number({ invalid_type_error: 'Price must be a number' })
+    .min(0, 'Price cannot be negative')
+    .max(9999999, 'Price too large'),
+  thumbnail_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  video_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
+  category: z.enum([
+    'plant_doctor',
+    'plant_protection',
+    'smart_farming',
+    'urban_farming',
+    'organic',
+    'other',
+  ]),
+  mode: z.enum(['online', 'onsite', 'hybrid']),
+  duration_label: z
+    .string()
+    .max(50, 'Duration label too long')
+    .regex(noXSSRegex)
+    .optional()
+    .or(z.literal('')),
+  curriculum: z.array(z.string().max(200)).max(50, 'Maximum 50 curriculum items'),
+  whatsapp_number: z
+    .string()
+    .max(30, 'Phone number too long')
+    .regex(/^[+\d\s-]*$/, 'Only digits, spaces, + and - allowed')
+    .optional()
+    .or(z.literal('')),
+  whatsapp_message: z
+    .string()
+    .max(500, 'Message too long')
+    .regex(noXSSRegex, 'Message cannot contain < or > characters')
+    .optional()
+    .or(z.literal('')),
+  provides_certificate: z.boolean(),
+  is_active: z.boolean(),
+});
+export type CourseFormData = z.infer<typeof courseFormSchema>;
