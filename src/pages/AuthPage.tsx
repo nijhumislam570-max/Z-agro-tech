@@ -45,20 +45,21 @@ const AuthPage = () => {
   });
 
   /**
-   * After-auth redirect. Uses a single role lookup and routes admins to
-   * /admin, everyone else to the requested page or /dashboard.
+   * After-auth redirect. If a redirect target was requested (via `?redirect=`
+   * or location state), honor it for everyone — including admins. Otherwise
+   * route admins to /admin and everyone else to /dashboard.
    */
   const redirectAfterAuth = useCallback(async (userId: string) => {
+    if (fromPath) {
+      navigate(fromPath, { replace: true });
+      return;
+    }
     const { data: roleData } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId);
     const isAdmin = roleData?.some((r) => r.role === 'admin') ?? false;
-    if (isAdmin) {
-      navigate('/admin', { replace: true });
-    } else {
-      navigate(fromPath || '/dashboard', { replace: true });
-    }
+    navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
   }, [navigate, fromPath]);
 
   useEffect(() => {

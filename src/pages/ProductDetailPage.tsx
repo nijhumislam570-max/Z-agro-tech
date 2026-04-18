@@ -412,7 +412,7 @@ const ProductDetailPage = () => {
             <div className="space-y-3">
               <h3 className="font-semibold text-foreground">About this item</h3>
               <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">
-                {product.description || 'Premium quality product for your beloved pets and farm animals. Made with the finest ingredients and materials to ensure the health and happiness of your animals.'}
+                {product.description || 'Premium-grade agriculture supply sourced for Bangladeshi farms. Carefully selected for quality, yield, and reliability — built to help every grower do more with less.'}
               </p>
             </div>
 

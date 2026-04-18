@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { toast } from 'sonner';
 
 interface RequireAdminProps {
   children: React.ReactNode;
@@ -14,12 +15,23 @@ export const RequireAdmin = ({ children }: RequireAdminProps) => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, roleLoading } = useAdmin();
+  const toastedRef = useRef(false);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/auth');
-    } else if (!authLoading && !roleLoading && !isAdmin) {
-      navigate('/');
+    if (authLoading || roleLoading) return;
+
+    if (!user) {
+      navigate('/auth?redirect=' + encodeURIComponent(window.location.pathname), { replace: true });
+      return;
+    }
+
+    if (!isAdmin && !toastedRef.current) {
+      toastedRef.current = true;
+      toast.error('Admin access required', {
+        description: "You don't have permission to view this page.",
+      });
+      const t = setTimeout(() => navigate('/', { replace: true }), 1500);
+      return () => clearTimeout(t);
     }
   }, [user, authLoading, isAdmin, roleLoading, navigate]);
 
@@ -33,11 +45,15 @@ export const RequireAdmin = ({ children }: RequireAdminProps) => {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="mx-auto h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+            <AlertCircle className="h-7 w-7 text-destructive" />
+          </div>
           <h1 className="text-xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground mb-4">You don't have permission to access this page.</p>
+          <p className="text-muted-foreground mb-4 text-sm">
+            You don't have permission to view this page. Redirecting you home…
+          </p>
           <Button onClick={() => navigate('/')}>Go Home</Button>
         </div>
       </div>
