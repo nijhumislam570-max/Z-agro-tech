@@ -6,40 +6,68 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Package, GraduationCap } from 'lucide-react';
 import OrdersTab from '@/components/dashboard/OrdersTab';
 import CoursesTab from '@/components/dashboard/CoursesTab';
-import { useAuth } from '@/contexts/AuthContext';
+import { BentoGrid } from '@/components/dashboard/BentoGrid';
+import KPIMarqueeTile from '@/components/dashboard/tiles/KPIMarqueeTile';
+import QuickActionsTile from '@/components/dashboard/tiles/QuickActionsTile';
+import LearningPathTile from '@/components/dashboard/tiles/LearningPathTile';
+import RecommendedInputsTile from '@/components/dashboard/tiles/RecommendedInputsTile';
+import RecentOrderTile from '@/components/dashboard/tiles/RecentOrderTile';
+import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
 
 const DashboardPage = () => {
   useDocumentTitle('Dashboard');
-  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO title="Dashboard — Z Agro Tech" description="Your orders and courses in one place." url="/dashboard" />
+      <SEO
+        title="Dashboard — Z Agro Tech"
+        description="Your personalized Krishi Clinic: orders, courses, and recommended agri-inputs."
+        url="/dashboard"
+      />
       <Navbar />
-      <main id="main-content" className="flex-1 container mx-auto px-4 sm:px-6 py-8">
-        <header className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground">My Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Welcome back{user?.email ? `, ${user.email}` : ''}.
-          </p>
-        </header>
+      <main id="main-content" className="flex-1">
+        {/* Hero with bento grid over agri gradient */}
+        <section className="bg-agri-gradient relative">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(0_0%_100%/0.1),_transparent_60%)] pointer-events-none" />
+          <div className="relative container mx-auto px-4 sm:px-6 py-8 md:py-10">
+            <BentoGrid>
+              <KPIMarqueeTile />
+              <QuickActionsTile />
+              <LearningPathTile />
+              <RecommendedInputsTile />
+              <RecentOrderTile />
+              <MasterclassTile />
+            </BentoGrid>
+          </div>
+        </section>
 
-        <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="orders" className="gap-2">
-              <Package className="h-4 w-4" /> My Orders
-            </TabsTrigger>
-            <TabsTrigger value="courses" className="gap-2">
-              <GraduationCap className="h-4 w-4" /> My Courses
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="orders">
-            <OrdersTab />
-          </TabsContent>
-          <TabsContent value="courses">
-            <CoursesTab />
-          </TabsContent>
-        </Tabs>
+        {/* Detailed tabs below */}
+        <section className="container mx-auto px-4 sm:px-6 py-8 md:py-10">
+          <header className="mb-5">
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
+              Your activity
+            </h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Full history of your AgroShop orders and Academy enrollments.
+            </p>
+          </header>
+          <Tabs defaultValue="orders" className="space-y-6">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="orders" className="gap-2">
+                <Package className="h-4 w-4" /> AgroShop Orders
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="gap-2">
+                <GraduationCap className="h-4 w-4" /> Academy Enrollments
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="orders">
+              <OrdersTab />
+            </TabsContent>
+            <TabsContent value="courses">
+              <CoursesTab />
+            </TabsContent>
+          </Tabs>
+        </section>
       </main>
       <Footer />
     </div>
