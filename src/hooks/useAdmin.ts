@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import type { AdminOrder } from '@/types/database';
 
-/** Z Agro Tech application role. Legacy 'doctor'/'clinic_owner' retired. */
+/** Z Agro Tech application role. */
 export type AppRole = 'admin' | 'user';
 
 export const useAdmin = () => {
@@ -32,22 +32,24 @@ export const useAdminStats = () => {
 
       return {
         totalProducts: stats.totalProducts || 0,
+        activeProducts: stats.activeProducts || 0,
+        lowStockProducts: stats.lowStockProducts || 0,
         totalOrders: total,
         activeOrders: total - cancelled,
         cancelledOrders: cancelled,
+        pendingOrders: stats.pendingOrders || 0,
+        ordersToday: stats.ordersToday || 0,
         totalUsers: stats.totalUsers || 0,
-        totalClinics: stats.totalClinics || 0,
-        verifiedClinics: stats.verifiedClinics || 0,
-        totalDoctors: stats.totalDoctors || 0,
-        pendingDoctors: stats.pendingDoctors || 0,
-        totalPosts: stats.totalPosts || 0,
-        postsToday: stats.postsToday || 0,
-        totalAppointments: stats.totalAppointments || 0,
-        appointmentsToday: stats.appointmentsToday || 0,
+        newUsersToday: stats.newUsersToday || 0,
         activeRevenue: Number(stats.activeRevenue) || 0,
         totalRevenue: Number(stats.totalRevenue) || 0,
+        revenueToday: Number(stats.revenueToday) || 0,
         cancelledRevenue: (Number(stats.totalRevenue) || 0) - (Number(stats.activeRevenue) || 0),
-        pendingOrders: stats.pendingOrders || 0,
+        totalCourses: stats.totalCourses || 0,
+        totalEnrollments: stats.totalEnrollments || 0,
+        pendingEnrollments: stats.pendingEnrollments || 0,
+        unreadMessages: stats.unreadMessages || 0,
+        incompleteOrders: stats.incompleteOrders || 0,
         recentOrders: stats.recentOrders || [],
       };
     },
@@ -80,8 +82,6 @@ export const useAdminOrders = (page = 0, pageSize = 50) => {
   return useQuery({
     queryKey: ['admin-orders', page, pageSize],
     queryFn: async () => {
-      // M-3 Fix: Use .range() for server-side pagination to avoid the 1000-row
-      // Supabase default limit silently truncating results.
       const from = page * pageSize;
       const to = from + pageSize - 1;
 
@@ -124,7 +124,6 @@ export const useAdminUsers = (page = 0, pageSize = 50) => {
   return useQuery({
     queryKey: ['admin-users', page, pageSize],
     queryFn: async () => {
-      // M-3 Fix: Use .range() for server-side pagination
       const from = page * pageSize;
       const to = from + pageSize - 1;
 
@@ -136,8 +135,6 @@ export const useAdminUsers = (page = 0, pageSize = 50) => {
 
       if (error) throw error;
 
-      // Scope the roles query to only the user IDs on this page — prevents
-      // fetching all rows in the table (O(N) memory leak on large platforms).
       const pageUserIds = profiles?.map(p => p.user_id) || [];
       const { data: roles } = pageUserIds.length > 0
         ? await supabase.from('user_roles').select('user_id, role').in('user_id', pageUserIds)
@@ -159,68 +156,6 @@ export const useAdminUsers = (page = 0, pageSize = 50) => {
         page,
         pageSize,
       };
-    },
-    enabled: isAdmin,
-  });
-};
-
-export const useAdminClinics = () => {
-  const { isAdmin } = useAdmin();
-
-  return useQuery({
-    queryKey: ['admin-clinics'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clinics')
-        .select('id, name, address, phone, email, image_url, is_verified, is_open, is_blocked, verification_status, rating, owner_user_id, owner_name, created_at, services, description, blocked_reason, rejection_reason')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: isAdmin,
-  });
-};
-
-export const useAdminPosts = () => {
-  const { isAdmin } = useAdmin();
-
-  return useQuery({
-    queryKey: ['admin-posts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          pet:pets(id, name, avatar_url, user_id)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: isAdmin,
-  });
-};
-
-export const useAdminAppointments = () => {
-  const { isAdmin } = useAdmin();
-
-  return useQuery({
-    queryKey: ['admin-appointments'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          *,
-          clinic:clinics(id, name),
-          doctor:doctors(id, name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
     },
     enabled: isAdmin,
   });
