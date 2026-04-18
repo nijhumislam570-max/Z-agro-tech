@@ -17,6 +17,8 @@ import {
 import { CurriculumList } from '@/components/academy/CurriculumList';
 import { BatchPicker } from '@/components/academy/BatchPicker';
 import { EnrollDialog } from '@/components/academy/EnrollDialog';
+import { CoursePlayer } from '@/components/academy/CoursePlayer';
+import { Progress } from '@/components/ui/progress';
 
 const CourseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -93,13 +95,11 @@ const CourseDetailPage = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* MAIN */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center">
-                {course.thumbnail_url ? (
-                  <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
-                ) : (
-                  <GraduationCap className="h-24 w-24 text-primary/30" />
-                )}
-              </div>
+              <CoursePlayer
+                videoUrl={course.video_url}
+                thumbnailUrl={course.thumbnail_url}
+                title={course.title}
+              />
 
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
@@ -166,11 +166,25 @@ const CourseDetailPage = () => {
                   </div>
 
                   {enrollment ? (
-                    <div className="rounded-xl bg-success/10 border border-success/30 p-4 flex items-center gap-3 text-success">
-                      <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
-                      <p className="text-sm font-medium">
-                        {enrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
-                      </p>
+                    <div className="space-y-3">
+                      <div className="rounded-xl bg-success/10 border border-success/30 p-4 flex items-center gap-3 text-success">
+                        <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+                        <p className="text-sm font-medium">
+                          {enrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
+                        </p>
+                      </div>
+                      {enrollment.status !== 'pending' && (
+                        <div className="rounded-xl border border-border/60 bg-card p-4 space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold uppercase tracking-wider text-muted-foreground">Your progress</span>
+                            <span className="font-bold text-primary">{enrollment.progress ?? 0}%</span>
+                          </div>
+                          <Progress value={enrollment.progress ?? 0} className="h-2" aria-label="Course completion" />
+                          <p className="text-xs text-muted-foreground">
+                            {(enrollment.progress ?? 0) >= 100 ? 'Course completed — well done!' : 'Keep learning to reach 100%.'}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <Button
