@@ -356,7 +356,7 @@ const AdminOrders = () => {
   };
 
   const filteredOrders = useMemo(() => {
-    return timeFilteredOrders.filter(order => {
+    const list = timeFilteredOrders.filter(order => {
       const customerName = getCustomerName(order).toLowerCase();
       const lowerQuery = debouncedSearch.toLowerCase();
       const matchesSearch = !debouncedSearch || 
@@ -374,7 +374,14 @@ const AdminOrders = () => {
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap]);
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      if (sortKey === 'total_amount') {
+        return ((a.total_amount ?? 0) - (b.total_amount ?? 0)) * dir;
+      }
+      return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+    });
+  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap, sortKey, sortDir]);
 
   // Bulk selection helpers (depend on filteredOrders)
   const pendingFilteredIds = useMemo(() => 
