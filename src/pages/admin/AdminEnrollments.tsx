@@ -135,6 +135,47 @@ const AdminEnrollmentsContent = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] });
   };
 
+  // Clear selection whenever filters change so stale IDs don't linger
+  useEffect(() => {
+    setSelected(new Set());
+  }, [search, statusFilter]);
+
+  const toggleOne = (id: string, checked: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const allVisibleSelected = filtered.length > 0 && filtered.every((r) => selected.has(r.id));
+  const someVisibleSelected = filtered.some((r) => selected.has(r.id)) && !allVisibleSelected;
+
+  const toggleAllVisible = (checked: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) filtered.forEach((r) => next.add(r.id));
+      else filtered.forEach((r) => next.delete(r.id));
+      return next;
+    });
+  };
+
+  const bulkUpdate = async (status: EnrollmentStatus) => {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from('enrollments').update({ status }).in('id', ids);
+    setBulkLoading(false);
+    if (error) {
+      toast.error('Bulk update failed');
+      return;
+    }
+    toast.success(`${ids.length} enrollment${ids.length > 1 ? 's' : ''} marked as ${status}`);
+    setSelected(new Set());
+    queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] });
+  };
+
   return (
     <AdminLayout title="Enrollments" subtitle="Manage course enrollments and student progress">
       {/* Stats */}
