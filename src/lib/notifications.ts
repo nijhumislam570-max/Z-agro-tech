@@ -27,3 +27,12 @@ export const createOrderNotification = async (
     logger.info('[notifications] createOrderNotification (no-op)', params);
   }
 };
+
+/** No-op: new-order alerts are surfaced via the admin dashboard + Steadfast. */
+export const notifyAdminsOfNewOrder = async (
+  params: { orderId: string; orderTotal: number; customerName?: string | null },
+): Promise<void> => {
+  if (import.meta.env.DEV) {
+    logger.info('[notifications] notifyAdminsOfNewOrder (no-op)', params);
+  }
+};

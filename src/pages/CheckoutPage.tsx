@@ -37,7 +37,6 @@ import {
   Tag
 } from 'lucide-react';
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
-import { notifyAdminsOfNewOrder } from '@/lib/notifications';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
 

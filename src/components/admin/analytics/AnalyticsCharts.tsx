@@ -5,7 +5,7 @@ import {
   BarChart3,
   PieChartIcon,
   ArrowUpRight,
-  CalendarDays,
+  GraduationCap,
   Package,
 } from 'lucide-react';
 import {
@@ -23,7 +23,6 @@ import {
   Bar,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AnalyticsChartCard } from '@/components/admin/AnalyticsChartCard';
 import type { AnalyticsData, DateRangePreset } from '@/hooks/useAdminAnalytics';
@@ -55,13 +54,13 @@ interface AnalyticsChartsProps {
 export const AnalyticsCharts = memo(({ analytics, dateRange }: AnalyticsChartsProps) => {
   const navigate = useNavigate();
 
-  const appointmentDistribution = useMemo(() => {
-    const { appointmentStats } = analytics;
+  const enrollmentDistribution = useMemo(() => {
+    const { enrollmentStats } = analytics;
     return [
-      { name: 'Completed', value: appointmentStats.completed, color: 'hsl(142, 71%, 45%)' },
-      { name: 'Confirmed', value: appointmentStats.confirmed, color: 'hsl(217, 91%, 60%)' },
-      { name: 'Pending', value: appointmentStats.pending, color: 'hsl(45, 93%, 47%)' },
-      { name: 'Cancelled', value: appointmentStats.cancelled, color: 'hsl(0, 84%, 60%)' },
+      { name: 'Completed', value: enrollmentStats.completed, color: 'hsl(142, 71%, 45%)' },
+      { name: 'Approved', value: enrollmentStats.approved, color: 'hsl(217, 91%, 60%)' },
+      { name: 'Pending', value: enrollmentStats.pending, color: 'hsl(45, 93%, 47%)' },
+      { name: 'Cancelled', value: enrollmentStats.cancelled, color: 'hsl(0, 84%, 60%)' },
     ].filter(item => item.value > 0);
   }, [analytics]);
 
@@ -220,34 +219,34 @@ export const AnalyticsCharts = memo(({ analytics, dateRange }: AnalyticsChartsPr
           )}
         </AnalyticsChartCard>
 
-        {/* Appointment Analytics */}
+        {/* Academy Analytics */}
         <AnalyticsChartCard
-          title="Appointment Analytics"
-          description="Status distribution & clinic health"
-          icon={<CalendarDays className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />}
+          title="Academy Enrollments"
+          description="Status distribution & course health"
+          icon={<GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />}
           headerAction={
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/clinics')} className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1">
-              Clinics <ArrowUpRight className="h-3 w-3" />
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/enrollments')} className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1">
+              Enrollments <ArrowUpRight className="h-3 w-3" />
             </Button>
           }
         >
           <div className="space-y-4">
-            {appointmentDistribution.length > 0 ? (
+            {enrollmentDistribution.length > 0 ? (
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <div className="h-[120px] sm:h-[140px] w-full sm:w-1/2">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={appointmentDistribution} cx="50%" cy="50%" innerRadius={30} outerRadius={50} paddingAngle={3} dataKey="value">
-                        {appointmentDistribution.map((entry, index) => (
+                      <Pie data={enrollmentDistribution} cx="50%" cy="50%" innerRadius={30} outerRadius={50} paddingAngle={3} dataKey="value">
+                        {enrollmentDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => [value, 'Appointments']} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                      <Tooltip formatter={(value: number) => [value, 'Enrollments']} contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="flex flex-wrap sm:flex-col gap-2 sm:gap-1.5 justify-center sm:w-1/2">
-                  {appointmentDistribution.map((item, index) => (
+                  {enrollmentDistribution.map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                       <span className="text-[10px] sm:text-xs text-muted-foreground">{item.name}</span>
@@ -257,36 +256,31 @@ export const AnalyticsCharts = memo(({ analytics, dateRange }: AnalyticsChartsPr
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-[100px] text-muted-foreground text-sm">No appointment data</div>
+              <div className="flex items-center justify-center h-[100px] text-muted-foreground text-sm">No enrollment data yet</div>
             )}
 
-            {/* Clinic Health */}
             <div className="space-y-2 sm:space-y-3 pt-2 sm:pt-3 border-t border-border/50">
               <div>
                 <div className="flex justify-between text-[10px] sm:text-xs mb-1">
-                  <span className="text-muted-foreground">Clinic Verification Rate</span>
+                  <span className="text-muted-foreground">Approval Rate</span>
                   <span className="font-medium">
-                    {analytics.clinicStats.total ? Math.round((analytics.clinicStats.verified / analytics.clinicStats.total) * 100) : 0}%
+                    {analytics.enrollmentStats.total ? Math.round(((analytics.enrollmentStats.approved + analytics.enrollmentStats.completed) / analytics.enrollmentStats.total) * 100) : 0}%
                   </span>
                 </div>
-                <Progress value={analytics.clinicStats.total ? (analytics.clinicStats.verified / analytics.clinicStats.total) * 100 : 0} className="h-1.5 sm:h-2" />
+                <Progress value={analytics.enrollmentStats.total ? ((analytics.enrollmentStats.approved + analytics.enrollmentStats.completed) / analytics.enrollmentStats.total) * 100 : 0} className="h-1.5 sm:h-2" />
               </div>
               <div>
                 <div className="flex justify-between text-[10px] sm:text-xs mb-1">
-                  <span className="text-muted-foreground">Appointment Completion</span>
+                  <span className="text-muted-foreground">Completion Rate</span>
                   <span className="font-medium">
-                    {analytics.appointmentStats.total ? Math.round((analytics.appointmentStats.completed / analytics.appointmentStats.total) * 100) : 0}%
+                    {analytics.enrollmentStats.total ? Math.round((analytics.enrollmentStats.completed / analytics.enrollmentStats.total) * 100) : 0}%
                   </span>
                 </div>
-                <Progress value={analytics.appointmentStats.total ? (analytics.appointmentStats.completed / analytics.appointmentStats.total) * 100 : 0} className="h-1.5 sm:h-2" />
+                <Progress value={analytics.enrollmentStats.total ? (analytics.enrollmentStats.completed / analytics.enrollmentStats.total) * 100 : 0} className="h-1.5 sm:h-2" />
               </div>
-              <div className="flex items-center justify-between text-[10px] sm:text-xs pt-1">
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800">
-                  {analytics.clinicStats.pending || 0} pending
-                </Badge>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800">
-                  {analytics.clinicStats.blocked || 0} blocked
-                </Badge>
+              <div className="flex items-center justify-between text-[10px] sm:text-xs pt-1 text-muted-foreground">
+                <span>{analytics.totalCourses} active courses</span>
+                <span>{analytics.enrollmentStats.pending} pending review</span>
               </div>
             </div>
           </div>
