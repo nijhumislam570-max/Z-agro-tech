@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { MessageCircle, PhoneCall, CheckCircle2, LayoutDashboard } from 'lucide-react';
+import { MessageCircle, PhoneCall, CheckCircle2, LayoutDashboard, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnroll } from '@/hooks/useEnrollments';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
@@ -152,7 +152,9 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
                 variant="secondary"
                 onClick={handleCallback}
                 disabled={(!!user && !phone.trim()) || enroll.isPending}
+                className="gap-2"
               >
+                {enroll.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                 {enroll.isPending ? 'Sending…' : user ? 'Request callback' : 'Sign in to continue'}
               </Button>
             </DialogFooter>

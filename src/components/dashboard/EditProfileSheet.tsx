@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
 } from '@/components/ui/sheet';
@@ -167,7 +168,8 @@ const EditProfileSheet = ({ open, onOpenChange, profile }: Props) => {
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1" disabled={saving}>
+            <Button type="submit" className="flex-1 gap-2" disabled={saving}>
+              {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
               {saving ? 'Saving…' : 'Save changes'}
             </Button>
           </SheetFooter>

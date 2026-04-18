@@ -63,6 +63,8 @@ import { format } from 'date-fns';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { downloadCSV } from '@/lib/csvParser';
 import { usePagination } from '@/hooks/usePagination';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 type RoleFilter = 'all' | 'user' | 'admin';
 
@@ -288,39 +290,36 @@ const AdminCustomers = () => {
       {/* Customers Table/Cards */}
       <div className="bg-card rounded-xl sm:rounded-2xl border border-border overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="p-3 sm:p-4">
+            <TableSkeleton rows={6} columns={5} />
           </div>
         ) : paginatedData.length === 0 ? (
-          <div className="text-center py-12 px-4 space-y-3">
-            <div className="mx-auto h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-              <Users className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold text-foreground">
-                {debouncedSearch || roleFilter !== 'all' ? 'No matching users' : 'No users yet'}
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                {debouncedSearch
-                  ? `No users match "${debouncedSearch}". Try a different search.`
-                  : roleFilter === 'admin'
-                  ? 'No admins on the platform yet.'
-                  : roleFilter === 'user'
-                  ? 'No standard users have signed up yet.'
-                  : 'When customers sign up, they will appear here.'}
-              </p>
-            </div>
-            {(debouncedSearch || roleFilter !== 'all') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}
-                className="rounded-xl"
-              >
-                Clear filters
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            bordered={false}
+            icon={Users}
+            title={debouncedSearch || roleFilter !== 'all' ? 'No matching users' : 'No users yet'}
+            description={
+              debouncedSearch
+                ? `No users match "${debouncedSearch}". Try a different search.`
+                : roleFilter === 'admin'
+                ? 'No admins on the platform yet.'
+                : roleFilter === 'user'
+                ? 'No standard users have signed up yet.'
+                : 'When customers sign up, they will appear here.'
+            }
+            action={
+              (debouncedSearch || roleFilter !== 'all') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setSearchQuery(''); setRoleFilter('all'); }}
+                  className="rounded-xl"
+                >
+                  Clear filters
+                </Button>
+              )
+            }
+          />
         ) : (
           <>
             {/* Mobile Card View */}

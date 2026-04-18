@@ -208,7 +208,7 @@ const AuthPage = () => {
         <div className="absolute top-10 right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 left-10 w-72 h-72 bg-sunshine/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-[440px] relative z-10">
+        <div className="w-full max-w-[440px] relative z-10 animate-page-enter">
           {/* Mobile header */}
           <div className="md:hidden flex flex-col items-center mb-6">
             <Link to="/" className="inline-flex items-center gap-3 group mb-3">

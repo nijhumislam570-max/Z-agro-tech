@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Loader2, AlertCircle, Plus, Pencil, Trash2, MapPin, Truck, Clock
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -252,20 +254,18 @@ const AdminDeliveryZones = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3">
-          {[...Array(3)].map((_, i) => <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />)}
-        </div>
+        <TableSkeleton variant="cards" rows={4} />
       ) : zones.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-1">No delivery zones</h3>
-            <p className="text-muted-foreground text-sm mb-4">Create zones to set location-based delivery pricing.</p>
+        <EmptyState
+          icon={MapPin}
+          title="No delivery zones"
+          description="Create zones to set location-based delivery pricing."
+          action={
             <Button onClick={() => setDialogOpen(true)} className="gap-1.5">
               <Plus className="h-4 w-4" /> Create Zone
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : isMobile ? (
         /* Mobile card layout */
         <div className="grid gap-3">
@@ -339,7 +339,7 @@ const AdminDeliveryZones = () => {
               </TableHeader>
               <TableBody>
                 {zones.map(zone => (
-                  <TableRow key={zone.id} className={!zone.is_active ? 'opacity-60' : ''}>
+                  <TableRow key={zone.id} className={`hover:bg-muted/40 transition-colors ${!zone.is_active ? 'opacity-60' : ''}`}>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
