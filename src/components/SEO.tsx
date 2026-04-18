@@ -349,6 +349,35 @@ function generateJsonLd(schema: Schema): object {
         })),
       };
 
+    case 'ItemList':
+      return {
+        ...baseContext,
+        '@type': 'ItemList',
+        name: schema.name,
+        description: schema.description,
+        url: schema.url,
+        numberOfItems: schema.items.length,
+        itemListElement: schema.items.map((entry, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': schema.itemListType || 'Thing',
+            name: entry.name,
+            url: entry.url,
+            image: entry.image,
+            ...(entry.price !== undefined
+              ? {
+                  offers: {
+                    '@type': 'Offer',
+                    price: entry.price,
+                    priceCurrency: entry.priceCurrency || 'BDT',
+                  },
+                }
+              : {}),
+          },
+        })),
+      };
+
     default:
       return baseContext;
   }
