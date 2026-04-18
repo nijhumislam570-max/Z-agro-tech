@@ -227,6 +227,56 @@ const AdminEnrollmentsContent = () => {
         </Select>
       </div>
 
+      {/* Bulk action toolbar */}
+      {selected.size > 0 && (
+        <div className="sticky top-0 z-10 mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 p-2.5 shadow-sm backdrop-blur">
+          <span className="text-xs sm:text-sm font-medium text-foreground px-1">
+            {selected.size} selected
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              disabled={bulkLoading}
+              onClick={() => bulkUpdate('confirmed')}
+            >
+              {bulkLoading ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-1" />}
+              Confirm
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs"
+              disabled={bulkLoading}
+              onClick={() => bulkUpdate('completed')}
+            >
+              Complete
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs text-danger hover:text-danger"
+              disabled={bulkLoading}
+              onClick={() => bulkUpdate('cancelled')}
+            >
+              <XCircle className="h-3.5 w-3.5 mr-1" />
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 text-xs"
+              disabled={bulkLoading}
+              onClick={() => setSelected(new Set())}
+            >
+              <X className="h-3.5 w-3.5 mr-1" />
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <EnrollmentsSkeleton />
       ) : filtered.length === 0 ? (
