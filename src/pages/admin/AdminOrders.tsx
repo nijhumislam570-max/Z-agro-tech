@@ -301,7 +301,7 @@ const AdminOrders = () => {
       case 'bkash':
         return <Badge variant="outline" className="text-xs border-danger-border"><Wallet className="h-3 w-3 mr-1" />bKash</Badge>;
       case 'nagad':
-        return <Badge variant="outline" className="text-xs border-orange-300 dark:border-orange-700"><Wallet className="h-3 w-3 mr-1" />Nagad</Badge>;
+        return <Badge variant="outline" className="text-xs border-warning-border dark:border-warning-border"><Wallet className="h-3 w-3 mr-1" />Nagad</Badge>;
       default:
         return <Badge variant="outline" className="text-xs">Cash</Badge>;
     }
@@ -312,7 +312,7 @@ const AdminOrders = () => {
       case 'paid':
         return <Badge className="bg-success-light text-success dark:bg-success-light/30 dark:text-success text-[10px]">Paid</Badge>;
       case 'refunded':
-        return <Badge className="bg-warning-light text-warning-foreground dark:bg-orange-900/30 dark:text-orange-400 text-[10px]">Refunded</Badge>;
+        return <Badge className="bg-warning-light text-warning-foreground dark:bg-warning/15 dark:text-warning-foreground text-[10px]">Refunded</Badge>;
       default:
         return <Badge variant="secondary" className="text-[10px]">Unpaid</Badge>;
     }

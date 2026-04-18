@@ -162,7 +162,7 @@ export const AdminSidebar = ({
           </Link>
 
           {!collapsed && totalPending > 0 && (
-            <div className="mt-3 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-warning/10 border border-amber-500/20">
+            <div className="mt-3 flex items-center gap-2 px-2 py-1.5 rounded-lg bg-warning/10 border border-warning/30">
               <div className="h-2 w-2 rounded-full bg-warning animate-pulse" />
               <span className="text-[11px] font-medium text-warning-foreground">
                 {totalPending} pending action{totalPending !== 1 ? 's' : ''}

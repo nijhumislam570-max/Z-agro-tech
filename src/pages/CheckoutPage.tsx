@@ -599,7 +599,7 @@ const CheckoutPage = () => {
 
                   {paymentMethod === 'cod' && (
                     <div className="mt-4 p-3 sm:p-4 rounded-xl bg-warning-light dark:bg-warning-light/30 border border-warning-border">
-                      <p className="text-xs sm:text-sm text-warning-foreground dark:text-amber-200">
+                      <p className="text-xs sm:text-sm text-warning-foreground dark:text-warning-foreground">
                         💵 <strong>Cash on Delivery:</strong> Please keep the exact amount ready. 
                         Our delivery partner will collect <strong>৳{grandTotal.toLocaleString()}</strong> at your doorstep.
                       </p>

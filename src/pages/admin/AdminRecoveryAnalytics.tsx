@@ -150,11 +150,11 @@ const AdminRecoveryAnalytics = () => {
 
         {/* Revenue Banners */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="p-4 rounded-xl bg-gradient-to-r from-success-soft0/10 to-success-soft0/10 border border-green-500/20">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-success/10 to-success/10 border border-success/30">
             <p className="text-xs text-success font-medium">Recovered Revenue</p>
             <p className="text-xl font-bold text-success">৳{recoveredRevenue.toLocaleString()}</p>
           </div>
-          <div className="p-4 rounded-xl bg-gradient-to-r from-warning-soft0/10 to-warning-soft0/10 border border-amber-500/20">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-warning/10 to-warning/10 border border-warning/30">
             <p className="text-xs text-warning-foreground font-medium">Lost Revenue</p>
             <p className="text-xl font-bold text-warning-foreground">৳{lostRevenue.toLocaleString()}</p>
           </div>

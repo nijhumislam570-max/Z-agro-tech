@@ -44,7 +44,7 @@ const statCards = [
   { 
     key: 'featured', label: 'Featured', icon: Star,
     iconColor: 'text-warning dark:text-warning',
-    iconBg: 'bg-amber-400/10',
+    iconBg: 'bg-warning/10',
     bgClass: 'bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50',
   },
 ] as const;

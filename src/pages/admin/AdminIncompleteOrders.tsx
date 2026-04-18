@@ -221,7 +221,7 @@ const AdminIncompleteOrders = () => {
 
         {/* Revenue Banner */}
         {lostRevenue > 0 && statusFilter !== 'trashed' && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-danger-soft0/10 to-warning-soft0/10 border border-red-500/20">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-danger/10 to-warning/10 border border-danger/30">
             <div className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-danger" />
               <span className="font-semibold text-danger">৳{lostRevenue.toLocaleString()}</span>

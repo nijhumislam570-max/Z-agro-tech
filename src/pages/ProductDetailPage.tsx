@@ -682,7 +682,7 @@ const ProductDetailPage = () => {
                           <span className="text-sm text-muted-foreground w-8">{rating} ★</span>
                           <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-amber-400 rounded-full" 
+                              className="h-full bg-warning rounded-full" 
                               style={{ width: `${percentage}%` }}
                             />
                           </div>

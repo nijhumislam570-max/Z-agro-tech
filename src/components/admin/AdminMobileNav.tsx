@@ -129,7 +129,7 @@ export const AdminMobileNav = ({
         </SheetClose>
 
         {totalPending > 0 && (
-          <div className="mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-warning-soft0/10 to-warning-soft0/10 border border-amber-500/20">
+          <div className="mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-r from-warning/10 to-warning/10 border border-warning/30">
             <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-warning/20">
               <AlertCircle className="h-4 w-4 text-warning-foreground" />
             </div>

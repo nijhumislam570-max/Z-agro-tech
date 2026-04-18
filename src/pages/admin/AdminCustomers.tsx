@@ -163,7 +163,7 @@ const AdminCustomers = () => {
     const role = userRoles?.[0]?.role;
     switch (role) {
       case 'admin':
-        return <Badge className="bg-accent/10 text-accent dark:bg-purple-900/30 dark:text-accent"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
+        return <Badge className="bg-accent/10 text-accent dark:bg-accent/15 dark:text-accent"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
       default:
         return <Badge variant="outline"><User className="h-3 w-3 mr-1" />User</Badge>;
     }

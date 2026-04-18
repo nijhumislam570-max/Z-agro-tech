@@ -170,7 +170,7 @@ export const AdminHeader = ({
               )}
               {incompleteOrders > 0 && (
                 <DropdownMenuItem onClick={() => navigate('/admin/incomplete-orders')} className="cursor-pointer py-3 px-3">
-                  <AlertCircle className="h-4 w-4 mr-3 text-orange-500 flex-shrink-0" />
+                  <AlertCircle className="h-4 w-4 mr-3 text-warning-foreground flex-shrink-0" />
                   <span className="flex-1 text-sm">{incompleteOrders} abandoned cart{incompleteOrders !== 1 ? 's' : ''}</span>
                   <Badge variant="outline" className="ml-2 bg-warning-light text-warning-foreground border-warning-border text-[10px]">
                     Recover

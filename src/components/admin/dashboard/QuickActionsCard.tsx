@@ -53,7 +53,7 @@ export const QuickActionsCard = memo(
         iconColor: 'text-accent',
         bgColor: 'bg-accent/10',
         badgeBg:
-          'bg-accent/10 text-accent border-accent/30 dark:bg-purple-950/30 dark:text-accent dark:border-accent/30',
+          'bg-accent/10 text-accent border-accent/30 dark:bg-accent/15 dark:text-accent dark:border-accent/30',
         badgeText: 'Inbox',
         onClick: () => navigate('/admin/messages'),
       },

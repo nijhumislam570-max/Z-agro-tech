@@ -142,7 +142,7 @@ const AdminAnalytics = () => {
                 trend={analytics?.userGrowth !== 0 ? { value: analytics?.userGrowth || 0, label: 'this month' } : undefined}
                 subtitle={`${analytics?.totalUsers || 0} total users`}
                 iconClassName="bg-warning-light"
-                className="bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-orange-900/50"
+                className="bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning/30"
                 href="/admin/customers"
               />
             </div>
