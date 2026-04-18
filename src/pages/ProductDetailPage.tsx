@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,9 +32,16 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import SEO from '@/components/SEO';
 
 const ProductDetailPage = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addItem } = useCart();
+
+  // Guard against malformed/empty :id — bounce to the shop instead of querying
+  // Supabase with `undefined`. Hooks above this run unconditionally.
+  if (!id) {
+    return <Navigate to="/shop" replace />;
+  }
+
   
   
   const [product, setProduct] = useState<Product | null>(null);
