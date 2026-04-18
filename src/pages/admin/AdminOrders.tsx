@@ -690,12 +690,16 @@ const AdminOrders = () => {
                       </button>
                     </TableHead>
                     <TableHead className="w-[90px]">Order</TableHead>
-                    <TableHead className="w-[80px]">Date</TableHead>
+                    <TableHead className="w-[80px]">
+                      <SortableHeader label="Date" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                    </TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead className="w-[60px]">Items</TableHead>
                     <TableHead className="w-[100px]">Payment</TableHead>
                     <TableHead className="w-[140px]">Courier</TableHead>
-                    <TableHead className="w-[80px]">Total</TableHead>
+                    <TableHead className="w-[80px]">
+                      <SortableHeader label="Total" sortKey="total_amount" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                    </TableHead>
                     <TableHead className="w-[90px]">Status</TableHead>
                     <TableHead className="w-[60px]">Risk</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
