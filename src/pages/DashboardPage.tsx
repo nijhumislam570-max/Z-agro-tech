@@ -3,9 +3,11 @@ import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Package, GraduationCap } from 'lucide-react';
+import { Package, GraduationCap, Heart, User } from 'lucide-react';
 import OrdersTab from '@/components/dashboard/OrdersTab';
 import CoursesTab from '@/components/dashboard/CoursesTab';
+import WishlistTab from '@/components/dashboard/WishlistTab';
+import ProfileTab from '@/components/dashboard/ProfileTab';
 import { BentoGrid } from '@/components/dashboard/BentoGrid';
 import KPIMarqueeTile from '@/components/dashboard/tiles/KPIMarqueeTile';
 import QuickActionsTile from '@/components/dashboard/tiles/QuickActionsTile';
@@ -56,12 +58,24 @@ const DashboardPage = () => {
             </p>
           </header>
           <Tabs defaultValue="orders" className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList className="grid w-full max-w-2xl grid-cols-2 sm:grid-cols-4 h-auto">
               <TabsTrigger value="orders" className="gap-2">
-                <Package className="h-4 w-4" /> AgroShop Orders
+                <Package className="h-4 w-4" />
+                <span className="hidden sm:inline">Orders</span>
+                <span className="sm:hidden">Orders</span>
               </TabsTrigger>
               <TabsTrigger value="courses" className="gap-2">
-                <GraduationCap className="h-4 w-4" /> Academy Enrollments
+                <GraduationCap className="h-4 w-4" />
+                <span className="hidden sm:inline">Courses</span>
+                <span className="sm:hidden">Courses</span>
+              </TabsTrigger>
+              <TabsTrigger value="wishlist" className="gap-2">
+                <Heart className="h-4 w-4" />
+                Wishlist
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="gap-2">
+                <User className="h-4 w-4" />
+                Profile
               </TabsTrigger>
             </TabsList>
             <TabsContent value="orders">
@@ -69,6 +83,12 @@ const DashboardPage = () => {
             </TabsContent>
             <TabsContent value="courses">
               <CoursesTab />
+            </TabsContent>
+            <TabsContent value="wishlist">
+              <WishlistTab />
+            </TabsContent>
+            <TabsContent value="profile">
+              <ProfileTab />
             </TabsContent>
           </Tabs>
         </section>
