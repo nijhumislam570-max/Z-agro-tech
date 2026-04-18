@@ -65,7 +65,10 @@ import { productFormSchema } from '@/lib/validations';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { downloadCSV } from '@/lib/csvParser';
 import { useProductCategories } from '@/hooks/useProductCategories';
+import { SortableHeader, type SortDir } from '@/components/admin/SortableHeader';
 import { cn } from '@/lib/utils';
+
+type ProductSortKey = 'name' | 'price' | 'stock' | 'created_at';
 
 
 type AdminProduct = NonNullable<ReturnType<typeof useAdminProducts>['data']>[number];
@@ -113,6 +116,17 @@ const AdminProducts = () => {
   const [formData, setFormData] = useState<ProductFormData>(emptyFormData);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 25;
+  const [sortKey, setSortKey] = useState<ProductSortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (key: ProductSortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'name' ? 'asc' : 'desc');
+    }
+  };
 
 
   const stats = useMemo(() => {
