@@ -377,12 +377,8 @@ const ProductDetailPage = () => {
               </span>
               <Separator orientation="vertical" className="h-4" />
               <button className="text-sm text-primary hover:underline">
-                {reviews.length} Reviews
+                {reviews.length} {reviews.length === 1 ? 'Review' : 'Reviews'}
               </button>
-              <Separator orientation="vertical" className="h-4" />
-              <span className="text-sm text-muted-foreground">
-                100+ Sold
-              </span>
             </div>
 
             <Separator />

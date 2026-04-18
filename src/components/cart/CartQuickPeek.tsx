@@ -130,7 +130,7 @@ export const CartQuickPeek = ({ children }: Props) => {
                 ))}
               </ul>
 
-              {remaining > 0 && (
+              {remaining > 0 ? (
                 <div className="px-5 py-3 text-center text-xs text-muted-foreground bg-muted/30 border-t border-border/40">
                   + {remaining} more {remaining === 1 ? 'item' : 'items'} —{' '}
                   <Link
@@ -140,6 +140,17 @@ export const CartQuickPeek = ({ children }: Props) => {
                   >
                     view full cart
                   </Link>
+                </div>
+              ) : (
+                <div className="px-5 py-3 text-center text-xs text-muted-foreground bg-muted/30 border-t border-border/40">
+                  <Link
+                    to="/cart"
+                    onClick={close}
+                    className="text-primary font-semibold hover:underline"
+                  >
+                    Open the full cart
+                  </Link>{' '}
+                  to apply coupons or edit shipping details.
                 </div>
               )}
             </ScrollArea>

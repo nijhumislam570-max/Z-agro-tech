@@ -182,6 +182,23 @@ const ContactPage = () => {
                       <p className="text-muted-foreground mb-4">
                         Thank you for contacting us. We'll respond to your inquiry shortly.
                       </p>
+                      {cooldown > 0 && (
+                        <div
+                          className="max-w-xs mx-auto mb-4"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={COOLDOWN_SECONDS}
+                          aria-valuenow={COOLDOWN_SECONDS - cooldown}
+                          aria-label="Cooldown before you can send another message"
+                        >
+                          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full bg-primary transition-[width] duration-1000 ease-linear"
+                              style={{ width: `${((COOLDOWN_SECONDS - cooldown) / COOLDOWN_SECONDS) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                       <Button 
                         variant="outline" 
                         onClick={handleSendAnother}

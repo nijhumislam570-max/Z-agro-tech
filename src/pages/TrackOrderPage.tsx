@@ -229,12 +229,32 @@ const TrackOrderPage = () => {
               {/* Order Status Card */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Order #{order.id.slice(0, 8)}</CardTitle>
-                      <CardDescription>
-                        Placed on {format(new Date(order.created_at), 'PPP')}
-                      </CardDescription>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 min-w-0">
+                      {(() => {
+                        const firstItem = Array.isArray(order.items) ? (order.items[0] as { image?: string; name?: string } | undefined) : undefined;
+                        const thumb = firstItem?.image;
+                        return thumb ? (
+                          <div className="h-14 w-14 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border/60">
+                            <img
+                              src={thumb}
+                              alt={firstItem?.name ?? 'Order item'}
+                              loading="lazy"
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Package className="h-6 w-6 text-primary" />
+                          </div>
+                        );
+                      })()}
+                      <div className="min-w-0">
+                        <CardTitle className="text-lg truncate">Order #{order.id.slice(0, 8)}</CardTitle>
+                        <CardDescription>
+                          Placed on {format(new Date(order.created_at), 'PPP')}
+                        </CardDescription>
+                      </div>
                     </div>
                     <Badge className={getStatusColor(order.status)}>
                       {order.status}
