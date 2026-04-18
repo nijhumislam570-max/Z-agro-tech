@@ -52,7 +52,7 @@ const statCards = [
     key: 'shipped', label: 'Shipped', icon: Truck,
     iconColor: 'text-accent',
     iconBg: 'bg-accent/10',
-    bgClass: 'bg-gradient-to-br from-accent/10 to-info-soft/50 border-accent/30 dark:from-accent/10/30 dark:to-info-soft/20 dark:border-accent/30/50',
+    bgClass: 'bg-gradient-to-br from-accent/10 to-info-soft/50 border-accent/30 dark:from-accent/5 dark:to-info-soft/20 dark:border-accent/40',
   },
   { 
     key: 'delivered', label: 'Delivered', icon: CheckCircle,

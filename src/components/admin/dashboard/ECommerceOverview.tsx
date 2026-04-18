@@ -41,7 +41,7 @@ export const ECommerceOverview = memo(({ stats }: ECommerceOverviewProps) => (
         value={stats?.totalProducts || 0}
         icon={<Package className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />}
         href="/admin/products"
-        className="bg-gradient-to-br from-accent/10 to-accent/10/50 border-accent/30 dark:from-accent/10/30 dark:to-accent/10/20 dark:border-accent/30/50"
+        className="bg-gradient-to-br from-accent/10 to-accent/5 border-accent/30 dark:from-accent/5 dark:to-accent/5 dark:border-accent/40"
       />
       <StatCard
         title="Pending"

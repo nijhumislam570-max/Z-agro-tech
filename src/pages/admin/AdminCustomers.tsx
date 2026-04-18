@@ -214,7 +214,7 @@ const AdminCustomers = () => {
         {[
           { key: 'all' as RoleFilter, label: 'Total Users', value: stats.total, icon: Users, iconColor: 'text-primary', iconBg: 'bg-primary/10', bgClass: 'bg-gradient-to-br from-primary/5 to-accent/5 border-primary/10 dark:from-primary/10 dark:to-accent/10 dark:border-primary/20' },
           { key: 'user' as RoleFilter, label: 'Users', value: stats.users, icon: User, iconColor: 'text-success', iconBg: 'bg-success/10', bgClass: 'bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50' },
-          { key: 'admin' as RoleFilter, label: 'Admins', value: stats.admins, icon: ShieldCheck, iconColor: 'text-accent', iconBg: 'bg-accent/10', bgClass: 'bg-gradient-to-br from-accent/10 to-accent/10/50 border-accent/30 dark:from-accent/10/30 dark:to-accent/10/20 dark:border-accent/30/50' },
+          { key: 'admin' as RoleFilter, label: 'Admins', value: stats.admins, icon: ShieldCheck, iconColor: 'text-accent', iconBg: 'bg-accent/10', bgClass: 'bg-gradient-to-br from-accent/10 to-accent/5 border-accent/30 dark:from-accent/5 dark:to-accent/5 dark:border-accent/40' },
         ].map(({ key, label, value, icon: Icon, iconColor, iconBg, bgClass }) => {
           const isActive = roleFilter === key;
           return (
