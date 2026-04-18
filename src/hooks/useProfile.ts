@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { profileSchema } from '@/lib/validations';
 
 export interface ProfileRow {
   id: string;
@@ -61,13 +62,31 @@ export const useProfile = () => {
 
   const updateProfile = useCallback(async (patch: ProfileUpdateInput) => {
     if (!userId) return false;
+
+    // H2: Validate + sanitize before write. Coerce nulls to empty for schema.
+    const candidate = {
+      full_name: patch.full_name ?? '',
+      phone: patch.phone ?? '',
+      address: patch.address ?? '',
+      division: patch.division ?? '',
+      district: patch.district ?? '',
+      thana: patch.thana ?? '',
+    };
+    const parsed = profileSchema.safeParse(candidate);
+    if (!parsed.success) {
+      toast.error(parsed.error.errors[0]?.message ?? 'Invalid profile data');
+      return false;
+    }
+
     setSaving(true);
     try {
-      // Profile auto-create trigger ensures a row exists; update directly.
+      // M3: Upsert handles legacy users whose profile row may be missing.
       const { data, error } = await supabase
         .from('profiles')
-        .update(patch)
-        .eq('user_id', userId)
+        .upsert(
+          { user_id: userId, ...patch },
+          { onConflict: 'user_id' },
+        )
         .select()
         .maybeSingle();
       if (error) throw error;

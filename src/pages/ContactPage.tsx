@@ -18,7 +18,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
-const COOLDOWN_SECONDS = 3;
+const COOLDOWN_SECONDS = 30;
 
 const contactInfo = [
   {
