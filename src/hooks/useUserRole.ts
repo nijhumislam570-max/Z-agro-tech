@@ -5,9 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 /**
- * Z Agro Tech roles. The DB enum still contains legacy 'doctor' and
- * 'clinic_owner' values from the prior VET-MEDIX app, but they are NOT
- * used by the live product (Shop + Academy only). The frontend treats
+ * Z Agro Tech roles. The DB enum is `admin | user`. The frontend treats
  * any non-admin user as 'user'.
  */
 export type UserRoleType = 'user' | 'admin';

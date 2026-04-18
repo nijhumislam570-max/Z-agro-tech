@@ -214,7 +214,7 @@ const AuthPage = () => {
         {/* Bottom - Trust */}
         <div className="relative z-10 pt-6 border-t border-white/15">
           <p className="text-white/50 text-xs">
-            © {new Date().getFullYear()} Z Agro Tech — Shop · Academy · Krishi Clinic
+            © {new Date().getFullYear()} Z Agro Tech — Shop · Academy · Smart Farming
           </p>
         </div>
       </div>

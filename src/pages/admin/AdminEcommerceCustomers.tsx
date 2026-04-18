@@ -16,9 +16,7 @@ import {
   Circle,
   CheckCircle2,
   X,
-  Stethoscope,
-  Building2,
-  PawPrint,
+  Sprout,
   
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
@@ -86,20 +84,10 @@ const RoleBadge = ({ role }: { role: string }) => {
       className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800',
       icon: <User className="h-2.5 w-2.5" />,
     },
-    doctor: {
-      label: 'Doctor',
-      className: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 border-teal-200 dark:border-teal-800',
-      icon: <Stethoscope className="h-2.5 w-2.5" />,
-    },
-    clinic_owner: {
-      label: 'Clinic Owner',
-      className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-      icon: <Building2 className="h-2.5 w-2.5" />,
-    },
     user: {
-      label: 'Pet Parent',
-      className: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-300 border-orange-200 dark:border-orange-800',
-      icon: <PawPrint className="h-2.5 w-2.5" />,
+      label: 'Farmer',
+      className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+      icon: <Sprout className="h-2.5 w-2.5" />,
     },
   };
   const c = config[role] || config.user;

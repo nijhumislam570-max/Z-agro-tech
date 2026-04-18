@@ -13,7 +13,7 @@ export interface CartItem {
 
 // ─── Module-level store (singleton, no React context needed) ─────────
 
-const CART_STORAGE_KEY = 'vetmedix-cart';
+const CART_STORAGE_KEY = 'zagrotech-cart';
 
 function readStoredCart(): CartItem[] {
   try {

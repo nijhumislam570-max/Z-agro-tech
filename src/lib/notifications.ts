@@ -1,13 +1,10 @@
 /**
  * Z Agro Tech notification helpers.
  *
- * The legacy in-database `notifications` table (used by VET-MEDIX) has been
- * removed. We currently rely on toasts + email + Steadfast SMS for customer
- * communication. These helpers are kept as no-op shims so existing call sites
- * (admin order dialogs) compile and run without changes.
- *
- * If/when an in-app notification system is reintroduced, replace the bodies
- * here — the call sites do not need to change.
+ * Order status changes are surfaced via toast + Steadfast SMS today. These
+ * helpers are kept as no-op shims so existing call sites (admin order dialogs)
+ * compile and run without changes. Replace bodies if an in-app notification
+ * system is reintroduced — call sites do not need to change.
  */
 
 import { logger } from '@/lib/logger';

@@ -27,8 +27,7 @@ export const COMPRESSION_PRESETS: Record<string, CompressionSettings> = {
   avatar: { maxWidth: 400, maxHeight: 400, quality: 0.8 },
   thumbnail: { maxWidth: 50, maxHeight: 50, quality: 0.6 },
   product: { maxWidth: 1200, maxHeight: 1200, quality: 0.85 },
-  clinic: { maxWidth: 1600, maxHeight: 1200, quality: 0.8 },
-  medical: { maxWidth: 3000, maxHeight: 3000, quality: 0.95 },
+  cover: { maxWidth: 1600, maxHeight: 1200, quality: 0.8 },
 };
 
 /**
@@ -284,12 +283,8 @@ function loadImage(file: File): Promise<HTMLImageElement> {
  */
 export async function validateAndOptimizeMedia(
   file: File,
-  context: 'feed' | 'story' | 'avatar' | 'product' | 'clinic' | 'medical' = 'feed'
+  context: 'feed' | 'story' | 'avatar' | 'product' | 'cover' = 'feed'
 ): Promise<{ file: File; thumbnail?: string; poster?: string; stats: CompressedMedia | null }> {
-  // Hard 10MB limit for medical uploads
-  if (context === 'medical' && file.size > 10 * 1024 * 1024) {
-    throw new Error('Medical images must be under 10MB');
-  }
   const isImage = file.type.startsWith('image/');
   const isVideo = file.type.startsWith('video/');
 
