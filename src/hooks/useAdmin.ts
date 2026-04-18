@@ -58,26 +58,27 @@ export const useAdminStats = () => {
   });
 };
 
-export const useAdminProducts = (page = 0, pageSize = 50) => {
+/**
+ * Returns ALL products for the admin catalog. The admin Products page
+ * filters and searches client-side, so we keep this as a flat array.
+ * For very large catalogs (>500 SKUs) consider migrating consumers to a
+ * paginated variant — see useAdminOrders for the pattern.
+ */
+export const useAdminProducts = () => {
   const { isAdmin } = useAdmin();
 
   return useQuery({
-    queryKey: ['admin-products', page, pageSize],
+    queryKey: ['admin-products'],
     queryFn: async () => {
-      const from = page * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .select(
           'id, name, description, price, compare_price, category, product_type, image_url, stock, badge, discount, is_active, is_featured, sku, created_at',
-          { count: 'exact' },
         )
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return { products: data ?? [], totalCount: count ?? 0, page, pageSize };
+      return data ?? [];
     },
     enabled: isAdmin,
   });
