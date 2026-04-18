@@ -75,6 +75,9 @@ import { downloadCSV } from '@/lib/csvParser';
 import { analyzeFraudRisk, parseShippingAddress, type FraudAnalysis } from '@/lib/fraudDetection';
 import { getStatusColor } from '@/lib/statusColors';
 import { TimeFilterBar, getTimeCutoff, type TimeFilter } from '@/components/admin/TimeFilterBar';
+import { SortableHeader, type SortDir } from '@/components/admin/SortableHeader';
+
+type OrderSortKey = 'created_at' | 'total_amount';
 
 const AdminOrders = () => {
   useDocumentTitle('Orders Management - Admin');
@@ -99,6 +102,17 @@ const AdminOrders = () => {
   const [isBulkShipping, setIsBulkShipping] = useState(false);
   const [trashDialog, setTrashDialog] = useState<string | null>(null);
   const [permanentDeleteDialog, setPermanentDeleteDialog] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<OrderSortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (key: OrderSortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
 
   // Split active vs trashed
   const activeOrders = useMemo(() => orders?.filter(o => !o.trashed_at) || [], [orders]);
@@ -342,7 +356,7 @@ const AdminOrders = () => {
   };
 
   const filteredOrders = useMemo(() => {
-    return timeFilteredOrders.filter(order => {
+    const list = timeFilteredOrders.filter(order => {
       const customerName = getCustomerName(order).toLowerCase();
       const lowerQuery = debouncedSearch.toLowerCase();
       const matchesSearch = !debouncedSearch || 
@@ -360,7 +374,14 @@ const AdminOrders = () => {
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap]);
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      if (sortKey === 'total_amount') {
+        return ((a.total_amount ?? 0) - (b.total_amount ?? 0)) * dir;
+      }
+      return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+    });
+  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap, sortKey, sortDir]);
 
   // Bulk selection helpers (depend on filteredOrders)
   const pendingFilteredIds = useMemo(() => 
@@ -669,12 +690,16 @@ const AdminOrders = () => {
                       </button>
                     </TableHead>
                     <TableHead className="w-[90px]">Order</TableHead>
-                    <TableHead className="w-[80px]">Date</TableHead>
+                    <TableHead className="w-[80px]">
+                      <SortableHeader label="Date" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                    </TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead className="w-[60px]">Items</TableHead>
                     <TableHead className="w-[100px]">Payment</TableHead>
                     <TableHead className="w-[140px]">Courier</TableHead>
-                    <TableHead className="w-[80px]">Total</TableHead>
+                    <TableHead className="w-[80px]">
+                      <SortableHeader label="Total" sortKey="total_amount" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                    </TableHead>
                     <TableHead className="w-[90px]">Status</TableHead>
                     <TableHead className="w-[60px]">Risk</TableHead>
                     <TableHead className="w-[50px]"></TableHead>

@@ -65,7 +65,10 @@ import { productFormSchema } from '@/lib/validations';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { downloadCSV } from '@/lib/csvParser';
 import { useProductCategories } from '@/hooks/useProductCategories';
+import { SortableHeader, type SortDir } from '@/components/admin/SortableHeader';
 import { cn } from '@/lib/utils';
+
+type ProductSortKey = 'name' | 'price' | 'stock' | 'created_at';
 
 
 type AdminProduct = NonNullable<ReturnType<typeof useAdminProducts>['data']>[number];
@@ -113,6 +116,17 @@ const AdminProducts = () => {
   const [formData, setFormData] = useState<ProductFormData>(emptyFormData);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 25;
+  const [sortKey, setSortKey] = useState<ProductSortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (key: ProductSortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'name' ? 'asc' : 'desc');
+    }
+  };
 
 
   const stats = useMemo(() => {
@@ -146,8 +160,23 @@ const AdminProducts = () => {
     } else if (stockFilter === 'inactive') {
       list = list.filter(p => !p.is_active);
     }
-    return list;
-  }, [products, debouncedSearch, stockFilter]);
+    // Sort
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const sorted = [...list].sort((a, b) => {
+      switch (sortKey) {
+        case 'name':
+          return a.name.localeCompare(b.name) * dir;
+        case 'price':
+          return ((a.price ?? 0) - (b.price ?? 0)) * dir;
+        case 'stock':
+          return ((a.stock ?? 0) - (b.stock ?? 0)) * dir;
+        case 'created_at':
+        default:
+          return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+      }
+    });
+    return sorted;
+  }, [products, debouncedSearch, stockFilter, sortKey, sortDir]);
 
   // Pagination derived state
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
@@ -562,14 +591,22 @@ const AdminProducts = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Product" sortKey="name" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Price" sortKey="price" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead>Discount</TableHead>
-                      <TableHead>Stock</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Stock" sortKey="stock" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead>Active</TableHead>
                       <TableHead>Featured</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Status" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -630,7 +667,14 @@ const AdminProducts = () => {
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Switch checked={pFeatured} onCheckedChange={(v) => handleToggleFeatured(product.id, v)} />
                           </TableCell>
-                          <TableCell>{getStockBadge(stock)}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-0.5">
+                              {getStockBadge(stock)}
+                              <span className="text-[10px] text-muted-foreground tabular-nums">
+                                {new Date(product.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
