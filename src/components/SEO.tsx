@@ -11,7 +11,7 @@ interface OrganizationSchema {
 }
 
 interface LocalBusinessSchema {
-  type: 'LocalBusiness' | 'VeterinaryCare';
+  type: 'LocalBusiness';
   name: string;
   address?: string;
   phone?: string;
@@ -23,20 +23,6 @@ interface LocalBusinessSchema {
   url?: string;
   description?: string;
   priceRange?: string;
-}
-
-interface PhysicianSchema {
-  type: 'Physician';
-  name: string;
-  image?: string;
-  description?: string;
-  medicalSpecialty?: string;
-  qualification?: string[];
-  worksFor?: {
-    name: string;
-    url?: string;
-  }[];
-  url?: string;
 }
 
 interface ProductSchema {
@@ -55,7 +41,7 @@ interface ProductSchema {
   url?: string;
 }
 
-type Schema = OrganizationSchema | LocalBusinessSchema | PhysicianSchema | ProductSchema;
+type Schema = OrganizationSchema | LocalBusinessSchema | ProductSchema;
 
 interface SEOProps {
   // Page meta
@@ -81,14 +67,14 @@ interface SEOProps {
  * <SEO 
  *   title="My Page" 
  *   description="Page description"
- *   schema={{ type: 'Organization', name: 'VetMedix', url: 'https://vetmedix.lovable.app' }}
+ *   schema={{ type: 'Organization', name: 'Z Agro Tech', url: 'https://zagrotech.lovable.app' }}
  * />
  * ```
  */
 export const SEO = ({
   title,
   description,
-  image = 'https://vetmedix.lovable.app/og-image.png',
+  image = 'https://zagrotech.lovable.app/og-image.png',
   url,
   type = 'website',
   schema,
@@ -99,7 +85,7 @@ export const SEO = ({
   useEffect(() => {
     // Update document title
     if (title) {
-      document.title = `${title} - VetMedix`;
+      document.title = `${title} - Z Agro Tech`;
     }
     
     // Update meta tags
@@ -121,8 +107,8 @@ export const SEO = ({
     }
     
     if (title) {
-      updateMeta('og:title', `${title} - VetMedix`, true);
-      updateMeta('twitter:title', `${title} - VetMedix`);
+      updateMeta('og:title', `${title} - Z Agro Tech`, true);
+      updateMeta('twitter:title', `${title} - Z Agro Tech`);
     }
     
     if (image) {
@@ -209,10 +195,9 @@ function generateJsonLd(schema: Schema): object {
       };
       
     case 'LocalBusiness':
-    case 'VeterinaryCare':
       return {
         ...baseContext,
-        '@type': schema.type === 'VeterinaryCare' ? 'VeterinaryCare' : 'LocalBusiness',
+        '@type': 'LocalBusiness',
         name: schema.name,
         address: schema.address ? {
           '@type': 'PostalAddress',
@@ -233,26 +218,6 @@ function generateJsonLd(schema: Schema): object {
           bestRating: 5,
           worstRating: 1,
         } : undefined,
-      };
-      
-    case 'Physician':
-      return {
-        ...baseContext,
-        '@type': 'Physician',
-        name: schema.name,
-        image: schema.image,
-        description: schema.description,
-        medicalSpecialty: schema.medicalSpecialty,
-        hasCredential: schema.qualification?.map(q => ({
-          '@type': 'EducationalOccupationalCredential',
-          credentialCategory: q,
-        })),
-        worksFor: schema.worksFor?.map(org => ({
-          '@type': 'VeterinaryCare',
-          name: org.name,
-          url: org.url,
-        })),
-        url: schema.url,
       };
       
     case 'Product':

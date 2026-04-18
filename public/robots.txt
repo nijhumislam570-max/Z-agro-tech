@@ -13,10 +13,8 @@ Allow: /
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /doctor/dashboard
-Disallow: /clinic/dashboard
-Disallow: /profile
+Disallow: /dashboard
 Disallow: /checkout
-Disallow: /select-role
+Disallow: /cart
 
-Sitemap: https://cucxodrbperhbpbdkoyj.supabase.co/functions/v1/sitemap
+Sitemap: https://agxayculciqwhaoaillq.supabase.co/functions/v1/sitemap

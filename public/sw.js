@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vetmedix-v3';
+const CACHE_NAME = 'zagrotech-v1';
 const STATIC_ASSETS = [
   '/favicon.ico',
 ];
