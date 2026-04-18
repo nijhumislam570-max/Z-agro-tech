@@ -211,6 +211,34 @@ const AdminProducts = () => {
     });
   };
 
+  /**
+   * Single source of truth for product insert/update payloads. Auto-syncs
+   * the `Stock Out` badge with the stock count and normalizes empty strings
+   * to `null` for nullable text columns.
+   */
+  type ParsedProduct = ReturnType<typeof productFormSchema.parse>;
+  const buildProductPayload = (parsed: ParsedProduct) => {
+    const stock = parsed.stock;
+    let badge: string | null = parsed.badge || null;
+    if (stock > 0 && badge?.toLowerCase() === 'stock out') badge = null;
+    if (stock === 0) badge = 'Stock Out';
+    return {
+      name: parsed.name,
+      description: parsed.description || null,
+      price: parsed.price,
+      category: parsed.category,
+      product_type: parsed.product_type || null,
+      image_url: parsed.image_url || null,
+      stock,
+      badge,
+      discount: parsed.discount,
+      is_active: parsed.is_active,
+      is_featured: parsed.is_featured,
+      compare_price: parsed.compare_price,
+      sku: parsed.sku || null,
+    };
+  };
+
   const handleAdd = async () => {
     const result = validateAndParse();
     if (!result.success) {
@@ -219,25 +247,7 @@ const AdminProducts = () => {
     }
     setSaving(true);
     try {
-      const stock = result.data.stock;
-      let badge = result.data.badge || null;
-      if (stock > 0 && badge?.toLowerCase() === 'stock out') badge = null;
-      if (stock === 0) badge = 'Stock Out';
-      const { error } = await supabase.from('products').insert({
-        name: result.data.name,
-        description: result.data.description || null,
-        price: result.data.price,
-        category: result.data.category,
-        product_type: result.data.product_type || null,
-        image_url: result.data.image_url || null,
-        stock,
-        badge,
-        discount: result.data.discount,
-        is_active: result.data.is_active,
-        is_featured: result.data.is_featured,
-        compare_price: result.data.compare_price,
-        sku: result.data.sku || null,
-      });
+      const { error } = await supabase.from('products').insert(buildProductPayload(result.data));
       if (error) throw error;
       toast.success('Product added successfully');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
@@ -259,25 +269,10 @@ const AdminProducts = () => {
     }
     setSaving(true);
     try {
-      const stock = result.data.stock;
-      let badge = result.data.badge || null;
-      if (stock > 0 && badge?.toLowerCase() === 'stock out') badge = null;
-      if (stock === 0) badge = 'Stock Out';
-      const { error } = await supabase.from('products').update({
-        name: result.data.name,
-        description: result.data.description || null,
-        price: result.data.price,
-        category: result.data.category,
-        product_type: result.data.product_type || null,
-        image_url: result.data.image_url || null,
-        stock,
-        badge,
-        discount: result.data.discount,
-        is_active: result.data.is_active,
-        is_featured: result.data.is_featured,
-        compare_price: result.data.compare_price,
-        sku: result.data.sku || null,
-      }).eq('id', selectedProduct.id);
+      const { error } = await supabase
+        .from('products')
+        .update(buildProductPayload(result.data))
+        .eq('id', selectedProduct.id);
       if (error) throw error;
       toast.success('Product updated successfully');
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
