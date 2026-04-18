@@ -591,14 +591,22 @@ const AdminProducts = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Product" sortKey="name" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Price" sortKey="price" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead>Discount</TableHead>
-                      <TableHead>Stock</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Stock" sortKey="stock" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead>Active</TableHead>
                       <TableHead>Featured</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>
+                        <SortableHeader label="Created" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                      </TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
