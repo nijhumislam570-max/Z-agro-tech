@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { GraduationCap, Search, Phone, Inbox, Filter, BookOpen } from 'lucide-react';
+import { GraduationCap, Search, Phone, Inbox, Filter, BookOpen, X, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { EnrollmentsSkeleton } from '@/components/admin/EnrollmentsSkeleton';
