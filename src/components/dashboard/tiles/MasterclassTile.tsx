@@ -6,6 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { useFeaturedMasterclass } from '@/hooks/useDashboardData';
+import { getCourseImage } from '@/lib/agriImages';
+
+function difficultyClass(level: string) {
+  const l = level.toLowerCase();
+  if (l.includes('begin')) return 'bg-emerald-500/90 text-white hover:bg-emerald-500/90';
+  if (l.includes('inter')) return 'bg-amber-500/90 text-white hover:bg-amber-500/90';
+  if (l.includes('adv')) return 'bg-rose-500/90 text-white hover:bg-rose-500/90';
+  return 'bg-white/90 text-foreground hover:bg-white/90';
+}
 
 export default function MasterclassTile() {
   const { data, isLoading } = useFeaturedMasterclass();
@@ -33,22 +42,16 @@ export default function MasterclassTile() {
         ) : (
           <>
             <div className="aspect-video rounded-xl overflow-hidden bg-white/10 border border-white/15">
-              {data.thumbnail_url ? (
-                <img
-                  src={data.thumbnail_url}
-                  alt={data.title}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Sparkles className="h-10 w-10 text-white/50" />
-                </div>
-              )}
+              <img
+                src={data.thumbnail_url || getCourseImage(data.title, data.category)}
+                alt={data.title}
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                loading="lazy"
+              />
             </div>
             <div className="space-y-1.5">
               <div className="flex flex-wrap gap-1.5">
-                <Badge className="bg-white/90 text-foreground capitalize hover:bg-white/90 text-[10px]">
+                <Badge className={`${difficultyClass(data.difficulty)} capitalize text-[10px] border-transparent`}>
                   {data.difficulty}
                 </Badge>
                 {data.duration_label && (
