@@ -1,132 +1,87 @@
 
 
-# Z Agro Tech — Phase 1 Plan
+# Phase 2 — Cohort-based Training Courses (e-krishi style)
 
-A full pivot from VetMedix to **Z Agro Tech**: an agriculture e-commerce store + LMS academy. Phase 1 builds the UI shells, routing, and data schema. No payments or video streaming yet.
+The reference site sells **instructor-led training cohorts**, not on-demand video. Courses are scheduled batches (15 / 30 / 60-90 days), enrollment goes through WhatsApp, and graduates receive certificates. Phase 2 reshapes the Academy around this model.
 
-## What gets removed (Phase 1)
+## What we're building
 
-All pet/vet/clinic/social surfaces are stripped from the user-facing app:
+1. **Course model upgrade** — duration, mode (online/onsite/hybrid), curriculum (bullet list of topics in Bangla), audience tagline, certificate flag.
+2. **Course batches** — each course can have multiple scheduled batches with start date, seat count, and "Open / Filling Fast / Closed" status badges.
+3. **WhatsApp enrollment** — primary CTA opens WhatsApp with a prefilled message (matches reference site UX). Optional in-app "Request to Enroll" creates an enrollment row in `pending` status for admin follow-up. **No payment gateway in this phase.**
+4. **Curriculum-rich Course Detail page** — hero, audience pill, duration/mode badges, curriculum checklist, batch picker, instructor card, certificate note, success stats.
+5. **Academy listing redesign** — filter chips by category (Plant Doctor, Plant Protection, Smart Farming, Urban Farming), each card shows duration + mode + next batch.
+6. **Trust strip on Home** — stats row (trained farmers, courses delivered, satisfaction %, years of experience).
+7. **Admin: Courses + Batches** — extend `AdminCourses` with curriculum editor (tag input) and a Batches sub-table per course.
+8. **Dashboard "My Courses" tab** — shows enrollment status (`pending` / `confirmed` / `completed`) and batch dates.
 
-- **Pages deleted:** Feed, Explore, Pets, Clinics, Doctors, Messages, Notifications, Book Appointment, Track Order, Wishlist, Doctor/Clinic dashboards, Blog, all clinic/doctor verification pages, social/CMS admin pages.
-- **Components deleted:** Social (posts, stories, comments), pet cards, clinic/doctor components, support chat widget, notification bell, pet context.
-- **Routes removed** from `App.tsx`. Admin shell stays (rebranded) for product/order/customer management.
-- **DB tables left in place** (no destructive migration) — they simply become orphan/inactive. We only *add* new tables.
+Out of scope: payments, video player, progress tracking, certificates issuance — all deferred.
 
-## What gets built
-
-### 1. Branding & Logo
-- Save uploaded logo to `src/assets/zagrotech-logo.jpeg`.
-- Update `src/components/Logo.tsx` → text becomes "Z Agro Tech", subtitle "Cultivating Innovation".
-- Recolor theme in `src/index.css` + `tailwind.config.ts` to **earthy green palette** (deep forest green primary, sage accent, warm cream background, charcoal text). Replace coral/peach tokens.
-- Update `index.html` title + meta. Update `Footer.tsx` copy.
-
-### 2. New routes (added to `App.tsx`)
+## Database changes (additive migration)
 
 ```text
-/              → Home (bento-grid: hero + featured products + featured courses)
-/shop          → Product listing (reuses existing products table, filtered by category)
-/product/:id   → Product detail (kept, restyled)
-/cart, /checkout → Kept (existing flow works)
-/academy       → Course listing
-/course/:id    → Course detail (enroll button — Phase 2 will wire payment)
-/dashboard     → Tabs: "My Orders" | "My Courses" (replaces /profile for end users)
-/auth          → Kept
-/admin/*       → Kept (rebranded), plus new /admin/courses CRUD
+ALTER TABLE courses ADD:
+  category text                 -- 'plant_doctor' | 'plant_protection' | 'smart_farming' | 'urban_farming' | 'organic' | 'other'
+  duration_label text           -- e.g. '১৫ দিন', '৩০ দিন', '২/৩ মাস'
+  mode text                     -- 'online' | 'onsite' | 'hybrid'
+  audience text                 -- short tagline
+  curriculum jsonb              -- string[] of topic bullets
+  whatsapp_number text          -- override per course (falls back to global)
+  whatsapp_message text         -- prefilled enrollment message
+  provides_certificate boolean default true
+  language text default 'bn'
+
+NEW TABLE course_batches
+  id, course_id (fk), name, start_date, end_date,
+  total_seats int, enrolled_count int default 0,
+  status text ('open'|'filling'|'closed'|'completed'),
+  created_at
+  RLS: public SELECT, admin write
+
+ALTER TABLE enrollments ADD:
+  batch_id uuid → course_batches (nullable)
+  status text default 'pending'   -- 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  contact_phone text
+  notes text
 ```
 
-### 3. New components
-
-```text
-src/components/
-  Navbar.tsx                  ← rewritten: Logo, Shop, Academy, Cart, Dashboard, Sign In
-  Footer.tsx                  ← rewritten with Z Agro Tech copy
-  home/
-    HeroSection.tsx           ← glassmorphism hero, green gradient
-    FeaturedProductsGrid.tsx  ← bento grid (3-col @container)
-    FeaturedCoursesGrid.tsx   ← bento grid (3-col @container)
-  shop/
-    ProductCard.tsx           ← restyled: Card + Badge for stock status
-    ProductGrid.tsx
-    ProductSkeleton.tsx
-  academy/
-    CourseCard.tsx            ← Card + Badge for difficulty (Beginner/Intermediate/Advanced)
-    CourseGrid.tsx
-    CourseSkeleton.tsx
-  dashboard/
-    OrdersTab.tsx
-    CoursesTab.tsx
-```
-
-### 4. New pages
-
-```text
-src/pages/
-  Index.tsx                ← rewritten Home
-  ShopPage.tsx             ← rewritten (agri products)
-  ProductDetailPage.tsx    ← restyled
-  AcademyPage.tsx          ← NEW
-  CourseDetailPage.tsx     ← NEW
-  DashboardPage.tsx        ← NEW (Tabs)
-  admin/AdminCourses.tsx   ← NEW (basic course CRUD)
-```
-
-### 5. New hooks
-
-```text
-src/hooks/
-  useCourses.ts        ← list + single course fetch (React Query, Skeleton states)
-  useEnrollments.ts    ← list user's enrollments, enroll mutation
-  useMyOrders.ts       ← thin wrapper over orders table for the dashboard
-```
-
-### 6. Database (Supabase migration)
-
-**New tables only — no destructive changes:**
-
-```text
-courses
-  id uuid pk, title text, description text, price numeric,
-  thumbnail_url text, video_url text, instructor_id uuid → auth.users,
-  difficulty text ('beginner'|'intermediate'|'advanced'),
-  is_active bool default true, created_at, updated_at
-
-enrollments
-  id uuid pk, user_id uuid → auth.users, course_id uuid → courses,
-  enrolled_at timestamptz, progress int default 0,
-  unique(user_id, course_id)
-```
-
-**RLS policies:**
-- `courses` — public SELECT where `is_active = true`; admin INSERT/UPDATE/DELETE via `has_role(auth.uid(),'admin')`.
-- `enrollments` — user SELECT/INSERT/DELETE only where `auth.uid() = user_id`; admin SELECT all.
-
-**Products** — add a category filter (`agriculture-tools`, `seeds`, `fertilizers`, `equipment`). Existing `is_active`/stock columns reused. Existing `orders` + `create_order_with_stock` RPC unchanged.
-
-### 7. Cleanup
-- Remove `PetProvider` and unused contexts from `src/App.tsx`.
-- Remove `SupportChatLoader`, `MobileNav` (rebuilt minimal) and pet/clinic/doctor guards from routing.
-- Leave the underlying tables and edge functions in place to avoid breaking restoration; they just become unreferenced.
-
-## Layout note
-There is no existing global `Layout.tsx` — each page mounts its own Navbar + Footer. New pages will follow the same convention so we don't introduce a new wrapper.
-
-## Out of scope (Phase 2+)
-Payment gateways, video streaming/player, course progress tracking logic, instructor portal, course reviews, certificates.
+RLS for batches mirrors `courses`. Existing enrollment policies stay (user owns rows).
 
 ## File-change summary
 
 ```text
-ADD     src/assets/zagrotech-logo.jpeg
-MODIFY  src/components/Logo.tsx, Navbar.tsx, Footer.tsx
-MODIFY  src/index.css, tailwind.config.ts, index.html
-MODIFY  src/App.tsx  (routes pruned + new routes)
-MODIFY  src/pages/Index.tsx, ShopPage.tsx, ProductDetailPage.tsx
-ADD     src/pages/AcademyPage.tsx, CourseDetailPage.tsx, DashboardPage.tsx
-ADD     src/pages/admin/AdminCourses.tsx
-ADD     src/components/{home,shop,academy,dashboard}/*
-ADD     src/hooks/useCourses.ts, useEnrollments.ts, useMyOrders.ts
-DELETE  pet/clinic/doctor/social pages, components, hooks, contexts
-DB      migration: create courses + enrollments tables with RLS
+DB MIGRATION  add columns to courses + enrollments, create course_batches
+
+ADD     src/lib/whatsapp.ts                       (build wa.me URL)
+ADD     src/components/academy/CourseCategoryChips.tsx
+ADD     src/components/academy/CurriculumList.tsx
+ADD     src/components/academy/BatchPicker.tsx
+ADD     src/components/academy/EnrollDialog.tsx   (WhatsApp + in-app request)
+ADD     src/components/home/TrustStatsStrip.tsx
+ADD     src/components/admin/CurriculumEditor.tsx
+ADD     src/components/admin/CourseBatchesTable.tsx
+ADD     src/hooks/useCourseBatches.ts
+
+MODIFY  src/hooks/useCourses.ts          (new fields + category filter)
+MODIFY  src/hooks/useEnrollments.ts      (batch_id, status, contact_phone)
+MODIFY  src/components/academy/CourseCard.tsx   (duration/mode badges, next batch)
+MODIFY  src/pages/AcademyPage.tsx        (category chips, filtered grid)
+MODIFY  src/pages/CourseDetailPage.tsx   (curriculum, batches, enroll dialog)
+MODIFY  src/pages/admin/AdminCourses.tsx (curriculum + batches UI)
+MODIFY  src/components/dashboard/CoursesTab.tsx (status badges, batch dates)
+MODIFY  src/pages/Index.tsx              (mount TrustStatsStrip)
+MODIFY  src/integrations/supabase/types.ts (auto-regen after migration)
 ```
+
+## UX details
+
+- **Category chips:** Plant Doctor · Plant Protection · Smart Farming · Urban Farming · Organic · All
+- **Course card badges:** duration (e.g., "30 days"), mode pill, and a small "Next batch: 15 May" line if a batch exists.
+- **Batch picker:** radio-card list inside Course Detail — selecting one enables the enroll button. Closed batches greyed out.
+- **Enroll dialog:** two CTAs — primary "Continue on WhatsApp" (opens prefilled wa.me link with course + batch name), secondary "Request callback" (logs an enrollment row, requires phone number, admin sees it in `/admin/incomplete-orders`-style queue — reusing existing patterns).
+- **Bilingual ready:** schema supports Bangla content; UI labels stay English for now (i18n is a future phase).
+
+## Open question
+
+Just one — please confirm the WhatsApp number to use as the global default (the reference site uses `+8801763585500`). I'll store it as a setting and let admin override per course.
 
