@@ -1,11 +1,11 @@
 ---
 name: Single Admin Policy
-description: Restrict primary admin to nijhumislam570@gmail.com — Z Agro Tech sole admin account
+description: Restrict admin role to nijhumislam570@gmail.com — Z Agro Tech sole admin, enforced by DB trigger
 type: constraint
 ---
-The Z Agro Tech platform supports only ONE primary admin: **nijhumislam570@gmail.com**.
+The Z Agro Tech platform supports only ONE admin: **nijhumislam570@gmail.com**.
 
-- Do not seed or grant `admin` role to any other email by default.
-- Other admins may only be added through an explicit, audited admin action by the primary admin.
+- **DB-enforced**: trigger `enforce_single_admin_trigger` on `public.user_roles` blocks any INSERT/UPDATE that grants `admin` to a different email. Function: `public.enforce_single_admin()`.
 - The legacy `vetmedix.25@gmail.com` admin has been revoked and must NOT be re-introduced.
-- Bootstrap is handled by the `bootstrap-admin` edge function (one-shot, secret-gated).
+- The `bootstrap-admin` edge function has been retired. Do not re-create it.
+- To change the sole admin, the trigger function must be updated via migration — there is no UI path.
