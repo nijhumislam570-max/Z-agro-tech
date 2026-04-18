@@ -152,3 +152,26 @@ export const courseFormSchema = z.object({
   is_active: z.boolean(),
 });
 export type CourseFormData = z.infer<typeof courseFormSchema>;
+
+// ========== Enrollment (callback request) ==========
+
+const phoneRegex = /^[+\d\s-]{6,30}$/;
+
+export const enrollSchema = z.object({
+  courseId: z.string().uuid('Invalid course'),
+  batchId: z.string().uuid().nullable().optional(),
+  contactPhone: z
+    .string()
+    .trim()
+    .regex(phoneRegex, 'Enter a valid phone number')
+    .max(30, 'Phone number too long')
+    .nullable()
+    .optional(),
+  notes: z
+    .string()
+    .max(1000, 'Notes must be less than 1000 characters')
+    .regex(noXSSRegex, 'Notes cannot contain < or > characters')
+    .nullable()
+    .optional(),
+});
+export type EnrollFormData = z.infer<typeof enrollSchema>;
