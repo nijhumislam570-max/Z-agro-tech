@@ -42,7 +42,11 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
   };
 
   const handleCallback = async () => {
-    if (!user) { navigate('/auth'); return; }
+    if (!user) {
+      onOpenChange(false);
+      navigate(`/auth?redirect=${encodeURIComponent(`/course/${course.id}`)}`);
+      return;
+    }
     if (!phone.trim()) return;
     await enroll.mutateAsync({
       courseId: course.id,
@@ -111,9 +115,9 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
           <Button
             variant="secondary"
             onClick={handleCallback}
-            disabled={!phone.trim() || enroll.isPending}
+            disabled={(!!user && !phone.trim()) || enroll.isPending}
           >
-            {enroll.isPending ? 'Sending…' : user ? 'Request callback' : 'Sign in to request'}
+            {enroll.isPending ? 'Sending…' : user ? 'Request callback' : 'Sign in to continue'}
           </Button>
         </DialogFooter>
       </DialogContent>
