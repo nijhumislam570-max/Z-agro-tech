@@ -37,7 +37,6 @@ import {
   Tag
 } from 'lucide-react';
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
-import { notifyAdminsOfNewOrder } from '@/lib/notifications';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
 
@@ -260,15 +259,6 @@ const CheckoutPage = () => {
       }
 
       const orderData = { id: orderId };
-
-      // Notify admins of new order
-      if (orderData) {
-        await notifyAdminsOfNewOrder({
-          orderId: orderData.id,
-          orderTotal: grandTotal,
-          itemCount: totalItems,
-        });
-      }
 
       // Mark incomplete order as recovered
       if (orderData?.id) {
