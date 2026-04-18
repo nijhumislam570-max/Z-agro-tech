@@ -27,6 +27,8 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
     { icon: GraduationCap, label: 'Academy', path: '/academy', badge: 0 },
     { icon: profileItem.icon, label: profileItem.label, path: profileItem.path, badge: 0 },
   ];
+  // Note: Dashboard is reachable via the profile slot ("Dashboard" label) for signed-in non-admins.
+  // Admins see "Admin" — Dashboard is one tap away from the desktop Navbar; mobile keeps 5 slots for clarity.
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';

@@ -261,7 +261,12 @@ const CartPage = () => {
                       </p>
                     </div>
                   )}
-                  
+
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Tag className="h-3 w-3" aria-hidden="true" />
+                    Have a coupon? Apply it at checkout.
+                  </p>
+
                   <Separator />
                   
                   <div className="flex justify-between text-base sm:text-lg font-bold text-foreground pt-1">

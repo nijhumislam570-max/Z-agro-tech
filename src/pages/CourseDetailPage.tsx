@@ -187,14 +187,21 @@ const CourseDetailPage = () => {
                       )}
                     </div>
                   ) : (
-                    <Button
-                      size="lg"
-                      className="w-full"
-                      onClick={() => setEnrollOpen(true)}
-                      disabled={!hasOpenBatch && (batches?.length ?? 0) > 0}
-                    >
-                      Enroll now
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        size="lg"
+                        className="w-full"
+                        onClick={() => setEnrollOpen(true)}
+                        disabled={!hasOpenBatch && (batches?.length ?? 0) > 0}
+                      >
+                        Enroll now
+                      </Button>
+                      {(batches?.length ?? 0) === 0 && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          No fixed batches — we'll match you to the next start date.
+                        </p>
+                      )}
+                    </div>
                   )}
 
                   <p className="text-xs text-muted-foreground text-center">
