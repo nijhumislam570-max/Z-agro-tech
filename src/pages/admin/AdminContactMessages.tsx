@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -185,14 +187,20 @@ const AdminContactMessages = () => {
       {/* Messages */}
       <div className="bg-card rounded-xl sm:rounded-2xl border border-border overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="p-3 sm:p-4">
+            <TableSkeleton rows={6} columns={5} />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <Mail className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No messages found</p>
-          </div>
+          <EmptyState
+            bordered={false}
+            icon={Mail}
+            title={searchQuery || statusFilter !== 'all' ? 'No matching messages' : 'No messages yet'}
+            description={
+              searchQuery || statusFilter !== 'all'
+                ? 'Try adjusting the search or status filter.'
+                : 'Customer enquiries from the contact form will appear here.'
+            }
+          />
         ) : (
           <>
             {/* Mobile Card View */}
@@ -243,7 +251,7 @@ const AdminContactMessages = () => {
                   {filtered.map((msg) => (
                     <TableRow
                       key={msg.id}
-                      className={`cursor-pointer ${msg.status === 'unread' ? 'bg-primary/5 font-medium' : ''}`}
+                      className={`cursor-pointer hover:bg-muted/40 transition-colors ${msg.status === 'unread' ? 'bg-primary/5 font-medium' : ''}`}
                       onClick={() => openMessage(msg)}
                     >
                       <TableCell>

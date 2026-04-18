@@ -6,6 +6,8 @@ import {
   Ticket, Percent, Truck, DollarSign, Copy, Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -302,22 +304,18 @@ const AdminCoupons = () => {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:gap-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-20 bg-muted animate-pulse rounded-xl" />
-          ))}
-        </div>
+        <TableSkeleton variant="cards" rows={4} />
       ) : coupons.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-semibold text-lg mb-1">No coupons yet</h3>
-            <p className="text-muted-foreground text-sm mb-4">Create your first coupon to offer discounts to customers.</p>
+        <EmptyState
+          icon={Ticket}
+          title="No coupons yet"
+          description="Create your first coupon to offer discounts to customers."
+          action={
             <Button onClick={() => setDialogOpen(true)} className="gap-1.5">
               <Plus className="h-4 w-4" /> Create Coupon
             </Button>
-          </CardContent>
-        </Card>
+          }
+        />
       ) : (
         <div className="grid gap-3 sm:gap-4">
           {coupons.map((coupon) => {
@@ -326,7 +324,7 @@ const AdminCoupons = () => {
             const inactive = !coupon.is_active || expired || usedUp;
 
             return (
-              <Card key={coupon.id} className={`transition-all ${inactive ? 'opacity-60' : ''}`}>
+              <Card key={coupon.id} className={`transition-all hover:shadow-md ${inactive ? 'opacity-60' : ''}`}>
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center gap-3 sm:gap-4">
                     <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${inactive ? 'bg-muted' : 'bg-primary/10'}`}>
