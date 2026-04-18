@@ -1,0 +1,307 @@
+import { useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { GraduationCap, Search, Loader2, Phone } from 'lucide-react';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { RequireAdmin } from '@/components/admin/RequireAdmin';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useDebounce } from '@/hooks/useDebounce';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+
+type EnrollmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+
+interface EnrollmentRow {
+  id: string;
+  user_id: string;
+  course_id: string;
+  batch_id: string | null;
+  status: string | null;
+  contact_phone: string | null;
+  notes: string | null;
+  progress: number;
+  enrolled_at: string;
+  course: { id: string; title: string } | null;
+  batch: { id: string; name: string } | null;
+  profile: { full_name: string | null; phone: string | null } | null;
+}
+
+const statusVariant: Record<EnrollmentStatus, string> = {
+  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  confirmed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  completed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+  cancelled: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
+};
+
+const AdminEnrollmentsContent = () => {
+  useDocumentTitle('Enrollments - Admin');
+  const { isAdmin } = useAdmin();
+  const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebounce(searchInput, 300);
+  const [statusFilter, setStatusFilter] = useState<EnrollmentStatus | 'all'>('all');
+
+  const { data: enrollments = [], isLoading } = useQuery({
+    queryKey: ['admin-enrollments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('enrollments')
+        .select(`
+          id, user_id, course_id, batch_id, status, contact_phone, notes, progress, enrolled_at,
+          course:courses(id, title),
+          batch:course_batches(id, name)
+        `)
+        .order('enrolled_at', { ascending: false })
+        .limit(500);
+      if (error) throw error;
+
+      const userIds = [...new Set((data || []).map((e: any) => e.user_id))];
+      const { data: profiles } = userIds.length
+        ? await supabase
+            .from('profiles')
+            .select('user_id, full_name, phone')
+            .in('user_id', userIds)
+        : { data: [] };
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+
+      return (data || []).map((row: any): EnrollmentRow => ({
+        ...row,
+        profile: profileMap.get(row.user_id) ?? null,
+      }));
+    },
+    enabled: isAdmin,
+  });
+
+  const filtered = useMemo(() => {
+    let list = enrollments;
+    if (statusFilter !== 'all') {
+      list = list.filter((e) => (e.status || 'pending') === statusFilter);
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (e) =>
+          e.profile?.full_name?.toLowerCase().includes(q) ||
+          e.contact_phone?.toLowerCase().includes(q) ||
+          e.profile?.phone?.toLowerCase().includes(q) ||
+          e.course?.title?.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [enrollments, search, statusFilter]);
+
+  const stats = useMemo(() => {
+    const counts = { total: enrollments.length, pending: 0, confirmed: 0, completed: 0, cancelled: 0 };
+    enrollments.forEach((e) => {
+      const s = (e.status || 'pending') as EnrollmentStatus;
+      if (s in counts) counts[s] += 1;
+    });
+    return counts;
+  }, [enrollments]);
+
+  const updateStatus = async (id: string, status: EnrollmentStatus) => {
+    const { error } = await supabase.from('enrollments').update({ status }).eq('id', id);
+    if (error) {
+      toast.error('Failed to update status');
+      return;
+    }
+    toast.success(`Enrollment marked as ${status}`);
+    queryClient.invalidateQueries({ queryKey: ['admin-enrollments'] });
+  };
+
+  return (
+    <AdminLayout title="Enrollments" subtitle="Manage course enrollments and student progress">
+      {/* Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        {([
+          { key: 'all', label: 'Total', value: stats.total, color: 'from-primary/10 to-accent/10' },
+          { key: 'pending', label: 'Pending', value: stats.pending, color: 'from-amber-50 to-orange-50/50 dark:from-amber-950/30 dark:to-orange-950/20' },
+          { key: 'confirmed', label: 'Confirmed', value: stats.confirmed, color: 'from-blue-50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/20' },
+          { key: 'completed', label: 'Completed', value: stats.completed, color: 'from-emerald-50 to-green-50/50 dark:from-emerald-950/30 dark:to-green-950/20' },
+          { key: 'cancelled', label: 'Cancelled', value: stats.cancelled, color: 'from-rose-50 to-pink-50/50 dark:from-rose-950/30 dark:to-pink-950/20' },
+        ] as const).map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setStatusFilter(s.key as EnrollmentStatus | 'all')}
+            className={`text-left rounded-xl border p-3 transition-all bg-gradient-to-br ${s.color} ${
+              statusFilter === s.key ? 'ring-2 ring-primary/50' : 'hover:shadow-sm'
+            }`}
+          >
+            <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {s.label}
+            </p>
+            <p className="text-lg sm:text-2xl font-bold text-foreground">{s.value}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by student name, phone, or course..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-9 h-10 sm:h-11 rounded-xl text-sm"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as EnrollmentStatus | 'all')}>
+          <SelectTrigger className="w-full sm:w-[160px] h-10 sm:h-11 rounded-xl text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All statuses</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card className="border-border/50">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16">
+              <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">No enrollments found</p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile cards */}
+              <div className="sm:hidden divide-y divide-border">
+                {filtered.map((row) => {
+                  const status = (row.status || 'pending') as EnrollmentStatus;
+                  return (
+                    <div key={row.id} className="p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-sm truncate">
+                            {row.profile?.full_name || 'Unnamed Student'}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {row.course?.title || 'Course removed'}
+                          </p>
+                          {row.batch?.name && (
+                            <p className="text-[11px] text-muted-foreground">Batch: {row.batch.name}</p>
+                          )}
+                        </div>
+                        <Badge className={statusVariant[status]}>{status}</Badge>
+                      </div>
+                      {(row.contact_phone || row.profile?.phone) && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          {row.contact_phone || row.profile?.phone}
+                        </p>
+                      )}
+                      <Select value={status} onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}>
+                        <SelectTrigger className="h-9 text-xs rounded-lg">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="confirmed">Confirmed</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead>Batch</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Enrolled</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((row) => {
+                      const status = (row.status || 'pending') as EnrollmentStatus;
+                      return (
+                        <TableRow key={row.id}>
+                          <TableCell className="font-medium">
+                            {row.profile?.full_name || 'Unnamed'}
+                          </TableCell>
+                          <TableCell>{row.course?.title || '—'}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {row.batch?.name || '—'}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {row.contact_phone || row.profile?.phone || '—'}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {format(new Date(row.enrolled_at), 'MMM d, yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={status}
+                              onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}
+                            >
+                              <SelectTrigger className="h-8 w-[140px] text-xs rounded-lg">
+                                <SelectValue>
+                                  <Badge className={statusVariant[status]}>{status}</Badge>
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="confirmed">Confirmed</SelectItem>
+                                <SelectItem value="completed">Completed</SelectItem>
+                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </AdminLayout>
+  );
+};
+
+const AdminEnrollments = () => (
+  <RequireAdmin>
+    <AdminEnrollmentsContent />
+  </RequireAdmin>
+);
+
+export default AdminEnrollments;

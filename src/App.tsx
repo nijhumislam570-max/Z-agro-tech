@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import { WishlistProvider } from "@/contexts/WishlistContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useFocusManagement } from "@/hooks/useFocusManagement";
 import OfflineIndicator from "@/components/OfflineIndicator";
@@ -37,6 +36,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminCourses = lazy(() => import("./pages/admin/AdminCourses"));
+const AdminEnrollments = lazy(() => import("./pages/admin/AdminEnrollments"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
 const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
@@ -46,6 +46,7 @@ const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminIncompleteOrders = lazy(() => import("./pages/admin/AdminIncompleteOrders"));
 const AdminEcommerceCustomers = lazy(() => import("./pages/admin/AdminEcommerceCustomers"));
 const AdminDeliveryZones = lazy(() => import("./pages/admin/AdminDeliveryZones"));
+const AdminRecoveryAnalytics = lazy(() => import("./pages/admin/AdminRecoveryAnalytics"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,64 +86,64 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider queryClient={queryClient}>
       <CartProvider>
-        <WishlistProvider>
-          <TooltipProvider>
-            <Sonner />
-            <OfflineIndicator />
-            <BrowserRouter>
-              <ScrollToTop />
-              <ErrorBoundary>
-                <Suspense fallback={<PageLoader />}>
-                  <PageTransition>
-                    <Routes>
-                      {/* Public */}
-                      <Route path="/" element={<Index />} />
-                      <Route path="/auth" element={<AuthPage />} />
-                      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                      <Route path="/reset-password" element={<ResetPasswordPage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
-                      <Route path="/faq" element={<FAQPage />} />
-                      <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                      <Route path="/terms" element={<TermsPage />} />
+        <TooltipProvider>
+          <Sonner />
+          <OfflineIndicator />
+          <BrowserRouter>
+            <ScrollToTop />
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
+                <PageTransition>
+                  <Routes>
+                    {/* Public */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/faq" element={<FAQPage />} />
+                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms" element={<TermsPage />} />
 
-                      {/* Shop */}
-                      <Route path="/shop" element={<ShopPage />} />
-                      <Route path="/product/:id" element={<ProductDetailPage />} />
-                      <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
-                      <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
-                      <Route path="/track-order" element={<TrackOrderPage />} />
+                    {/* Shop */}
+                    <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/product/:id" element={<ProductDetailPage />} />
+                    <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
+                    <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
+                    <Route path="/track-order" element={<TrackOrderPage />} />
 
-                      {/* Academy */}
-                      <Route path="/academy" element={<AcademyPage />} />
-                      <Route path="/course/:id" element={<CourseDetailPage />} />
+                    {/* Academy */}
+                    <Route path="/academy" element={<AcademyPage />} />
+                    <Route path="/course/:id" element={<CourseDetailPage />} />
 
-                      {/* User dashboard */}
-                      <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
-                      <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+                    {/* User dashboard */}
+                    <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+                    <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
-                      {/* Admin */}
-                      <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-                      <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
-                      <Route path="/admin/courses" element={<RequireAdmin><AdminCourses /></RequireAdmin>} />
-                      <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
-                      <Route path="/admin/customers" element={<RequireAdmin><AdminCustomers /></RequireAdmin>} />
-                      <Route path="/admin/analytics" element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
-                      <Route path="/admin/settings" element={<RequireAdmin><AdminSettings /></RequireAdmin>} />
-                      <Route path="/admin/messages" element={<RequireAdmin><AdminContactMessages /></RequireAdmin>} />
-                      <Route path="/admin/coupons" element={<RequireAdmin><AdminCoupons /></RequireAdmin>} />
-                      <Route path="/admin/incomplete-orders" element={<RequireAdmin><AdminIncompleteOrders /></RequireAdmin>} />
-                      <Route path="/admin/ecommerce-customers" element={<RequireAdmin><AdminEcommerceCustomers /></RequireAdmin>} />
-                      <Route path="/admin/delivery-zones" element={<RequireAdmin><AdminDeliveryZones /></RequireAdmin>} />
+                    {/* Admin */}
+                    <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+                    <Route path="/admin/analytics" element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
+                    <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
+                    <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
+                    <Route path="/admin/ecommerce-customers" element={<RequireAdmin><AdminEcommerceCustomers /></RequireAdmin>} />
+                    <Route path="/admin/coupons" element={<RequireAdmin><AdminCoupons /></RequireAdmin>} />
+                    <Route path="/admin/delivery-zones" element={<RequireAdmin><AdminDeliveryZones /></RequireAdmin>} />
+                    <Route path="/admin/incomplete-orders" element={<RequireAdmin><AdminIncompleteOrders /></RequireAdmin>} />
+                    <Route path="/admin/recovery-analytics" element={<RequireAdmin><AdminRecoveryAnalytics /></RequireAdmin>} />
+                    <Route path="/admin/courses" element={<RequireAdmin><AdminCourses /></RequireAdmin>} />
+                    <Route path="/admin/enrollments" element={<RequireAdmin><AdminEnrollments /></RequireAdmin>} />
+                    <Route path="/admin/customers" element={<RequireAdmin><AdminCustomers /></RequireAdmin>} />
+                    <Route path="/admin/messages" element={<RequireAdmin><AdminContactMessages /></RequireAdmin>} />
+                    <Route path="/admin/settings" element={<RequireAdmin><AdminSettings /></RequireAdmin>} />
 
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </PageTransition>
-                </Suspense>
-              </ErrorBoundary>
-            </BrowserRouter>
-          </TooltipProvider>
-        </WishlistProvider>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </PageTransition>
+              </Suspense>
+            </ErrorBoundary>
+          </BrowserRouter>
+        </TooltipProvider>
       </CartProvider>
     </AuthProvider>
   </QueryClientProvider>

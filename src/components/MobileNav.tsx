@@ -1,9 +1,8 @@
 import { forwardRef } from 'react';
-import { Home, Store, ShoppingCart, Stethoscope, User, Shield, Building2, LogIn, UserCheck } from 'lucide-react';
+import { Home, Store, ShoppingCart, GraduationCap, User, Shield, LogIn, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
-import { useAdmin } from '@/hooks/useAdmin';
 import { useUserRole } from '@/hooks/useUserRole';
 import { prefetchRoute } from '@/lib/imageUtils';
 
@@ -11,16 +10,12 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
   const location = useLocation();
   const { user } = useAuth();
   const { totalItems } = useCart();
-  const { isAdmin } = useAdmin();
-  const { isDoctor, isClinicOwner } = useUserRole();
+  const { isAdmin } = useUserRole();
 
-  // Determine role-specific profile item
   const getProfileItem = () => {
     if (isAdmin) return { icon: Shield, label: 'Admin', path: '/admin' };
-    if (isDoctor) return { icon: UserCheck, label: 'Dashboard', path: '/doctor/dashboard' };
-    if (isClinicOwner) return { icon: Building2, label: 'Dashboard', path: '/clinic/dashboard' };
-    if (user) return { icon: User, label: 'Profile', path: '/profile' };
-    return { icon: LogIn, label: 'Login', path: '/auth' };
+    if (user) return { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' };
+    return { icon: LogIn, label: 'Sign In', path: '/auth' };
   };
 
   const profileItem = getProfileItem();
@@ -29,19 +24,21 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
     { icon: Home, label: 'Home', path: '/', badge: 0 },
     { icon: Store, label: 'Shop', path: '/shop', badge: 0 },
     { icon: ShoppingCart, label: 'Cart', path: '/cart', badge: totalItems },
-    { icon: Stethoscope, label: 'Doctors', path: '/doctors', badge: 0 },
+    { icon: GraduationCap, label: 'Academy', path: '/academy', badge: 0 },
     { icon: profileItem.icon, label: profileItem.label, path: profileItem.path, badge: 0 },
   ];
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
-    return location.pathname === path || location.pathname.startsWith(path + '/') ||
-           (path === '/doctor/dashboard' && location.pathname.startsWith('/doctor')) ||
-           (path === '/clinic/dashboard' && location.pathname.startsWith('/clinic'));
+    return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
   return (
-    <nav ref={ref} className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <nav
+      ref={ref}
+      className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
       <div className="flex items-center justify-around h-14 sm:h-16 max-w-lg mx-auto">
         {navItems.map((item, index) => {
           const active = isActive(item.path);
