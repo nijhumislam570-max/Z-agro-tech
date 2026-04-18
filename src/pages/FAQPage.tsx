@@ -2,7 +2,6 @@ import { useState, memo, useMemo } from 'react';
 import { HelpCircle, Search } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
 import { Input } from '@/components/ui/input';
 import SEO from '@/components/SEO';
 import {
@@ -15,52 +14,42 @@ import {
 const faqData = [
   {
     title: 'General Questions',
-    icon: '📋',
+    icon: '🌱',
     faqs: [
-      { question: 'What is VetMedix?', answer: 'VetMedix is a comprehensive pet care platform that combines social networking for pets, veterinary clinic booking, and a pet product shop. It serves as your one-stop destination for all pet care needs in Bangladesh.' },
-      { question: 'Is VetMedix free to use?', answer: 'Yes! Creating an account, browsing clinics, doctors, and creating pet profiles is completely free. You only pay when you purchase products or book paid clinic services.' },
-      { question: 'Which areas does VetMedix serve?', answer: 'VetMedix currently serves all major cities and districts across Bangladesh. We are constantly expanding our network of verified clinics and delivery coverage.' },
+      { question: 'What is Z Agro Tech?', answer: 'Z Agro Tech is a comprehensive agriculture platform combining a premium marketplace for agri-inputs (seeds, fertilizers, crop-protection, tools) with the Smart Farming Academy — expert-led courses for modern farmers in Bangladesh.' },
+      { question: 'Is Z Agro Tech free to use?', answer: 'Yes! Browsing products and courses, and creating an account is completely free. You only pay when you purchase a product or enrol in a paid course.' },
+      { question: 'Which areas does Z Agro Tech serve?', answer: 'We deliver agri-inputs across all 64 districts of Bangladesh. Our online courses are available nationwide; on-site/hybrid sessions are scheduled by location.' },
     ],
   },
   {
-    title: 'Pet Profiles & Social Features',
-    icon: '🐾',
-    faqs: [
-      { question: 'How do I create a pet profile?', answer: "After signing in, go to your profile and click \"Add Pet\" or navigate to the pets section. Fill in your pet's details including name, species, breed, age, and optionally add a photo and bio." },
-      { question: 'Can I have multiple pets on one account?', answer: 'Absolutely! You can add as many pet profiles as you want under your account. Each pet will have their own profile page and can post to the social feed.' },
-      { question: 'How do I post to the social feed?', answer: "From the Feed page or your pet's profile, use the \"Create Post\" card to share photos, videos, or text updates. Select which pet is posting, add your content, and share!" },
-      { question: 'What are Stories?', answer: "Stories are short-lived posts (24 hours) where you can share quick moments from your pet's day. They appear at the top of the feed and disappear after 24 hours." },
-    ],
-  },
-  {
-    title: 'Appointments & Clinics',
-    icon: '🏥',
-    faqs: [
-      { question: 'How do I book an appointment?', answer: 'Browse the Clinics or Doctors page, select your preferred clinic or doctor, and click "Book Appointment". Choose your pet, select a date and time slot, and confirm your booking.' },
-      { question: 'Can I cancel or reschedule an appointment?', answer: 'Yes, you can cancel appointments from your Profile under the Appointments tab. For rescheduling, cancel the current appointment and book a new one with your preferred time.' },
-      { question: 'How do I know if a clinic is verified?', answer: 'Verified clinics display a blue verification badge. This means they have submitted required documentation (trade license, BVC certificate) and passed our admin review process.' },
-      { question: 'What payment methods are available for appointments?', answer: 'Payment is typically made at the clinic during your visit. Some clinics may require advance booking fees which will be clearly mentioned during booking.' },
-    ],
-  },
-  {
-    title: 'Shopping & Orders',
+    title: 'Shop & Products',
     icon: '🛒',
     faqs: [
-      { question: 'How do I place an order?', answer: 'Browse products in the Shop, add items to your cart, proceed to checkout, fill in your delivery address, and select Cash on Delivery. Your order will be confirmed immediately.' },
-      { question: 'What payment methods are accepted?', answer: 'Currently we support Cash on Delivery (COD) for all orders. Mobile banking options (bKash, Nagad) and card payments are coming soon!' },
-      { question: 'What are the delivery charges?', answer: 'Delivery is ৳60 inside Dhaka and ৳120 outside Dhaka. Orders above ৳500 qualify for free delivery within Dhaka!' },
-      { question: 'How can I track my order?', answer: "Once your order is shipped, you'll receive a tracking ID. Go to Track Order page and enter your tracking ID to see real-time delivery status via our Steadfast courier integration." },
-      { question: 'Can I return products?', answer: 'Yes, products can be returned within 7 days of delivery if they are damaged or not as described. Contact our support team to initiate a return.' },
+      { question: 'How do I place an order?', answer: 'Browse the Shop, add items to your cart, proceed to checkout, fill in your delivery address, and select Cash on Delivery. Your order will be confirmed immediately.' },
+      { question: 'What payment methods are accepted?', answer: 'We currently support Cash on Delivery (COD) on all orders. Mobile banking (bKash, Nagad) and card payments are coming soon.' },
+      { question: 'What are the delivery charges?', answer: 'Delivery charges depend on your division and order weight. The exact charge is calculated at checkout based on your address.' },
+      { question: 'How can I track my order?', answer: "Once your order ships, you'll receive a tracking ID. Visit the Track Order page and enter your tracking ID to see real-time status from our courier partner." },
+      { question: 'Can I return products?', answer: 'Yes, products can be returned within 7 days of delivery if they are damaged, expired, or not as described. Contact our support team to initiate a return.' },
+      { question: 'Are your seeds and fertilizers genuine?', answer: 'Absolutely — every product on Z Agro Tech is sourced from verified suppliers with traceable batch records. We never list grey-market or counterfeit inputs.' },
+    ],
+  },
+  {
+    title: 'Academy & Courses',
+    icon: '🎓',
+    faqs: [
+      { question: 'How do I enrol in a course?', answer: 'Open the Academy page, choose a course, and click "Enrol". You\'ll be guided through batch selection (where applicable) and confirmation. Our team will reach out via WhatsApp for next steps.' },
+      { question: 'Are the courses online or on-site?', answer: 'Both. Each course lists its mode — Online, On-site, or Hybrid — along with batch dates and duration.' },
+      { question: 'Will I receive a certificate?', answer: 'Most courses provide a certificate of completion. The course details page indicates whether a certificate is included.' },
+      { question: 'Who teaches the courses?', answer: 'Our instructors are certified agronomists, plant pathologists, and seasoned farmers with proven on-field expertise.' },
     ],
   },
   {
     title: 'Account & Security',
     icon: '🔐',
     faqs: [
-      { question: 'How do I reset my password?', answer: "Click \"Forgot Password\" on the login page, enter your email address, and we'll send you a password reset link. Follow the link to create a new password." },
-      { question: 'Can I sign in with Google?', answer: 'Yes! You can use "Continue with Google" on the sign-in page for quick and secure authentication using your Google account.' },
-      { question: 'How do I become a clinic owner or doctor?', answer: "During sign-up, select \"Clinic Owner\" or \"Doctor\" as your role. After creating your account, you'll need to complete the verification process by submitting required documents." },
-      { question: 'Is my data secure?', answer: 'Yes, we use industry-standard encryption and security practices. Your personal data is protected and never shared without your consent.' },
+      { question: 'How do I reset my password?', answer: 'Click "Forgot Password" on the sign-in page, enter your email, and we\'ll send you a reset link. Follow the link to set a new password.' },
+      { question: 'Can I sign in with Google?', answer: 'Yes — use "Continue with Google" on the sign-in page for quick, secure authentication using your Google account.' },
+      { question: 'Is my data secure?', answer: 'Yes. We use industry-standard encryption and never share your personal data without your consent.' },
     ],
   },
 ];
@@ -83,14 +72,14 @@ const FAQPage = memo(() => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
       <SEO
         title="FAQs"
-        description="Find answers to common questions about VetMedix — pet profiles, clinic booking, shopping, and account security."
-        canonicalUrl="https://vetmedix.lovable.app/faq"
+        description="Find answers to common questions about Z Agro Tech — products, orders, courses, delivery and account security."
+        canonicalUrl="https://zagrotech.lovable.app/faq"
       />
       <Navbar />
-      
+
       <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter" role="main" aria-label="Frequently Asked Questions">
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
@@ -101,7 +90,7 @@ const FAQPage = memo(() => {
             Frequently Asked Questions
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Find answers to common questions about VetMedix
+            Find answers to common questions about Z Agro Tech
           </p>
         </div>
 
@@ -120,7 +109,7 @@ const FAQPage = memo(() => {
           </div>
         </div>
 
-        {/* FAQ Categories - all using shadcn Accordion */}
+        {/* FAQ Categories */}
         <div className="max-w-3xl mx-auto space-y-6">
           {filteredCategories.length === 0 ? (
             <div className="text-center py-12">
@@ -162,8 +151,8 @@ const FAQPage = memo(() => {
           <p className="text-muted-foreground mb-4">
             Didn't find what you're looking for?
           </p>
-          <a 
-            href="/contact" 
+          <a
+            href="/contact"
             className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
           >
             Contact our support team →
@@ -172,7 +161,6 @@ const FAQPage = memo(() => {
       </main>
 
       <Footer />
-      <MobileNav />
     </div>
   );
 });
