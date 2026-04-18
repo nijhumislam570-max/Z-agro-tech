@@ -225,6 +225,15 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
     url: `https://zagrotech.lovable.app/product/${product.id}`,
   };
 
+  const breadcrumbSchema = {
+    type: 'BreadcrumbList' as const,
+    items: [
+      { name: 'Home', url: 'https://zagrotech.lovable.app/' },
+      { name: 'Shop', url: 'https://zagrotech.lovable.app/shop' },
+      { name: product.name, url: `https://zagrotech.lovable.app/product/${product.id}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
       <SEO 
@@ -233,7 +242,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
         image={product.image_url || undefined}
         url={`https://zagrotech.lovable.app/product/${product.id}`}
         type="product"
-        schema={productSchema}
+        schema={[productSchema, breadcrumbSchema]}
         canonicalUrl={`https://zagrotech.lovable.app/product/${product.id}`}
       />
       <Navbar />

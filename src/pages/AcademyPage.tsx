@@ -45,12 +45,38 @@ const AcademyPage = () => {
   const certCount = (allCourses ?? []).filter((c) => c.provides_certificate).length;
   const freeCount = (allCourses ?? []).filter((c) => c.price <= 0).length;
 
+  // ItemList schema from top 10 visible (filtered) courses for academy SEO
+  const academyItemListItems = useMemo(
+    () =>
+      filtered.slice(0, 10).map((c) => ({
+        name: c.title,
+        url: `https://zagrotech.lovable.app/course/${c.id}`,
+        image: c.thumbnail_url ?? undefined,
+        price: c.price,
+        priceCurrency: 'BDT',
+      })),
+    [filtered],
+  );
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
         title="Academy — Z Agro Tech"
         description="Expert-led agriculture and farming training cohorts."
-        url="/academy"
+        url="https://zagrotech.lovable.app/academy"
+        canonicalUrl="https://zagrotech.lovable.app/academy"
+        schema={
+          academyItemListItems.length > 0
+            ? {
+                type: 'ItemList',
+                name: 'Z Agro Tech Academy — Courses',
+                description: 'Expert-led farming training cohorts',
+                url: 'https://zagrotech.lovable.app/academy',
+                itemListType: 'Course',
+                items: academyItemListItems,
+              }
+            : undefined
+        }
       />
       <Navbar />
       <main id="main-content" className="flex-1 @container animate-page-enter">

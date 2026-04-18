@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { emailSchema } from '@/lib/validations';
+import SEO from '@/components/SEO';
 
 const ForgotPasswordPage = () => {
   useDocumentTitle('Forgot Password');
@@ -55,6 +56,11 @@ const ForgotPasswordPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+      <SEO
+        title="Forgot Password"
+        description="Reset your Z Agro Tech account password securely."
+        noIndex
+      />
       <Card className="w-full max-w-md shadow-card rounded-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

@@ -15,6 +15,7 @@ import { lovable } from '@/integrations/lovable/index';
 import logo from '@/assets/zagrotech-logo.jpeg';
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validations';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import SEO from '@/components/SEO';
 
 const AuthPage = () => {
   useDocumentTitle('Sign In');
@@ -157,6 +158,11 @@ const AuthPage = () => {
 
   return (
     <main id="main-content" className="min-h-screen flex flex-col md:flex-row">
+      <SEO
+        title="Sign In"
+        description="Sign in or create your Z Agro Tech account to shop premium agri-supplies and enroll in expert farming courses."
+        noIndex
+      />
       {/* ─── Left Branding Panel ─── */}
       <div className="hidden md:flex md:w-[45%] lg:w-[50%] relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-accent flex-col justify-between p-8 lg:p-12">
         <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />

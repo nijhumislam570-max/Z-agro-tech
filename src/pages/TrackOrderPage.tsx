@@ -25,6 +25,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { format } from 'date-fns';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { MapPin } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 interface OrderDetails {
   id: string;
@@ -142,6 +143,12 @@ const TrackOrderPage = () => {
   if (!authLoading && !user) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-0">
+        <SEO
+          title="Track Your Order"
+          description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
+          url="https://zagrotech.lovable.app/track-order"
+          canonicalUrl="https://zagrotech.lovable.app/track-order"
+        />
         <Navbar />
         <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">
           <div className="max-w-md mx-auto">
@@ -172,6 +179,12 @@ const TrackOrderPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
+      <SEO
+        title="Track Your Order"
+        description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
+        url="https://zagrotech.lovable.app/track-order"
+        canonicalUrl="https://zagrotech.lovable.app/track-order"
+      />
       <Navbar />
       
       <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">

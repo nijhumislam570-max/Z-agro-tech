@@ -68,7 +68,30 @@ interface BreadcrumbSchema {
   items: BreadcrumbItem[];
 }
 
-type Schema = OrganizationSchema | LocalBusinessSchema | ProductSchema | CourseSchema | BreadcrumbSchema;
+interface ItemListEntry {
+  name: string;
+  url: string;
+  image?: string;
+  price?: number;
+  priceCurrency?: string;
+}
+
+interface ItemListSchema {
+  type: 'ItemList';
+  name: string;
+  description?: string;
+  url?: string;
+  itemListType?: 'Product' | 'Course' | 'Thing';
+  items: ItemListEntry[];
+}
+
+type Schema =
+  | OrganizationSchema
+  | LocalBusinessSchema
+  | ProductSchema
+  | CourseSchema
+  | BreadcrumbSchema
+  | ItemListSchema;
 
 interface SEOProps {
   // Page meta
@@ -78,8 +101,8 @@ interface SEOProps {
   url?: string;
   type?: 'website' | 'article' | 'product';
   
-  // Structured data
-  schema?: Schema;
+  // Structured data — single schema or an array (emitted as @graph)
+  schema?: Schema | Schema[];
   
   // Additional tags
   noIndex?: boolean;
@@ -172,8 +195,21 @@ export const SEO = ({
       if (existingScript) {
         existingScript.remove();
       }
-      
-      const jsonLd = generateJsonLd(schema);
+
+      const schemas = Array.isArray(schema) ? schema : [schema];
+      const jsonLd =
+        schemas.length === 1
+          ? generateJsonLd(schemas[0])
+          : {
+              '@context': 'https://schema.org',
+              '@graph': schemas.map((s) => {
+                const node = generateJsonLd(s) as Record<string, unknown>;
+                // strip the per-node @context — already on the wrapper
+                const { ['@context']: _ctx, ...rest } = node;
+                return rest;
+              }),
+            };
+
       const script = document.createElement('script');
       script.id = 'seo-jsonld';
       script.type = 'application/ld+json';
@@ -323,6 +359,35 @@ function generateJsonLd(schema: Schema): object {
           position: index + 1,
           name: item.name,
           item: item.url,
+        })),
+      };
+
+    case 'ItemList':
+      return {
+        ...baseContext,
+        '@type': 'ItemList',
+        name: schema.name,
+        description: schema.description,
+        url: schema.url,
+        numberOfItems: schema.items.length,
+        itemListElement: schema.items.map((entry, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': schema.itemListType || 'Thing',
+            name: entry.name,
+            url: entry.url,
+            image: entry.image,
+            ...(entry.price !== undefined
+              ? {
+                  offers: {
+                    '@type': 'Offer',
+                    price: entry.price,
+                    priceCurrency: entry.priceCurrency || 'BDT',
+                  },
+                }
+              : {}),
+          },
         })),
       };
 
