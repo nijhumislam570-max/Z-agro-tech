@@ -17,20 +17,20 @@ const riskConfig = {
   low: {
     icon: ShieldCheck,
     label: 'Low Risk',
-    className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    iconColor: 'text-green-600 dark:text-green-400',
+    className: 'bg-success-light text-success',
+    iconColor: 'text-success',
   },
   medium: {
     icon: AlertTriangle,
     label: 'Medium Risk',
-    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    iconColor: 'text-amber-600 dark:text-amber-400',
+    className: 'bg-warning-light text-warning-foreground',
+    iconColor: 'text-warning-foreground',
   },
   high: {
     icon: ShieldAlert,
     label: 'High Risk',
-    className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    iconColor: 'text-red-600 dark:text-red-400',
+    className: 'bg-danger-light text-danger',
+    iconColor: 'text-danger',
   },
 };
 

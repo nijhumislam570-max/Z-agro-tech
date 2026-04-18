@@ -4,18 +4,18 @@ export const getStatusColor = (status: string) => {
   switch (status?.toLowerCase()) {
     case 'delivered':
     case 'completed':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      return 'bg-success-light text-success';
     case 'processing':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      return 'bg-info-light text-info';
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      return 'bg-warning-light text-warning-foreground';
     case 'shipped':
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400';
+      return 'bg-info-light text-info';
     case 'cancelled':
     case 'rejected':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      return 'bg-danger-light text-danger';
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
+      return 'bg-muted text-muted-foreground';
   }
 };
 
