@@ -64,7 +64,7 @@ const CourseDetailPage = () => {
         } : undefined}
       />
       <Navbar />
-      <main id="main-content" className="flex-1 container mx-auto px-4 sm:px-6 py-8">
+      <main id="main-content" className="flex-1 container mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-8 animate-page-enter">
         <Link to="/academy" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
           <ArrowLeft className="h-4 w-4" /> Back to Academy
         </Link>

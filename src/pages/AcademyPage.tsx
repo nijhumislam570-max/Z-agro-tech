@@ -53,7 +53,7 @@ const AcademyPage = () => {
         url="/academy"
       />
       <Navbar />
-      <main id="main-content" className="flex-1 @container">
+      <main id="main-content" className="flex-1 @container animate-page-enter">
         {/* HERO */}
         <section className="bg-gradient-to-b from-secondary/40 to-background py-12 sm:py-16">
           <div className="container mx-auto px-4 sm:px-6 text-center max-w-2xl">

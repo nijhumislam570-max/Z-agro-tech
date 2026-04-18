@@ -28,7 +28,7 @@ const DashboardPage = () => {
         url="/dashboard"
       />
       <Navbar />
-      <main id="main-content" className="flex-1">
+      <main id="main-content" className="flex-1 animate-page-enter">
         <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
         {/* Hero with bento grid over agri gradient */}
         <section className="bg-agri-gradient relative" aria-labelledby="dashboard-hero-heading">

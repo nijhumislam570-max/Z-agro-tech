@@ -248,7 +248,7 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      <main id="main-content" className="container mx-auto px-4 py-6 lg:py-10">
+      <main id="main-content" className="container mx-auto px-4 py-6 lg:py-10 animate-page-enter">
         {/* Back Button - Mobile Only */}
         <button 
           onClick={() => navigate(-1)}

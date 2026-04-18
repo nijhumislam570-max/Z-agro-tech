@@ -158,7 +158,7 @@ const CartPage = () => {
     return (
       <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
         <Navbar />
-        <main id="main-content" className="container mx-auto px-4 py-12 sm:py-16 lg:py-24" role="main" aria-label="Empty shopping cart">
+        <main id="main-content" className="container mx-auto px-4 py-12 sm:py-16 lg:py-24 animate-page-enter" role="main" aria-label="Empty shopping cart">
           <div className="max-w-md mx-auto text-center">
             <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-muted flex items-center justify-center mx-auto mb-6" aria-hidden="true">
               <ShoppingBag className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground" />
@@ -197,7 +197,7 @@ const CartPage = () => {
         </div>
       </nav>
 
-      <main id="main-content" className="container mx-auto px-4 py-4 sm:py-6 lg:py-8" role="main" aria-label="Shopping cart">
+      <main id="main-content" className="container mx-auto px-4 py-4 sm:py-6 lg:py-8 animate-page-enter" role="main" aria-label="Shopping cart">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
