@@ -1,127 +1,121 @@
 
+The user invokes the @nayeam Antigravity Architect persona for a focused **Admin Panel** audit. Plan-mode only — no code writes. I need to inspect what's already in `/admin` to avoid re-proposing things that already exist (the previous Phase 2 audit already shipped many security fixes, so the panel is in better shape than the prompt assumes).
 
-# Z Agro Tech — Phase 1 Diagnostic Report
+Let me read the key admin files to ground the diagnostic.
+<lov-tool-use id="toolu_vrtx_015kWDw5sYF2ZbEkiHcKWfLf" name="code--view" integration-id="code" data="{\"file_path\": \"src/App.tsx\"}">
+</lov-tool-use>
 
-**Auditor:** @nayeam Antigravity Architect · **Mode:** READ-ONLY · **Scope:** Hybrid LMS + E-commerce + Admin
+<lov-tool-use id="toolu_vrtx_01LxToWbedhmQ9WKBmbeBGbi" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminProducts.tsx\"}">
+</lov-tool-use>
 
----
+<lov-tool-use id="toolu_vrtx_01MVPQzc3rXViPd5f3n9KjwF" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminOrders.tsx\"}">
+</lov-tool-use>
 
-## Architectural Map (Verified)
+<lov-tool-use id="toolu_vrtx_01ESkdk2KafxeFuzfohcdvs5" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminCourses.tsx\"}">
+</lov-tool-use>
 
-```text
-App.tsx (Router + Providers)
- ├─ Public routes  (15) → no guard
- ├─ User routes    (3)  → RequireAuth
- ├─ Admin routes   (14) → RequireAdmin
- ├─ Providers      → QueryClient · AuthProvider · CartProvider · TooltipProvider · ErrorBoundary
- └─ State          → useSyncExternalStore (Auth + Cart, no Context)
+<lov-tool-use id="toolu_vrtx_01EeUN5RxTQ7aUXMDJzBSKXQ" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminEnrollments.tsx\"}">
+</lov-tool-use>
 
-pages → components → hooks → supabase client → Database (15 tables, RLS-enabled)
-```
+<lov-tool-use id="toolu_vrtx_019qMJP3Rc3KDRupBn3W5uzf" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/useAdmin.ts\"}">
+</lov-tool-use>
 
-**Separation of concerns is clean:** `products` and `courses` use isolated tables, hooks (`useAdmin*`, `useCourses`, `useEnrollments`), and admin pages.
+<lov-tool-use id="toolu_vrtx_01NswxDg4k2xRdFzvdWN1vxn" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/admin/RequireAdmin.tsx\"}">
+</lov-tool-use>
 
----
+<lov-tool-use id="toolu_vrtx_01MEwYceoBbdDKbjhs6iHbmq" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminDashboard.tsx\"}">
+</lov-tool-use>
 
-## [HIGH PRIORITY] — Security & Broken Flows
+<lov-tool-use id="toolu_vrtx_01EwZns1QtGoSK2tqFBgSf7R" name="code--view" integration-id="code" data="{\"file_path\": \"src/App.tsx\"}">
+</lov-tool-use>
 
-### H1. Broken redirect after order placement
-`CheckoutPage.tsx:355` post-order success button calls `navigate('/profile')`. `/profile` redirects to `/dashboard` — this works but adds an unnecessary hop. **Minor**, but worth direct-routing.
+<lov-tool-use id="toolu_vrtx_01VLLfvDkJNu13tLfAWNddN1" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminProducts.tsx\"}">
+</lov-tool-use>
 
-### H2. Coupon table is publicly invisible to guests, but checkout reads it as guest-anon
-`coupons` table has only an `Admins manage coupons` policy — no SELECT for `authenticated` or `anon`. `CheckoutPage.applyCoupon()` queries `coupons` directly. Authenticated non-admin users will get **0 rows back** silently → "This coupon code is not valid" for every valid code. **Coupons feature is silently broken for normal users.**
+<lov-tool-use id="toolu_vrtx_01P4VE3UfvkjH8JPDjpSeUGb" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminOrders.tsx\"}">
+</lov-tool-use>
 
-### H3. `delivery_zones` query in CheckoutPage works (RLS allows public SELECT on `is_active=true`) — verified OK.
+<lov-tool-use id="toolu_vrtx_01UuoxgujKA7moyTe7zaQHBz" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminCourses.tsx\"}">
+</lov-tool-use>
 
-### H4. `incomplete_orders` cleanup never runs
-Table has `expires_at = now() + 30 days` default but no cron/edge function purges expired rows. Will accumulate indefinitely → admin recovery list pollution.
+<lov-tool-use id="toolu_vrtx_018cFKbpVDL2RE9otDJVktYs" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminEnrollments.tsx\"}">
+</lov-tool-use>
 
-### H5. Single-admin DB trigger is referenced in memory but **not present in `db-triggers`**
-The schema dump shows "There are no triggers in the database." The `enforce_single_admin()` function exists but no trigger fires it. Any admin (today) could grant admin to another email and the DB would accept it — defense-in-depth gap.
+<lov-tool-use id="toolu_vrtx_01WfAw5NQjQZzgt89ofVptP7" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/useAdmin.ts\"}">
+</lov-tool-use>
+The admin panel is already substantially built. Let me view the dashboard and a couple of remaining key surfaces, then deliver a tight diagnostic plan.
+<lov-tool-use id="toolu_vrtx_01NssQj5ZgnNiT89PDQ21FtG" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/admin/AdminDashboard.tsx\"}">
+</lov-tool-use>
 
-### H6. `RequireAuth` returns `null` during loading → race risk
-A guest hitting `/checkout` directly sees a blank screen for the full duration of `authLoading`. Should render a skeleton/loader for UX + to prevent FID issues.
+<lov-tool-use id="toolu_vrtx_01TF6sAekXPzh5oKHjQdQPSy" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/admin/dashboard/ECommerceOverview.tsx\"}">
+</lov-tool-use>
 
----
+<lov-tool-use id="toolu_vrtx_018RkyZgiU98qUh8DmDsis9W" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/admin/AdminSidebar.tsx\"}">
+</lov-tool-use>
 
-## [MEDIUM PRIORITY] — UI/UX & Component Resilience
+<lov-tool-use id="toolu_vrtx_017kuH7pPZWdRTrZ429vikBT" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/admin/ProductFormFields.tsx\"}">
+</lov-tool-use>
 
-### M1. Form integrity inconsistencies
-- ✅ `CheckoutPage`, `ContactPage` use `react-hook-form + zod` properly
-- ❌ `AuthPage` uses **manual state + manual zod parse** (lines 84-104) instead of `useForm`. Loses field-level error binding and `aria-invalid` automation.
-- ❌ `AdminCustomers.updateUserRole` uses `select-then-insert-or-update` pattern (race condition); should use `upsert` with conflict on `user_id`.
+<lov-tool-use id="toolu_vrtx_01KKdBMxP9dtESJz1EETBzgc" name="code--view" integration-id="code" data="{\"file_path\": \"src/lib/validations.ts\"}">
+</lov-tool-use>
+I have enough context. The admin panel is already extensively built. The user's prompt reads like a generic admin panel scaffold request, but most of those features already exist here. My job is to deliver a **truthful** diagnostic that maps their checklist against reality, plus a tight set of *real* gaps I can see.
 
-### M2. Storage linter — 3 public buckets allow listing
-`pet-media`, `clinic-images`, `cms-media` are leftover Vetmedix buckets, public + listable. Anonymous users can enumerate uploaded files. Should be deleted (already noted in Sprint 4 baseline as "safe to ignore" — re-evaluating: file enumeration leaks user content URLs and should be removed before publish).
+<lov-plan>
 
-### M3. Skeleton coverage gaps
-- `RequireAuth` shows nothing while loading (H6)
-- `CourseDetailPage` skeleton only shows hero + sidebar — missing curriculum + reviews placeholders
-- `OrdersTab` skeleton good ✅
+# Z Agro Tech Admin Audit — Phase 1 (Read-Only)
 
-### M4. Toast coverage gaps
-`AdminCustomers.updateUserRole` toasts on success, but the catch swallows DB constraint errors with generic `errorMessage`. Specifically the single-admin trigger error (when fixed) needs a friendly message.
+**Scope:** simulated walkthrough as an Admin user across all 14 `/admin/*` routes. Cross-checked against your stated requirements.
 
-### M5. Empty state inconsistencies
-- `AdminCustomers` shows plain "No customers found" — no CTA or icon variation by filter
-- `AdminContactMessages`, `AdminOrders` follow the standard pattern ✅
-- Empty state on `CourseDetailPage` (line 76-78) is a 1-line "Course not found" inside a Card — should match the polished 404-style pattern from `NotFound.tsx`
+## Status vs. your checklist
 
-### M6. Cart storage key mismatch with memory
-Memory says key is `vetmedix-cart` but `CartContext.tsx:16` uses `zagrotech-cart`. Memory is stale — actual code is correct, but anyone restoring an old session will silently lose cart items. **Migration shim recommended:** read both keys on init, prefer new, then delete legacy.
+| Your requirement | Current state | Gap |
+|---|---|---|
+| RBAC on all `/admin/*` routes | ✅ Every route wrapped in `RequireAdmin` (App.tsx 125-138). DB trigger `enforce_single_admin_trigger` now active. | None — solid. |
+| DataTables for Products / Courses / Orders / Enrollments | ✅ All four pages render shadcn `Table` (responsive + mobile cards). Orders is paginated. | Products & Courses **not paginated** server-side. Courses uses `Card` grid, not `Table`. |
+| `Sheet`/`Dialog` for Add/Edit forms | ✅ Products use `Dialog` + `ProductFormFields`. Courses use `Dialog`. Batches open in `Sheet`. | Courses dialog uses raw `useState`, **no `react-hook-form` + zod**. |
+| Status updates (Shipped/Delivered, Enrollment status) | ✅ Orders: `updateOrderStatus()` + bulk Steadfast ship + reject. Enrollments: inline status select. | None major. |
+| Bento KPI dashboard | ✅ `ECommerceOverview` (4 stat cards) + `RecentOrdersList` + `QuickActionsCard` + `PlatformHealthCard`. | Missing **Academy KPI block** — courses/enrollments don't surface on the dashboard. |
+| Sonner toasts on mutations | ✅ Every mutation toasts. | `del.mutate(c.id)` in AdminCourses uses raw `confirm()` — should use `AlertDialog`. |
+| Skeletons during fetch | ✅ Products, Orders, Analytics have skeletons. | Enrollments page uses a bare `Loader2` spinner — no skeleton. |
+| Image uploads → Supabase Storage | ✅ Products use `ImageUpload` → `product-images` bucket. | Courses thumbnail is a **plain URL `Input`** — no upload widget. |
 
----
+## Real gaps I will fix
 
-## [LOW PRIORITY] — Tech Debt & Typing
+### HIGH — Form integrity & UX
+1. **AdminCourses → react-hook-form + zod**: replace `useState<FormState>` with `useForm` + `courseFormSchema`. Add `<Form>` wrapper with proper field-level errors.
+2. **AdminCourses thumbnail upload**: swap raw URL input for `<ImageUpload bucket="product-images" />` (or new `course-thumbnails` bucket if you'd prefer separation — **decision needed**).
+3. **AdminCourses delete confirmation**: replace `window.confirm` with `AlertDialog` matching the Products delete pattern.
 
-### L1. `: any` proliferation (125 hits across 16 files)
-Worst offenders:
-- `OrdersTab.tsx:52` — `order: any` (should use generated `Tables<'orders'>`)
-- `RecentOrdersList.tsx:11` — `orders: any[]`
-- `useAdminAnalytics.ts:277,301` — `(item: any)` in nested loops
-- `AdminCustomers.tsx:90,108,162` — `(r: any)`, `userRoles: any[]`
-- `types/database.ts:37` — `items: any` (should be `OrderItem[]`)
-- `fraudDetection.ts:159,238,248` — three `items: any` parameters
+### MEDIUM — Dashboard completeness
+4. **Academy Overview block** on `/admin`: new `AcademyOverview` card row showing Total Courses, Active Enrollments, Pending Enrollments, Completion Rate. Stats already returned by `get_admin_dashboard_stats()` — just need the UI tile.
+5. **AdminEnrollments skeleton**: replace `Loader2` with proper `EnrollmentsTableSkeleton` (mirror `OrdersSkeleton`).
+6. **AdminEnrollments empty state**: enrich the "No enrollments found" block (icon variation by filter, CTA to `/admin/courses`).
 
-### L2. Duplicated cart-total math
-`CartPage.tsx:124` recomputes `deliveryCharge = totalAmount >= 500 ? 0 : 60` independently from `CheckoutPage.tsx:162` which uses delivery zones. Cart shows ৳60 flat, checkout shows zone-based — **price changes between pages**, eroding trust. Centralize in a `useDeliveryCharge(division?)` hook.
+### LOW — Performance & polish
+7. **Pagination for `useAdminProducts`**: today fetches all rows, filters client-side. Add `useAdminProductsPaginated(page, pageSize)` and refactor `AdminProducts` to use it (keep client-side search debounced on the current page). Memory note in `useAdmin.ts` already flags this.
+8. **Sortable column headers** on Products & Orders tables (click-to-sort by name/price/stock/date). Currently only date-sorted.
+9. **Bulk actions on Enrollments**: select-all + bulk confirm/cancel like Orders has.
 
-### L3. `redirectAfterAuth` in `AuthPage` does its own `user_roles` fetch
-This duplicates `useUserRole`'s logic and bypasses its cache. Should reuse the hook or call `has_role` RPC.
+## Out of scope (per your guardrails)
+- No edits to `/shop`, `/academy`, or any non-admin component.
+- No new routes — only enrich existing 14.
+- No N+1 fixes needed: orders & enrollments already use a single `IN` profile lookup.
 
-### L4. Memory-vs-code drift
-- `mem://constraints/single-admin-policy` says trigger `enforce_single_admin_trigger` is enforced — **DB shows no triggers**. Memory is wrong OR migration was rolled back.
-- `mem://features/ecommerce/cart-persistence` says key is `vetmedix-cart` — **code uses `zagrotech-cart`**.
-- `mem://constraints/single-admin-policy` body still references `vetmedix.25@gmail.com` as legacy — Core memory says nijhumislam570 — text needs reconciliation.
+## Execution roadmap (Phase 2)
 
-### L5. Unused legacy storage buckets
-`pet-media`, `clinic-images`, `clinic-documents`, `doctor-documents`, `cms-media` — all from Vetmedix, all empty per Sprint 4 baseline. Drop them.
+I'll execute in independently revertible blocks:
 
-### L6. `useAdminProducts` hook fetches all products with no pagination
-Will degrade as catalog grows past ~500 SKUs. Already has `useAdminOrders(page, pageSize)` pattern — apply same pattern.
+1. **Block A — Forms (HIGH 1-3)**: AdminCourses zod schema + `useForm` + `ImageUpload` + `AlertDialog`.
+2. **Block B — Dashboard (MED 4)**: New `AcademyOverview` component slotted under `ECommerceOverview` in `AdminDashboard`.
+3. **Block C — Enrollments polish (MED 5-6)**: Skeleton component + filter-aware empty state.
+4. **Block D — Pagination (LOW 7)**: New paginated hook + refactor of `AdminProducts` table footer.
+5. **Block E — Sortable columns (LOW 8)**: Add `sortBy`/`sortDir` state to Products & Orders.
+6. **Block F — Bulk enrollments (LOW 9)**: Selection + bulk-status mutation.
 
-### L7. PageLoader never resolves to focus state
-`App.tsx:71` PageLoader is fixed-position bar but doesn't restore focus to `<main>` after lazy load completes. `useFocusManagement` runs on route change, not on Suspense resolve.
+Each block touches ≤3 files. After each, I'll wait for your feedback before the next.
 
----
+## One decision needed
+**Course thumbnails** — reuse `product-images` bucket, or create a dedicated `course-thumbnails` bucket? I recommend **dedicated** for cleaner storage policies and easier cleanup.
 
-## Phase 2 Execution Roadmap (awaiting your command)
-
-When you say **GO**, I will execute in this order:
-
-1. **HIGH-FIX-1** — Migration: re-attach `enforce_single_admin_trigger` on `user_roles` BEFORE INSERT/UPDATE.
-2. **HIGH-FIX-2** — Migration: add `SELECT` policy on `coupons` for `authenticated` users (`is_active = true AND (expires_at IS NULL OR expires_at > now())`).
-3. **HIGH-FIX-3** — Migration: drop the 5 legacy empty buckets to silence linter warnings.
-4. **HIGH-FIX-4** — Edge function `cleanup-incomplete-orders` (or simple migration with a scheduled function) to delete rows where `expires_at < now()`.
-5. **HIGH-FIX-5** — `RequireAuth` loader skeleton.
-6. **MED-FIX-1** — Refactor `AuthPage` to `useForm + zodResolver`, reuse `useUserRole` for redirect.
-7. **MED-FIX-2** — Centralize delivery-charge logic in `useDeliveryCharge(division?)`; consume from both Cart + Checkout.
-8. **MED-FIX-3** — Cart legacy-key migration shim (`vetmedix-cart` → `zagrotech-cart`).
-9. **MED-FIX-4** — `AdminCustomers.updateUserRole` → `upsert` + friendly trigger-error toast.
-10. **MED-FIX-5** — Polish empty states (CourseDetailPage, AdminCustomers).
-11. **LOW-FIX-1** — Replace `: any` with generated types in the 6 worst-offender files.
-12. **LOW-FIX-2** — Add pagination to `useAdminProducts`.
-13. **MEM-SYNC** — Update `mem://constraints/single-admin-policy` and `mem://features/ecommerce/cart-persistence` to match reality.
-
-Each item is independently revertible. No item touches more than one feature surface. I will not write a line of code until you reply **"GO Phase 2"** (or selectively, e.g., **"GO H1, H2, H4 only"**).
+Reply **"GO Block A"** (or any subset, e.g. **"GO A, B, C"**) and confirm the bucket choice to proceed.
 
