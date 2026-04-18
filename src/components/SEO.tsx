@@ -101,8 +101,8 @@ interface SEOProps {
   url?: string;
   type?: 'website' | 'article' | 'product';
   
-  // Structured data
-  schema?: Schema;
+  // Structured data — single schema or an array (emitted as @graph)
+  schema?: Schema | Schema[];
   
   // Additional tags
   noIndex?: boolean;
