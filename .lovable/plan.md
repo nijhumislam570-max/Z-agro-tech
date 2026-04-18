@@ -1,138 +1,115 @@
 
 
-# Phase 4 — Krishi Clinic Polish (Carousel + Real Imagery)
+# Phase 5 — Auth Hardening & RLS Audit
 
-Phase 3 already shipped the bento grid + glassmorphism. Phase 4 layers on the missing pieces from the new brief: a swipeable **Carousel** of featured agri-inputs & masterclasses, real Unsplash imagery as fallbacks, richer agri copy, and Skeleton states for every async tile.
+The auth system is already built (AuthContext, AuthPage, RequireAuth, signup/login with toasts, Header avatar dropdown). This phase is a **targeted audit + polish pass**: glassmorphize the auth page over the agri gradient, add the protected routes the brief calls for, and lock down RLS on the new Phase 1/2 commerce + LMS tables.
 
-## What's already done (Phase 3 — keep)
+## What's already done (keep)
 
-- Bento grid (`BentoGrid`, `GlassCard`)
-- Glass utilities (`.glass`, `.bg-agri-gradient`)
-- Tiles: KPI Marquee, Quick Actions, Learning Path, Recommended Inputs, Recent Order, Masterclass
-- Hooks: `useRecommendedProducts`, `useFeaturedMasterclass`, `useDashboardKPIs`
+- `src/contexts/AuthContext.tsx` — signUp / signIn / signOut, error toasts via Sonner, queryClient.clear() on logout.
+- `src/components/auth/RequireAuth.tsx` — redirects to `/auth` with `from` state.
+- `src/pages/AuthPage.tsx` — split-screen design, shadcn Tabs, react-hook-form + zod (per existing memory).
+- Header avatar dropdown with logout + dashboard link.
 
-## What gets added (Phase 4)
+## What changes (Phase 5)
 
-```text
-Dashboard layout (12-col → 1-col on mobile)
-┌──────────────────────────────────────────────┬──────────────────────┐
-│ KPI Marquee  (col-span-12 lg:col-span-8)     │ Quick Actions (4)    │
-├──────────────────────────────────────────────┴──────────────────────┤
-│ ★ Featured Carousel — col-span-12  (NEW)                            │
-│   Swipeable mix of top products + trending masterclasses            │
-├──────────────────────┬───────────────────────┬──────────────────────┤
-│ Learning Path (5)    │ Recommended Inputs (7)                       │
-├──────────────────────┴───────────────────────┬──────────────────────┤
-│ Recent Order (8)                             │ Masterclass (4)      │
-└──────────────────────────────────────────────┴──────────────────────┘
+### 1. RLS audit (verify + add only what's missing)
+
+Tables to lock down: `products`, `courses`, `course_batches`, `enrollments`, `orders`, `order_items` (if exists).
+
+Plan: run a read-only audit query first, then a single migration that **only adds missing policies** (no drops, no breaking changes). Expected SQL shape:
+
+```sql
+-- Public catalog reads
+ALTER TABLE public.products      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.courses       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.course_batches ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public can view active products"
+  ON public.products FOR SELECT TO anon, authenticated
+  USING (is_active = true);
+
+CREATE POLICY "Public can view active courses"
+  ON public.courses FOR SELECT TO anon, authenticated
+  USING (is_active = true);
+
+CREATE POLICY "Public can view course batches"
+  ON public.course_batches FOR SELECT TO anon, authenticated
+  USING (true);
+
+-- Private user data: enrollments
+ALTER TABLE public.enrollments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users view own enrollments"
+  ON public.enrollments FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users create own enrollments"
+  ON public.enrollments FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users update own enrollments"
+  ON public.enrollments FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Admin write policies for products / courses / batches use existing has_role()
+CREATE POLICY "Admins manage products"
+  ON public.products FOR ALL TO authenticated
+  USING (has_role(auth.uid(),'admin')) WITH CHECK (has_role(auth.uid(),'admin'));
+-- (same shape for courses + course_batches)
 ```
 
-## New files
+Orders policies already exist from prior phases — audit will confirm. If missing, mirror enrollments pattern.
 
-```text
-ADD  src/lib/agriImages.ts
-     Curated Unsplash fallback URLs (seeds, fertilizer, pesticide,
-     greenhouse, soil, harvest, instructor portraits) + helper
-     getProductImage(name|category) / getCourseImage(category).
+### 2. Auth page glass refresh
 
-ADD  src/components/dashboard/tiles/FeaturedCarouselTile.tsx
-     Uses shadcn <Carousel> with Embla. Mixes top 3 products +
-     top 3 courses into one swipeable strip. Each slide is a
-     glass card with image, title, badge (In Stock / Enroll Now,
-     difficulty, mode), price/duration, hover lift.
-     Skeleton: 3 placeholder slides.
+`MODIFY src/pages/AuthPage.tsx` — keep existing split-screen + zod form intact, but:
+- Wrap form card with `.glass` utility (already in `index.css`) over `.bg-agri-gradient` background.
+- Card: `backdrop-blur-md bg-white/10 border-white/20 shadow-2xl rounded-2xl`.
+- Brand panel keeps existing layout, copy refreshed for Z Agro Tech ("Premium Agri-Inputs · Smart Farming Academy").
+- Button uses existing 200ms hover.
 
-ADD  src/hooks/useFeaturedAgri.ts
-     Composes useRecommendedProducts(3) + featured courses(3)
-     into a unified `FeaturedItem` array tagged 'product' | 'course'.
-```
+### 3. Route guard coverage
 
-## Modified files
+`MODIFY src/App.tsx` — wrap these routes in `<RequireAuth>` if not already:
+- `/dashboard` ✓ (likely already guarded)
+- `/cart`
+- `/checkout`
+- `/profile`
 
-```text
-MODIFY  src/pages/DashboardPage.tsx
-        - Insert <FeaturedCarouselTile /> as second row of bento.
+Audit first; add only what's missing.
 
-MODIFY  src/components/dashboard/tiles/RecommendedInputsTile.tsx
-        - Use getProductImage() fallback when image_url missing.
-        - Add semantic <Badge> "In Stock" (green) / "Low" (amber).
-        - Add hover lift: hover:-translate-y-1 hover:shadow-lg.
+### 4. Auth UX confirmations (no code change unless audit finds gaps)
 
-MODIFY  src/components/dashboard/tiles/LearningPathTile.tsx
-        - Add <Avatar> for instructor (initials fallback).
-        - Use getCourseImage() fallback for thumbnails.
-        - Polish Progress label ("Lesson 3 of 8 · 38%").
-
-MODIFY  src/components/dashboard/tiles/MasterclassTile.tsx
-        - Use getCourseImage() fallback.
-        - Difficulty badge color mapped to green/amber/red.
-
-MODIFY  src/components/dashboard/tiles/KPIMarqueeTile.tsx
-        - Real copy refresh: "Welcome back, {name} 🌱 Your Krishi
-          Clinic is ready" + chips already present.
-```
-
-## Component checklist (per brief)
-
-- [x] `Card` / `CardHeader` / `CardTitle` / `CardContent` — already used in tiles.
-- [x] `Carousel` — **new** in FeaturedCarouselTile.
-- [x] `Progress` — already in LearningPathTile.
-- [x] `Avatar` — **new** in LearningPathTile (instructor).
-- [x] `Badge` semantic — extended (In Stock / Out of Stock / Enrolled / Difficulty).
-- [x] `Skeleton` — already in tiles; added to carousel.
-- [x] Hover micro-interactions: `transition-all duration-200 hover:-translate-y-1 hover:shadow-lg` on every clickable card.
-
-## Real copy used
-
-- Carousel header: **"Featured this week"** · subtitle **"Hand-picked agri-inputs & masterclasses from our experts"**
-- Product badges: **In Stock · Low Stock · Out of Stock**
-- Course badges: **Beginner · Intermediate · Advanced · Online · On-site**
-- Section labels stay in English (i18n deferred).
-
-## Imagery strategy
-
-`src/lib/agriImages.ts` exports Unsplash source URLs grouped by intent:
-
-```ts
-export const AGRI_IMAGES = {
-  product: {
-    seed:        'https://images.unsplash.com/photo-1574323347407-...',
-    fertilizer:  'https://images.unsplash.com/photo-1625246333195-...',
-    pesticide:   'https://images.unsplash.com/photo-1592982537447-...',
-    tool:        'https://images.unsplash.com/photo-1585320806297-...',
-    default:     'https://images.unsplash.com/photo-1500382017468-...',
-  },
-  course: {
-    plant_doctor:    'https://images.unsplash.com/photo-1530836369250-...',
-    smart_farming:   'https://images.unsplash.com/photo-1574943320219-...',
-    organic:         'https://images.unsplash.com/photo-1464226184884-...',
-    urban_farming:   'https://images.unsplash.com/photo-1592419044706-...',
-    plant_protection:'https://images.unsplash.com/photo-1530507629858-...',
-    default:         'https://images.unsplash.com/photo-1500595046743-...',
-  },
-};
-```
-
-Fallback resolver: if DB row has `image_url` / `thumbnail_url` → use it; else map `category` → image; else `default`.
-
-## Guardrails honored
-
-- No DB migrations, no route changes, no Layout/Tabs disruption.
-- Bento grid still degrades to single column at `< lg`.
-- Carousel uses existing shadcn `Carousel` (Embla) — already installed.
-- All async tiles get Skeleton placeholders to prevent layout shift.
-- Hover transitions strictly `200ms` per brief.
+- Loading spinner on submit buttons → already present via `disabled={isSubmitting}` pattern.
+- Toast errors → already wired through `signIn`/`signUp` returning `{ error }`.
 
 ## File-change summary
 
 ```text
-ADD     src/lib/agriImages.ts
-ADD     src/hooks/useFeaturedAgri.ts
-ADD     src/components/dashboard/tiles/FeaturedCarouselTile.tsx
-MODIFY  src/pages/DashboardPage.tsx
-MODIFY  src/components/dashboard/tiles/RecommendedInputsTile.tsx
-MODIFY  src/components/dashboard/tiles/LearningPathTile.tsx
-MODIFY  src/components/dashboard/tiles/MasterclassTile.tsx
-MODIFY  src/components/dashboard/tiles/KPIMarqueeTile.tsx
+DB MIGRATION  Add missing RLS policies on products / courses / course_batches /
+              enrollments (idempotent — only CREATE POLICY for missing ones)
+MODIFY  src/pages/AuthPage.tsx   (glass card + agri gradient bg)
+MODIFY  src/App.tsx              (wrap /cart, /checkout in RequireAuth if missing)
 ```
+
+## Audit-first approach
+
+Before writing the migration I'll run two read-only queries:
+1. `SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public' AND tablename IN (...)` — confirm RLS is on.
+2. `SELECT tablename, policyname, cmd, roles FROM pg_policies WHERE schemaname='public' AND tablename IN (...)` — list existing policies so I only add what's missing (no duplicates, no drops).
+
+## Out of scope
+
+- Social login (Google/Apple) — defer; brief doesn't require it.
+- Password reset page — already exists (`ResetPasswordPage.tsx`).
+- Profile editing — already exists.
+- New auth context — existing `AuthContext` already implements the brief.
+
+## Guardrails honored
+
+- No overwrite of Bento Grid (Phase 3/4 dashboard untouched).
+- Only `anon` key used client-side (already enforced via `client.ts`).
+- `auth.uid() = null` handled by `RequireAuth` redirecting to `/auth`.
+- No drops — additive policies only, safe to re-run.
 
