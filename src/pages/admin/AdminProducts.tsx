@@ -605,7 +605,7 @@ const AdminProducts = () => {
                       <TableHead>Active</TableHead>
                       <TableHead>Featured</TableHead>
                       <TableHead>
-                        <SortableHeader label="Created" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
+                        <SortableHeader label="Status" sortKey="created_at" activeKey={sortKey} direction={sortDir} onSort={handleSort} />
                       </TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
