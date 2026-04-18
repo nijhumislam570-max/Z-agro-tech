@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, ArrowLeft, Loader2, PawPrint, ShieldCheck, Heart, Sparkles } from 'lucide-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Eye, EyeOff, ArrowLeft, Loader2, Sprout, GraduationCap, Truck, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +10,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
-import { RoleSelector, SignupRole } from '@/components/auth/RoleSelector';
-import logo from '@/assets/logo.jpeg';
-import { loginSchema, signupSchema, clinicOwnerSignupSchema } from '@/lib/validations';
+import logo from '@/assets/zagrotech-logo.jpeg';
+import { loginSchema, signupSchema } from '@/lib/validations';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-
-const ROLE_PRIORITY = ['admin', 'clinic_owner', 'doctor', 'user'];
 
 const AuthPage = () => {
   useDocumentTitle('Sign In');
@@ -25,48 +22,42 @@ const AuthPage = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<SignupRole>('user');
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [clinicName, setClinicName] = useState('');
-  const [clinicAddress, setClinicAddress] = useState('');
-  const [clinicPhone, setClinicPhone] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
 
   const { user, signIn, signUp, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isLogin = activeTab === 'signin';
+  const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
-  const redirectBasedOnRoles = useCallback((roles: string[]) => {
-    const primaryRole = ROLE_PRIORITY.find(r => roles.includes(r)) || 'user';
-    switch (primaryRole) {
-      case 'admin': navigate('/admin'); break;
-      case 'clinic_owner': navigate('/clinic/dashboard'); break;
-      case 'doctor': navigate('/doctor/dashboard'); break;
-      default: navigate('/');
+  const redirectAfterAuth = useCallback(async (userId: string) => {
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+    const isAdmin = roleData?.some((r: { role: string }) => r.role === 'admin') ?? false;
+    if (isAdmin) {
+      navigate('/admin', { replace: true });
+    } else {
+      navigate(fromPath || '/dashboard', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, fromPath]);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       if (authLoading) return;
       if (user) {
-        try {
-          const { data: roleData, error: roleError } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id);
-          if (roleError) { setCheckingAuth(false); return; }
-          const roles = roleData?.map(r => r.role) || [];
-          if (roles.length === 0) { navigate('/select-role'); }
-          else { redirectBasedOnRoles(roles); }
-        } catch { setCheckingAuth(false); }
-      } else { setCheckingAuth(false); }
+        await redirectAfterAuth(user.id);
+      } else {
+        setCheckingAuth(false);
+      }
     };
     handleAuthCallback();
-  }, [user, authLoading, navigate, redirectBasedOnRoles]);
+  }, [user, authLoading, redirectAfterAuth]);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -93,15 +84,19 @@ const AuthPage = () => {
   const validateForm = (): boolean => {
     setValidationErrors({});
     try {
-      if (isLogin) { loginSchema.parse({ email, password }); }
-      else if (selectedRole === 'clinic_owner') {
-        clinicOwnerSignupSchema.parse({ email, password, fullName, clinicName, clinicAddress, clinicPhone });
-      } else { signupSchema.parse({ email, password, fullName }); }
+      if (isLogin) {
+        loginSchema.parse({ email, password });
+      } else {
+        signupSchema.parse({ email, password, fullName });
+      }
       return true;
     } catch (error: any) {
       if (error.errors) {
         const errors: Record<string, string> = {};
-        error.errors.forEach((err: any) => { const path = err.path[0]; if (path && !errors[path]) errors[path] = err.message; });
+        error.errors.forEach((err: any) => {
+          const path = err.path[0];
+          if (path && !errors[path]) errors[path] = err.message;
+        });
         setValidationErrors(errors);
       }
       return false;
@@ -118,48 +113,15 @@ const AuthPage = () => {
         if (error) throw error;
         const { data: { user: currentUser } } = await supabase.auth.getUser();
         if (currentUser) {
-          const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', currentUser.id);
-          const roles = roleData?.map(r => r.role) || [];
-          toast.success("Welcome back!");
-          redirectBasedOnRoles(roles);
+          toast.success("Welcome back to Z Agro Tech!");
+          await redirectAfterAuth(currentUser.id);
         }
       } else {
         const { error, user: newUser } = await signUp(email, password, fullName);
         if (error) throw error;
         if (!newUser) throw new Error('Failed to create account. Please try again.');
-
-        const { error: roleError } = await supabase.from('user_roles').insert({ user_id: newUser.id, role: selectedRole });
-        if (roleError && roleError.code !== '23505') {
-          console.error('Failed to assign role:', roleError);
-          toast.error("Issue setting up your profile. Please try logging in again.");
-          navigate('/auth'); return;
-        }
-
-        if (selectedRole === 'clinic_owner') {
-          const { error: clinicError } = await supabase.from('clinics').insert({
-            name: clinicName, address: clinicAddress || null, phone: clinicPhone || null,
-            owner_user_id: newUser.id, is_open: true, rating: 0,
-          });
-          if (clinicError) toast.warning("Account created, but there was an issue creating your clinic. Please set it up in your dashboard.");
-        }
-
-        if (selectedRole === 'doctor') {
-          let doctorCreated = false;
-          let retryCount = 0;
-          while (!doctorCreated && retryCount <= 2) {
-            const { error: doctorError } = await supabase.from('doctors').insert({
-              name: fullName, user_id: newUser.id, is_available: true, is_verified: false, verification_status: 'not_submitted',
-            });
-            if (!doctorError || doctorError.code === '23505') { doctorCreated = true; }
-            else { retryCount++; if (retryCount <= 2) await new Promise(resolve => setTimeout(resolve, 500)); }
-          }
-          if (!doctorCreated) toast.warning("Account created, but we couldn't set up your doctor profile. Complete this on the verification page.");
-        }
-
-        toast.success("Account created! Welcome to VET-MEDIX.");
-        if (selectedRole === 'clinic_owner') navigate('/clinic/verification');
-        else if (selectedRole === 'doctor') navigate('/doctor/verification');
-        else navigate('/');
+        toast.success("Welcome to Z Agro Tech!");
+        await redirectAfterAuth(newUser.id);
       }
     } catch (error: unknown) {
       const rawMessage = error instanceof Error ? error.message : "Something went wrong";
@@ -174,13 +136,16 @@ const AuthPage = () => {
         ([key]) => rawMessage.toLowerCase().includes(key.toLowerCase())
       )?.[1] || rawMessage;
       toast.error(friendlyMessage);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
-    setEmail(''); setPassword(''); setFullName('');
-    setClinicName(''); setClinicAddress(''); setClinicPhone('');
-    setSelectedRole('user'); setValidationErrors({});
+    setEmail('');
+    setPassword('');
+    setFullName('');
+    setValidationErrors({});
   };
 
   if (authLoading || checkingAuth) {
@@ -210,11 +175,11 @@ const AuthPage = () => {
           <Link to="/" className="inline-flex items-center gap-3 group">
             <img
               src={logo}
-              alt="VET-MEDIX"
+              alt="Z Agro Tech"
               className="h-12 w-12 rounded-2xl object-contain bg-white/95 shadow-lg border-2 border-white/30 group-hover:scale-105 transition-transform"
             />
             <span className="text-2xl font-display font-bold text-white drop-shadow-sm">
-              VET-MEDIX
+              Z AGRO TECH
             </span>
           </Link>
         </div>
@@ -222,23 +187,23 @@ const AuthPage = () => {
         {/* Center - Feature highlights */}
         <div className="relative z-10 space-y-8 my-auto max-w-md">
           <h2 className="text-3xl lg:text-4xl font-display font-bold text-white leading-tight">
-            Your pets deserve<br />
-            <span className="text-sunshine">the best care</span>
+            Grow smarter with<br />
+            <span className="text-sunshine">Z Agro Tech</span>
           </h2>
           <p className="text-white/80 text-base lg:text-lg leading-relaxed">
-            Join thousands of pet parents, veterinarians, and clinics on Bangladesh's premier pet care platform.
+            Bangladesh's premium hub for verified agri-inputs and the Smart Farming Academy.
           </p>
 
           <div className="space-y-4">
             {[
-              { icon: PawPrint, text: "Create profiles & share pet moments" },
-              { icon: Heart, text: "Shop premium pet supplies" },
-              { icon: ShieldCheck, text: "Book verified veterinary appointments" },
-              { icon: Sparkles, text: "Join a vibrant pet community" },
+              { icon: Sprout, text: "Premium seeds, fertilizers & crop-protection" },
+              { icon: GraduationCap, text: "Live masterclasses from agronomy experts" },
+              { icon: Truck, text: "Fast nationwide delivery, COD available" },
+              { icon: ShieldCheck, text: "Quality-tested, traceable supply chain" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0 border border-white/10">
-                  <Icon className="h-4.5 w-4.5 text-white" />
+                  <Icon className="h-4 w-4 text-white" />
                 </div>
                 <span className="text-white/90 text-sm lg:text-base">{text}</span>
               </div>
@@ -249,7 +214,7 @@ const AuthPage = () => {
         {/* Bottom - Trust */}
         <div className="relative z-10 pt-6 border-t border-white/15">
           <p className="text-white/50 text-xs">
-            © {new Date().getFullYear()} VET-MEDIX — Social • Shop • Care
+            © {new Date().getFullYear()} Z Agro Tech — Shop · Academy · Krishi Clinic
           </p>
         </div>
       </div>
@@ -281,7 +246,7 @@ const AuthPage = () => {
             </h1>
             <p className="text-white/85 mt-1.5">
               {isLogin
-                ? 'Sign in to your Krishi Clinic dashboard'
+                ? 'Sign in to your Z Agro Tech dashboard'
                 : 'Join Z Agro Tech — agri-inputs & masterclasses'}
             </p>
           </div>
@@ -365,8 +330,6 @@ const AuthPage = () => {
               {/* ─── SIGN UP ─── */}
               <TabsContent value="signup" className="mt-0">
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <RoleSelector selectedRole={selectedRole} onRoleSelect={setSelectedRole} />
-
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Full Name</Label>
                     <Input
@@ -430,40 +393,6 @@ const AuthPage = () => {
                       <p className="text-xs text-destructive" role="alert">{validationErrors.password}</p>
                     )}
                   </div>
-
-                  {/* Clinic owner fields */}
-                  {selectedRole === 'clinic_owner' && (
-                    <div className="space-y-4 pt-2 border-t border-border/50">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clinic Details</p>
-                      <div className="space-y-2">
-                        <Label htmlFor="clinicName">Clinic Name *</Label>
-                        <Input
-                          id="clinicName" type="text" placeholder="Your clinic's name"
-                          value={clinicName} onChange={(e) => setClinicName(e.target.value)} required
-                          className={`h-11 ${validationErrors.clinicName ? 'border-destructive' : ''}`}
-                        />
-                        {validationErrors.clinicName && <p className="text-xs text-destructive">{validationErrors.clinicName}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="clinicAddress">Clinic Address</Label>
-                        <Input
-                          id="clinicAddress" type="text" placeholder="Full address"
-                          value={clinicAddress} onChange={(e) => setClinicAddress(e.target.value)}
-                          className={`h-11 ${validationErrors.clinicAddress ? 'border-destructive' : ''}`}
-                        />
-                        {validationErrors.clinicAddress && <p className="text-xs text-destructive">{validationErrors.clinicAddress}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="clinicPhone">Clinic Phone</Label>
-                        <Input
-                          id="clinicPhone" type="tel" placeholder="Contact number"
-                          value={clinicPhone} onChange={(e) => setClinicPhone(e.target.value)}
-                          className={`h-11 ${validationErrors.clinicPhone ? 'border-destructive' : ''}`}
-                        />
-                        {validationErrors.clinicPhone && <p className="text-xs text-destructive">{validationErrors.clinicPhone}</p>}
-                      </div>
-                    </div>
-                  )}
 
                   <Button type="submit" className="w-full h-11 font-semibold" disabled={anyLoading}>
                     {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…</> : 'Create Account'}
