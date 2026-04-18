@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Package, ShoppingBag } from 'lucide-react';
+import { Package, ShoppingBag, ChevronRight } from 'lucide-react';
 import { useMyOrders } from '@/hooks/useMyOrders';
 
 const statusVariants: Record<string, string> = {
@@ -50,27 +50,35 @@ export const OrdersTab = () => {
   return (
     <div className="space-y-3">
       {orders.map((order) => (
-        <Card key={order.id} className="overflow-hidden">
-          <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Package className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-semibold text-foreground">Order #{order.id.slice(0, 8)}</p>
-                <Badge variant="outline" className={statusVariants[order.status] ?? ''}>
-                  {order.status}
-                </Badge>
+        <Link
+          key={order.id}
+          to={`/track-order?id=${order.id}`}
+          aria-label={`Track order ${order.id.slice(0, 8)}`}
+          className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+        >
+          <Card className="overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-hover hover:border-primary/40 cursor-pointer">
+            <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Package className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {new Date(order.created_at).toLocaleDateString()} · {Array.isArray(order.items) ? order.items.length : 0} items
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-primary">৳{order.total_amount}</p>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-foreground">Order #{order.id.slice(0, 8)}</p>
+                  <Badge variant="outline" className={statusVariants[order.status] ?? ''}>
+                    {order.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(order.created_at).toLocaleDateString()} · {Array.isArray(order.items) ? order.items.length : 0} items
+                </p>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 sm:text-right">
+                <p className="font-bold text-primary">৳{order.total_amount}</p>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       ))}
     </div>
   );

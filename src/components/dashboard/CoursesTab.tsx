@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { GraduationCap, Calendar, Clock } from 'lucide-react';
 import { useMyEnrollments, type EnrollmentStatus } from '@/hooks/useEnrollments';
 import { cn } from '@/lib/utils';
@@ -65,8 +66,13 @@ export const CoursesTab = () => {
       {enrollments.map((e) => {
         const status = (e.status as EnrollmentStatus) ?? 'pending';
         const batchDate = formatDate(e.batch?.start_date);
+        const progress = Math.min(100, Math.max(0, e.progress ?? 0));
+        const showProgress = status === 'confirmed' || status === 'completed';
         return (
-          <Card key={e.id} className="overflow-hidden">
+          <Card
+            key={e.id}
+            className="overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-hover hover:border-primary/40"
+          >
             <CardContent className="p-4 sm:p-5 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -97,6 +103,16 @@ export const CoursesTab = () => {
                       <Calendar className="h-3 w-3" /> Starts {batchDate}
                     </p>
                   )}
+                </div>
+              )}
+
+              {showProgress && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium text-muted-foreground">Progress</span>
+                    <span className="font-bold text-primary">{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="h-1.5" aria-label="Course completion" />
                 </div>
               )}
 

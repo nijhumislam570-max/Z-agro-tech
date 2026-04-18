@@ -29,7 +29,10 @@ const AuthPage = () => {
   const location = useLocation();
 
   const isLogin = activeTab === 'signin';
-  const fromPath = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  const fromPath =
+    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ??
+    new URLSearchParams(location.search).get('redirect') ??
+    undefined;
 
   // ─── Forms (react-hook-form + zod) ──────────────────────────────────
   const loginForm = useForm<LoginFormData>({

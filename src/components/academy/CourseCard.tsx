@@ -45,7 +45,7 @@ export const CourseCard = React.forwardRef<HTMLAnchorElement, CourseCardProps>(
         className={cn('group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl', className)}
         {...rest}
       >
-        <Card className="h-full overflow-hidden border-border/60 hover:border-primary/40 hover:shadow-hover transition-all duration-300">
+        <Card className="h-full overflow-hidden border-border/60 hover:border-primary/40 hover:shadow-hover hover:-translate-y-1 transition-all duration-300">
           <div className="relative aspect-video bg-gradient-to-br from-primary/15 to-accent/15 overflow-hidden">
             {course.thumbnail_url ? (
               <img

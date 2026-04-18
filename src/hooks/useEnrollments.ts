@@ -46,7 +46,7 @@ export function useIsEnrolled(courseId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('enrollments')
-        .select('id, status')
+        .select('id, status, progress')
         .eq('user_id', user!.id)
         .eq('course_id', courseId!)
         .maybeSingle();

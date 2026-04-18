@@ -12,6 +12,7 @@ import Logo from '@/components/Logo';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet';
+import { CartQuickPeek } from '@/components/cart/CartQuickPeek';
 
 const navLinks = [
   { path: '/shop', label: 'Shop', icon: Store },
@@ -83,8 +84,8 @@ const Navbar = memo(() => {
           <div className="flex-1" />
 
           <div className="flex items-center gap-1">
-            <Link to="/cart" aria-label="Cart">
-              <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+            <CartQuickPeek>
+              <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label={`Cart with ${totalItems} items`}>
                 <ShoppingCart className="h-4 w-4" />
                 {totalItems > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] bg-accent text-accent-foreground">
@@ -92,7 +93,7 @@ const Navbar = memo(() => {
                   </Badge>
                 )}
               </Button>
-            </Link>
+            </CartQuickPeek>
 
             {user ? (
               <div className="hidden md:flex items-center gap-1">
