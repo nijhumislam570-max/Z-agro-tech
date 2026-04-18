@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { GraduationCap, Search, Loader2, Phone } from 'lucide-react';
+import { GraduationCap, Search, Phone, Inbox, Filter, BookOpen } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
+import { EnrollmentsSkeleton } from '@/components/admin/EnrollmentsSkeleton';
+import { Button } from '@/components/ui/button';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { supabase } from '@/integrations/supabase/client';
@@ -180,120 +183,165 @@ const AdminEnrollmentsContent = () => {
         </Select>
       </div>
 
-      <Card className="border-border/50">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16">
-              <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">No enrollments found</p>
-            </div>
-          ) : (
-            <>
-              {/* Mobile cards */}
-              <div className="sm:hidden divide-y divide-border">
-                {filtered.map((row) => {
-                  const status = (row.status || 'pending') as EnrollmentStatus;
+      {isLoading ? (
+        <EnrollmentsSkeleton />
+      ) : filtered.length === 0 ? (
+        <Card className="border-border/50">
+          <CardContent className="p-0">
+            <div className="text-center py-16 px-4">
+              {(() => {
+                const hasFilters = search || statusFilter !== 'all';
+                if (hasFilters) {
                   return (
-                    <div key={row.id} className="p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm truncate">
-                            {row.profile?.full_name || 'Unnamed Student'}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {row.course?.title || 'Course removed'}
-                          </p>
-                          {row.batch?.name && (
-                            <p className="text-[11px] text-muted-foreground">Batch: {row.batch.name}</p>
-                          )}
-                        </div>
-                        <Badge className={statusVariant[status]}>{status}</Badge>
-                      </div>
-                      {(row.contact_phone || row.profile?.phone) && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {row.contact_phone || row.profile?.phone}
-                        </p>
-                      )}
-                      <Select value={status} onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}>
-                        <SelectTrigger className="h-9 text-xs rounded-lg">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <>
+                      <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="font-medium text-foreground mb-1">No matching enrollments</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Try adjusting your search or status filter.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSearchInput('');
+                          setStatusFilter('all');
+                        }}
+                      >
+                        Clear filters
+                      </Button>
+                    </>
                   );
-                })}
-              </div>
+                }
+                if (enrollments.length === 0) {
+                  return (
+                    <>
+                      <GraduationCap className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <p className="font-medium text-foreground mb-1">No enrollments yet</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Once students enroll in courses, they'll appear here.
+                      </p>
+                      <Button asChild size="sm">
+                        <Link to="/admin/courses">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Manage courses
+                        </Link>
+                      </Button>
+                    </>
+                  );
+                }
+                return (
+                  <>
+                    <Inbox className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No enrollments found</p>
+                  </>
+                );
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-border/50">
+          <CardContent className="p-0">
+            {/* Mobile cards */}
+            <div className="sm:hidden divide-y divide-border">
+              {filtered.map((row) => {
+                const status = (row.status || 'pending') as EnrollmentStatus;
+                return (
+                  <div key={row.id} className="p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">
+                          {row.profile?.full_name || 'Unnamed Student'}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {row.course?.title || 'Course removed'}
+                        </p>
+                        {row.batch?.name && (
+                          <p className="text-[11px] text-muted-foreground">Batch: {row.batch.name}</p>
+                        )}
+                      </div>
+                      <Badge className={statusVariant[status]}>{status}</Badge>
+                    </div>
+                    {(row.contact_phone || row.profile?.phone) && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {row.contact_phone || row.profile?.phone}
+                      </p>
+                    )}
+                    <Select value={status} onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}>
+                      <SelectTrigger className="h-9 text-xs rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* Desktop table */}
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Course</TableHead>
-                      <TableHead>Batch</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Enrolled</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((row) => {
-                      const status = (row.status || 'pending') as EnrollmentStatus;
-                      return (
-                        <TableRow key={row.id}>
-                          <TableCell className="font-medium">
-                            {row.profile?.full_name || 'Unnamed'}
-                          </TableCell>
-                          <TableCell>{row.course?.title || '—'}</TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {row.batch?.name || '—'}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {row.contact_phone || row.profile?.phone || '—'}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(row.enrolled_at), 'MMM d, yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={status}
-                              onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}
-                            >
-                              <SelectTrigger className="h-8 w-[140px] text-xs rounded-lg">
-                                <SelectValue>
-                                  <Badge className={statusVariant[status]}>{status}</Badge>
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Batch</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Enrolled</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((row) => {
+                    const status = (row.status || 'pending') as EnrollmentStatus;
+                    return (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">
+                          {row.profile?.full_name || 'Unnamed'}
+                        </TableCell>
+                        <TableCell>{row.course?.title || '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {row.batch?.name || '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {row.contact_phone || row.profile?.phone || '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {format(new Date(row.enrolled_at), 'MMM d, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={status}
+                            onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}
+                          >
+                            <SelectTrigger className="h-8 w-[140px] text-xs rounded-lg">
+                              <SelectValue>
+                                <Badge className={statusVariant[status]}>{status}</Badge>
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </AdminLayout>
   );
 };
