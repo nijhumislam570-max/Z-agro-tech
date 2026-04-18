@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -19,6 +19,8 @@ import {
   Star,
   Eye,
   EyeOff,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -109,6 +111,8 @@ const AdminProducts = () => {
   const [saving, setSaving] = useState(false);
   const [quickStockEdit, setQuickStockEdit] = useState<{ id: string; stock: string } | null>(null);
   const [formData, setFormData] = useState<ProductFormData>(emptyFormData);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 25;
 
 
   const stats = useMemo(() => {
@@ -144,6 +148,19 @@ const AdminProducts = () => {
     }
     return list;
   }, [products, debouncedSearch, stockFilter]);
+
+  // Pagination derived state
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
+    [filteredProducts, safePage],
+  );
+
+  // Reset to page 0 when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, stockFilter]);
 
   const resetForm = useCallback(() => setFormData(emptyFormData), []);
 
@@ -447,7 +464,7 @@ const AdminProducts = () => {
             <>
               {/* Mobile Card View */}
                <div className="sm:hidden divide-y divide-border">
-                {filteredProducts.map((product) => {
+                {paginatedProducts.map((product) => {
                   const stock = product.stock ?? 0;
                   const isLow = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
                   const isOut = stock === 0;
@@ -557,7 +574,7 @@ const AdminProducts = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProducts.map((product) => {
+                    {paginatedProducts.map((product) => {
                       const stock = product.stock ?? 0;
                       const isOut = stock === 0;
                       const isLow = stock > 0 && stock <= LOW_STOCK_THRESHOLD;
@@ -642,13 +659,36 @@ const AdminProducts = () => {
                 </Table>
               </div>
 
-              <div className="p-3 border-t border-border">
-                <p className="text-xs text-muted-foreground text-center">
-                  Showing {filteredProducts.length} of {products?.length || 0} products
-                  {stockFilter !== 'all' && (
-                    <button className="ml-2 text-primary hover:underline" onClick={() => setStockFilter('all')}>Clear filter</button>
+              <div className="p-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  Showing {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filteredProducts.length)} of {filteredProducts.length}
+                  {filteredProducts.length !== (products?.length || 0) && (
+                    <span className="text-muted-foreground/70"> (filtered from {products?.length || 0})</span>
                   )}
                 </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg"
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={safePage === 0}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Prev
+                  </Button>
+                  <span className="text-xs text-muted-foreground tabular-nums px-1">
+                    Page {safePage + 1} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg"
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={safePage >= totalPages - 1}
+                  >
+                    Next <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                </div>
               </div>
             </>
           )}
