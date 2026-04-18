@@ -1,17 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import {
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
+} from '@/components/ui/form';
 import { MessageCircle, PhoneCall, CheckCircle2, LayoutDashboard, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEnroll } from '@/hooks/useEnrollments';
 import { buildWhatsAppUrl } from '@/lib/whatsapp';
+import { enrollSchema, type EnrollFormData } from '@/lib/validations';
 import type { Course } from '@/hooks/useCourses';
 import type { CourseBatch } from '@/hooks/useCourseBatches';
 
@@ -26,14 +31,31 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const enroll = useEnroll();
-  const [phone, setPhone] = useState('');
-  const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  // Reset success state whenever the dialog re-opens
+  const form = useForm<EnrollFormData>({
+    resolver: zodResolver(enrollSchema),
+    defaultValues: {
+      courseId: course.id,
+      batchId: batch?.id ?? null,
+      contactPhone: '',
+      notes: '',
+    },
+    mode: 'onChange',
+  });
+
+  // Reset success + form whenever the dialog re-opens or the batch changes.
   useEffect(() => {
-    if (open) setSubmitted(false);
-  }, [open]);
+    if (open) {
+      setSubmitted(false);
+      form.reset({
+        courseId: course.id,
+        batchId: batch?.id ?? null,
+        contactPhone: '',
+        notes: '',
+      });
+    }
+  }, [open, course.id, batch?.id, form]);
 
   const waUrl = buildWhatsAppUrl({
     number: course.whatsapp_number,
@@ -47,21 +69,23 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
     onOpenChange(false);
   };
 
-  const handleCallback = async () => {
+  const onSubmit = async (values: EnrollFormData) => {
     if (!user) {
       onOpenChange(false);
       navigate(`/auth?redirect=${encodeURIComponent(`/course/${course.id}`)}`);
       return;
     }
-    if (!phone.trim()) return;
-    await enroll.mutateAsync({
-      courseId: course.id,
-      batchId: batch?.id ?? null,
-      contactPhone: phone.trim(),
-      notes: notes.trim() || null,
-    });
-    setPhone(''); setNotes('');
-    setSubmitted(true);
+    try {
+      await enroll.mutateAsync({
+        courseId: course.id,
+        batchId: batch?.id ?? null,
+        contactPhone: values.contactPhone?.trim() || null,
+        notes: values.notes?.trim() || null,
+      });
+      setSubmitted(true);
+    } catch {
+      // toast handled inside useEnroll
+    }
   };
 
   return (
@@ -96,69 +120,96 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
             </DialogFooter>
           </>
         ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>Enroll in {course.title}</DialogTitle>
-              <DialogDescription>
-                {batch
-                  ? <>Selected batch: <span className="font-medium text-foreground">{batch.name}</span></>
-                  : 'Continue on WhatsApp for the next available batch.'}
-              </DialogDescription>
-            </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <DialogHeader>
+                <DialogTitle>Enroll in {course.title}</DialogTitle>
+                <DialogDescription>
+                  {batch
+                    ? <>Selected batch: <span className="font-medium text-foreground">{batch.name}</span></>
+                    : 'Continue on WhatsApp for the next available batch.'}
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="space-y-4">
-              <Button onClick={handleWhatsApp} size="lg" className="w-full gap-2 bg-success hover:bg-success/90">
-                <MessageCircle className="h-4 w-4" /> Continue on WhatsApp
-              </Button>
+              <div className="space-y-4 py-4">
+                <Button
+                  type="button"
+                  onClick={handleWhatsApp}
+                  size="lg"
+                  className="w-full gap-2 bg-success hover:bg-success/90"
+                >
+                  <MessageCircle className="h-4 w-4" /> Continue on WhatsApp
+                </Button>
 
-              <div className="relative">
-                <Separator />
-                <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-background px-2 text-xs text-muted-foreground">
-                  or
-                </span>
-              </div>
+                <div className="relative">
+                  <Separator />
+                  <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-background px-2 text-xs text-muted-foreground">
+                    or
+                  </span>
+                </div>
 
-              <div className="space-y-3">
-                <p className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <PhoneCall className="h-4 w-4 text-primary" /> Request a callback
-                </p>
-                <div>
-                  <Label htmlFor="phone" className="text-xs">Your phone number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    inputMode="tel"
-                    placeholder="+8801XXXXXXXXX"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-foreground flex items-center gap-2">
+                    <PhoneCall className="h-4 w-4 text-primary" /> Request a callback
+                  </p>
+
+                  <FormField
+                    control={form.control}
+                    name="contactPhone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Your phone number *</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            value={field.value ?? ''}
+                            type="tel"
+                            inputMode="tel"
+                            placeholder="+8801XXXXXXXXX"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Notes (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            value={field.value ?? ''}
+                            rows={2}
+                            placeholder="Anything we should know?"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="notes" className="text-xs">Notes (optional)</Label>
-                  <Textarea
-                    id="notes"
-                    rows={2}
-                    placeholder="Anything we should know?"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
               </div>
-            </div>
 
-            <DialogFooter className="gap-2 sm:gap-2">
-              <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button
-                variant="secondary"
-                onClick={handleCallback}
-                disabled={(!!user && !phone.trim()) || enroll.isPending}
-                className="gap-2"
-              >
-                {enroll.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
-                {enroll.isPending ? 'Sending…' : user ? 'Request callback' : 'Sign in to continue'}
-              </Button>
-            </DialogFooter>
-          </>
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  disabled={enroll.isPending}
+                  className="gap-2"
+                >
+                  {enroll.isPending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                  {enroll.isPending ? 'Sending…' : user ? 'Request callback' : 'Sign in to continue'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         )}
       </DialogContent>
     </Dialog>
@@ -166,4 +217,3 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
 };
 
 export default EnrollDialog;
-

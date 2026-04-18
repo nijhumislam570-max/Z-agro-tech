@@ -105,7 +105,10 @@ const AdminCoupons = () => {
       setDialogOpen(false);
       resetForm();
     },
-    onError: (err: any) => toast.error(err.message?.includes('duplicate') ? 'Coupon code already exists' : 'Failed to save coupon'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : '';
+      toast.error(msg.includes('duplicate') ? 'Coupon code already exists' : 'Failed to save coupon');
+    },
   });
 
   const deleteMutation = useMutation({

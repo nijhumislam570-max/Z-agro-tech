@@ -86,17 +86,21 @@ const AdminCustomers = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
 
+  type CustomerRoleRow = { role: string };
+
   // Stats computed from data
   const stats = useMemo(() => {
     if (!customers) return { total: 0, admins: 0, users: 0 };
-    const admins = customers.filter(c => c.user_roles?.some((r: any) => r.role === 'admin')).length;
+    const admins = customers.filter(c =>
+      (c.user_roles as CustomerRoleRow[] | null)?.some((r) => r.role === 'admin'),
+    ).length;
     return { total: customers.length, admins, users: customers.length - admins };
   }, [customers]);
 
   // Filter customers
   const filteredCustomers = useMemo(() => {
     let result = customers || [];
-    
+
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
       result = result.filter(c =>
@@ -104,15 +108,15 @@ const AdminCustomers = () => {
         c.phone?.toLowerCase().includes(q)
       );
     }
-    
+
     if (roleFilter !== 'all') {
       result = result.filter(c => {
-        const roles = c.user_roles?.map((r: any) => r.role) || [];
+        const roles = (c.user_roles as CustomerRoleRow[] | null)?.map((r) => r.role) ?? [];
         if (roleFilter === 'user') return roles.length === 0 || (roles.length === 1 && roles[0] === 'user');
         return roles.includes(roleFilter);
       });
     }
-    
+
     return result;
   }, [customers, debouncedSearch, roleFilter]);
 
@@ -161,7 +165,7 @@ const AdminCustomers = () => {
     }
   }, [queryClient]);
 
-  const getRoleBadge = (userRoles: any[] | null) => {
+  const getRoleBadge = (userRoles: { role: string }[] | null | undefined) => {
     const role = userRoles?.[0]?.role;
     switch (role) {
       case 'admin':

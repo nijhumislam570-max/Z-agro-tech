@@ -31,6 +31,27 @@ import {
 import { useDebounce } from '@/hooks/useDebounce';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { indexBy, joinByKey, uniqueKeys } from '@/lib/dbJoins';
+
+interface EnrollmentJoinedRaw {
+  id: string;
+  user_id: string;
+  course_id: string;
+  batch_id: string | null;
+  status: string | null;
+  contact_phone: string | null;
+  notes: string | null;
+  progress: number;
+  enrolled_at: string;
+  course: { id: string; title: string } | null;
+  batch: { id: string; name: string } | null;
+}
+
+interface ProfileJoin {
+  user_id: string;
+  full_name: string | null;
+  phone: string | null;
+}
 
 type EnrollmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -80,20 +101,17 @@ const AdminEnrollmentsContent = () => {
         .limit(500);
       if (error) throw error;
 
-      const userIds = [...new Set((data || []).map((e: any) => e.user_id))];
+      const rows = (data ?? []) as EnrollmentJoinedRaw[];
+      const userIds = uniqueKeys(rows, 'user_id');
       const { data: profiles } = userIds.length
         ? await supabase
             .from('profiles')
             .select('user_id, full_name, phone')
             .in('user_id', userIds)
-        : { data: [] };
+        : { data: [] as ProfileJoin[] };
 
-      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
-
-      return (data || []).map((row: any): EnrollmentRow => ({
-        ...row,
-        profile: profileMap.get(row.user_id) ?? null,
-      }));
+      const profileMap = indexBy<ProfileJoin, 'user_id'>(profiles ?? [], 'user_id');
+      return joinByKey(rows, 'user_id', profileMap, 'profile') satisfies EnrollmentRow[];
     },
     enabled: isAdmin,
   });

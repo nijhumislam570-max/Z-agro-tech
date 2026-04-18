@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
+import { indexBy, groupBy, uniqueKeys, joinByKey } from '@/lib/dbJoins';
 import type { AdminOrder } from '@/types/database';
+
+interface ProfileLite {
+  user_id: string;
+  full_name: string | null;
+  phone: string | null;
+}
 
 /** Z Agro Tech application role. */
 export type AppRole = 'admin' | 'user';
@@ -26,33 +33,39 @@ export const useAdminStats = () => {
       const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
       if (error) throw error;
 
-      const stats = data as Record<string, any>;
-      const total = stats.totalOrders || 0;
-      const cancelled = stats.cancelledOrders || 0;
+      const stats = (data ?? {}) as Record<string, unknown>;
+      const num = (k: string) => Number(stats[k]) || 0;
+      const total = num('totalOrders');
+      const cancelled = num('cancelledOrders');
 
       return {
-        totalProducts: stats.totalProducts || 0,
-        activeProducts: stats.activeProducts || 0,
-        lowStockProducts: stats.lowStockProducts || 0,
+        totalProducts: num('totalProducts'),
+        activeProducts: num('activeProducts'),
+        lowStockProducts: num('lowStockProducts'),
         totalOrders: total,
         activeOrders: total - cancelled,
         cancelledOrders: cancelled,
-        pendingOrders: stats.pendingOrders || 0,
-        ordersToday: stats.ordersToday || 0,
-        totalUsers: stats.totalUsers || 0,
-        newUsersToday: stats.newUsersToday || 0,
-        activeRevenue: Number(stats.activeRevenue) || 0,
-        totalRevenue: Number(stats.totalRevenue) || 0,
-        revenueToday: Number(stats.revenueToday) || 0,
-        cancelledRevenue: (Number(stats.totalRevenue) || 0) - (Number(stats.activeRevenue) || 0),
-        totalCourses: stats.totalCourses || 0,
-        totalEnrollments: stats.totalEnrollments || 0,
-        pendingEnrollments: stats.pendingEnrollments || 0,
-        confirmedEnrollments: stats.confirmedEnrollments || 0,
-        completedEnrollments: stats.completedEnrollments || 0,
-        unreadMessages: stats.unreadMessages || 0,
-        incompleteOrders: stats.incompleteOrders || 0,
-        recentOrders: stats.recentOrders || [],
+        pendingOrders: num('pendingOrders'),
+        ordersToday: num('ordersToday'),
+        totalUsers: num('totalUsers'),
+        newUsersToday: num('newUsersToday'),
+        activeRevenue: num('activeRevenue'),
+        totalRevenue: num('totalRevenue'),
+        revenueToday: num('revenueToday'),
+        cancelledRevenue: num('totalRevenue') - num('activeRevenue'),
+        totalCourses: num('totalCourses'),
+        totalEnrollments: num('totalEnrollments'),
+        pendingEnrollments: num('pendingEnrollments'),
+        confirmedEnrollments: num('confirmedEnrollments'),
+        completedEnrollments: num('completedEnrollments'),
+        unreadMessages: num('unreadMessages'),
+        incompleteOrders: num('incompleteOrders'),
+        recentOrders: (Array.isArray(stats.recentOrders) ? stats.recentOrders : []) as Array<{
+          id: string;
+          total_amount: number;
+          status: string | null;
+          created_at: string;
+        }>,
       };
     },
     enabled: isAdmin,
@@ -103,22 +116,25 @@ export const useAdminOrders = (page = 0, pageSize = 50) => {
 
       if (ordersError) throw ordersError;
 
-      const userIds = [...new Set((ordersData || []).map(o => o.user_id))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, phone')
-        .in('user_id', userIds);
+      const userIds = uniqueKeys(ordersData ?? [], 'user_id');
+      const { data: profilesData } = userIds.length
+        ? await supabase
+            .from('profiles')
+            .select('user_id, full_name, phone')
+            .in('user_id', userIds)
+        : { data: [] as ProfileLite[] };
 
-      const profileMap = new Map(
-        (profilesData || []).map(p => [p.user_id, { full_name: p.full_name, phone: p.phone }])
-      );
+      const profileMap = indexBy<ProfileLite, 'user_id'>(profilesData ?? [], 'user_id');
 
       return {
-        orders: (ordersData || []).map((order): AdminOrder => ({
-          ...order,
-          items: Array.isArray(order.items) ? order.items : [],
-          profile: profileMap.get(order.user_id) || null,
-        })),
+        orders: (ordersData ?? []).map((order): AdminOrder => {
+          const profile = profileMap.get(order.user_id);
+          return {
+            ...order,
+            items: Array.isArray(order.items) ? order.items : [],
+            profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null,
+          };
+        }),
         totalCount: count || 0,
         page,
         pageSize,
@@ -145,23 +161,18 @@ export const useAdminUsers = (page = 0, pageSize = 50) => {
 
       if (error) throw error;
 
-      const pageUserIds = profiles?.map(p => p.user_id) || [];
+      const pageUserIds = uniqueKeys(profiles ?? [], 'user_id');
       const { data: roles } = pageUserIds.length > 0
         ? await supabase.from('user_roles').select('user_id, role').in('user_id', pageUserIds)
-        : { data: [] };
+        : { data: [] as Array<{ user_id: string; role: string }> };
 
-      const roleMap = new Map<string, typeof roles>();
-      for (const r of roles || []) {
-        const existing = roleMap.get(r.user_id) || [];
-        existing.push(r);
-        roleMap.set(r.user_id, existing);
-      }
+      const rolesByUser = groupBy(roles ?? [], 'user_id');
 
       return {
-        users: profiles?.map(profile => ({
+        users: (profiles ?? []).map(profile => ({
           ...profile,
-          user_roles: roleMap.get(profile.user_id) || []
-        })) || [],
+          user_roles: rolesByUser.get(profile.user_id) ?? [],
+        })),
         totalCount: count || 0,
         page,
         pageSize,
