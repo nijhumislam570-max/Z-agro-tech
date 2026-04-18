@@ -1,10 +1,12 @@
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { COURSE_CATEGORIES, type CourseCategory } from '@/hooks/useCourses';
 
 interface Props {
   value: CourseCategory | 'all';
   onChange: (v: CourseCategory | 'all') => void;
+  counts?: Partial<Record<CourseCategory | 'all', number>>;
 }
 
 const ALL: Array<{ value: CourseCategory | 'all'; label: string }> = [
@@ -12,11 +14,12 @@ const ALL: Array<{ value: CourseCategory | 'all'; label: string }> = [
   ...COURSE_CATEGORIES,
 ];
 
-export const CourseCategoryChips = ({ value, onChange }: Props) => {
+export const CourseCategoryChips = ({ value, onChange, counts }: Props) => {
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       {ALL.map((cat) => {
         const active = value === cat.value;
+        const count = counts?.[cat.value];
         return (
           <Button
             key={cat.value}
@@ -25,11 +28,24 @@ export const CourseCategoryChips = ({ value, onChange }: Props) => {
             size="sm"
             onClick={() => onChange(cat.value)}
             className={cn(
-              'rounded-full text-xs sm:text-sm h-8 sm:h-9',
+              'rounded-full text-xs sm:text-sm h-8 sm:h-9 gap-1.5',
               active && 'shadow-soft',
             )}
           >
             {cat.label}
+            {typeof count === 'number' && (
+              <Badge
+                variant="secondary"
+                className={cn(
+                  'h-5 min-w-5 px-1.5 text-[10px] font-semibold rounded-full',
+                  active
+                    ? 'bg-primary-foreground/20 text-primary-foreground border-transparent hover:bg-primary-foreground/20'
+                    : 'bg-muted text-muted-foreground border-transparent',
+                )}
+              >
+                {count}
+              </Badge>
+            )}
           </Button>
         );
       })}
