@@ -183,7 +183,7 @@ export const AnalyticsCharts = memo(({ analytics, dateRange }: AnalyticsChartsPr
         </AnalyticsChartCard>
       </div>
 
-      {/* Bottom Row: Top Products + Appointment Analytics */}
+      {/* Bottom Row: Top Products + Academy Enrollments */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Top Products */}
         <AnalyticsChartCard

@@ -2,24 +2,23 @@ import { memo } from 'react';
 import { FileText } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
 import SEO from '@/components/SEO';
 
 const sections = [
   {
     title: '1. Acceptance of Terms',
-    content: `By accessing or using VetMedix, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
+    content: `By accessing or using Z Agro Tech, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this platform.
 
-These Terms apply to all users of the platform, including pet owners, clinic owners, doctors, and visitors.`,
+These Terms apply to all users of the platform, including buyers, course enrollees, and visitors.`,
   },
   {
     title: '2. Description of Service',
-    content: `VetMedix provides:
+    content: `Z Agro Tech provides:
 
-- A social networking platform for pet owners and their pets
-- A marketplace for pet products and supplies
-- A directory and booking system for veterinary clinics and doctors
-- Communication tools between pet owners and veterinary service providers
+- A curated marketplace for premium agriculture products (seeds, fertilizers, crop-protection, tools, and equipment)
+- The Smart Farming Academy — expert-led online, on-site, and hybrid courses
+- Order management, delivery, and tracking via partnered couriers
+- Customer support and post-purchase guidance for products and courses
 
 We reserve the right to modify, suspend, or discontinue any aspect of our services at any time.`,
   },
@@ -28,7 +27,7 @@ We reserve the right to modify, suspend, or discontinue any aspect of our servic
     content: `**Account Creation:**
 - You must provide accurate, complete, and current information
 - You are responsible for maintaining the confidentiality of your account
-- You must be at least 13 years old to create an account
+- You must be at least 18 years old, or have a parent/guardian's consent, to create an account
 - One person or entity may not maintain more than one account
 
 **Account Responsibilities:**
@@ -42,7 +41,7 @@ We reserve the right to modify, suspend, or discontinue any aspect of our servic
 
 - Post false, misleading, or fraudulent content
 - Impersonate any person or entity
-- Harass, abuse, or harm other users
+- Harass, abuse, or harm other users or our staff
 - Upload viruses or malicious code
 - Violate any applicable laws or regulations
 - Collect user information without consent
@@ -52,86 +51,82 @@ We reserve the right to modify, suspend, or discontinue any aspect of our servic
 Violation of these guidelines may result in account suspension or termination.`,
   },
   {
-    title: '5. Clinic and Doctor Verification',
-    content: `**For Clinic Owners and Doctors:**
-- You must provide accurate professional credentials
-- Submitted documents (trade licenses, BVC certificates, NID) are subject to verification
-- False information will result in immediate account termination
-- Verified status can be revoked if violations are discovered
-
-**For Users:**
-- Verification badges indicate that credentials have been reviewed
-- Users should still exercise their own judgment when booking services
-- VetMedix is not responsible for the quality of veterinary care provided`,
-  },
-  {
-    title: '6. E-Commerce and Purchases',
+    title: '5. E-Commerce and Purchases',
     content: `**Orders:**
-- All prices are in Bangladeshi Taka (BDT)
+- All prices are listed in Bangladeshi Taka (BDT)
 - Prices are subject to change without notice
-- We reserve the right to refuse or cancel orders
+- We reserve the right to refuse or cancel orders, particularly in cases of suspected fraud or pricing errors
 
 **Payment:**
-- Payment is due at the time of purchase or upon delivery (COD)
-- You agree to pay all charges associated with your order
-- Fraudulent payment information will result in order cancellation
+- Payment is due at the time of purchase or upon delivery (Cash on Delivery)
+- You agree to pay all charges associated with your order, including delivery fees and applicable taxes
+- Fraudulent payment information will result in order cancellation and may be reported to authorities
 
 **Delivery:**
 - Delivery times are estimates and not guaranteed
 - Risk of loss transfers to you upon delivery
-- Inspect products upon delivery and report issues immediately`,
+- Inspect products upon delivery and report damages or shortages within 48 hours`,
   },
   {
-    title: '7. Appointments',
-    content: `**Booking:**
-- Appointment availability is subject to clinic and doctor schedules
-- Booking confirmation does not guarantee service availability
-- Some clinics may require advance payment or deposits
+    title: '6. Returns and Refunds',
+    content: `**Eligibility:**
+- Products may be returned within 7 days of delivery if damaged, expired, or materially different from the listing
+- Opened seed packets, fertilizers, and chemicals are non-returnable for safety and integrity reasons unless found defective on arrival
+
+**Process:**
+- Contact our support team to initiate a return
+- Approved refunds are processed within 7 business days via the original payment method or store credit`,
+  },
+  {
+    title: '7. Smart Farming Academy',
+    content: `**Enrolment:**
+- Course availability and batch dates are subject to change
+- Enrolment is confirmed only after payment (where applicable) and our team's confirmation
+- Some courses may have prerequisites or seat caps
 
 **Cancellation:**
-- You may cancel appointments through your account
-- Repeated no-shows may result in booking restrictions
-- Clinic cancellation policies may apply
+- Refunds for paid courses are available up to 48 hours before the batch start date
+- Once a batch begins, fees are non-refundable
 
-**Liability:**
-- VetMedix facilitates but does not provide veterinary services
-- We are not liable for the quality of care provided by clinics or doctors`,
+**Certification:**
+- Certificates are issued on satisfactory completion of the curriculum and any required assessments
+- Z Agro Tech certificates are issued for educational acknowledgement and do not constitute a government licence`,
   },
   {
     title: '8. Content and Intellectual Property',
     content: `**User Content:**
-- You retain ownership of content you post
-- By posting, you grant us a license to use, display, and distribute your content
-- You are responsible for ensuring you have rights to content you post
+- You retain ownership of content you post (such as reviews and feedback)
+- By posting, you grant us a non-exclusive, worldwide licence to use, display, and distribute your content in connection with our services
+- You are responsible for ensuring you have rights to any content you post
 - We may remove content that violates our policies
 
 **Our Content:**
-- VetMedix logos, designs, and content are our intellectual property
-- You may not use our branding without written permission
+- Z Agro Tech logos, designs, course materials, and platform content are our intellectual property
+- You may not use our branding or course materials without written permission
 - Unauthorized use may result in legal action`,
   },
   {
     title: '9. Disclaimer of Warranties',
-    content: `VetMedix is provided "as is" and "as available" without warranties of any kind.
+    content: `Z Agro Tech is provided "as is" and "as available" without warranties of any kind.
 
 We do not warrant that:
 - The service will be uninterrupted or error-free
-- Results obtained will be accurate or reliable
-- The quality of products or services will meet your expectations
+- Results obtained from use of products or courses will meet your expectations
+- Farming outcomes will match any examples shown in marketing or course content (results depend on weather, soil, practice, and other factors)
 
 We are not responsible for:
-- Actions of third-party service providers
+- Actions of third-party suppliers or couriers
 - Content posted by other users
 - Technical issues beyond our control`,
   },
   {
     title: '10. Limitation of Liability',
-    content: `To the maximum extent permitted by law, VetMedix shall not be liable for:
+    content: `To the maximum extent permitted by law, Z Agro Tech shall not be liable for:
 
 - Indirect, incidental, or consequential damages
-- Loss of profits, data, or goodwill
+- Loss of profits, crops, data, or goodwill
 - Service interruptions or failures
-- Actions of clinics, doctors, or other users
+- Misuse of products or course content by users
 
 Our total liability shall not exceed the amount you paid us in the past 12 months.`,
   },
@@ -147,22 +142,22 @@ Our total liability shall not exceed the amount you paid us in the past 12 month
     title: '13. Contact Information',
     content: `For questions about these Terms of Service, please contact us:
 
-**Email:** legal@vetmedix.bd
-**Address:** House #12, Road #5, Dhanmondi, Dhaka-1205, Bangladesh
-**Phone:** +880 1700-000000`,
+**Email:** legal@zagrotech.com
+**Address:** Farmgate, Dhaka 1205, Bangladesh
+**Phone:** +880 1349-219441`,
   },
 ];
 
 const TermsPage = memo(() => {
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background">
       <SEO
         title="Terms of Service"
-        description="Review the Terms of Service for using the VetMedix platform, including account usage, purchases, appointments, and liability."
-        canonicalUrl="https://vetmedix.lovable.app/terms"
+        description="Review the Terms of Service for using the Z Agro Tech platform — products, courses, payments, delivery, and liability."
+        canonicalUrl="https://zagrotech.lovable.app/terms"
       />
       <Navbar />
-      
+
       <main id="main-content" className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter font-nunito" role="main" aria-label="Terms of Service">
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
@@ -173,7 +168,7 @@ const TermsPage = memo(() => {
             Terms of Service
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Last Updated: January 24, 2026
+            Last Updated: April 18, 2026
           </p>
         </div>
 
@@ -181,14 +176,14 @@ const TermsPage = memo(() => {
         <div className="max-w-3xl mx-auto mb-8">
           <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
             <p className="text-foreground leading-relaxed">
-              Welcome to VetMedix. These Terms of Service govern your use of our platform, 
-              including our website, mobile applications, and all related services. Please 
-              read these terms carefully before using our services.
+              Welcome to Z Agro Tech. These Terms of Service govern your use of our platform —
+              including our website, mobile applications, and all related services. Please read
+              these terms carefully before using our services.
             </p>
           </div>
         </div>
 
-        {/* Terms Sections */}
+        {/* Sections */}
         <div className="max-w-3xl mx-auto space-y-8">
           {sections.map((section, index) => (
             <section key={index} className="bg-card rounded-2xl border border-border p-6 sm:p-8">
@@ -208,7 +203,6 @@ const TermsPage = memo(() => {
       </main>
 
       <Footer />
-      <MobileNav />
     </div>
   );
 });

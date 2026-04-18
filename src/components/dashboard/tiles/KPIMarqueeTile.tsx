@@ -38,7 +38,7 @@ export default function KPIMarqueeTile() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-white/80 text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="h-3.5 w-3.5" />
-            Your Krishi Clinic
+            Your Farm Hub
           </div>
           <h2 className="text-2xl sm:text-3xl font-display font-bold text-white">
             Welcome back, {greetingName}

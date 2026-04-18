@@ -208,24 +208,24 @@ const ProductDetailPage = () => {
     price: discountedPrice,
     priceCurrency: 'BDT',
     availability: (product.stock && product.stock > 0 ? 'InStock' : 'OutOfStock') as 'InStock' | 'OutOfStock',
-    brand: 'VetMedix',
+    brand: 'Z Agro Tech',
     category: product.category,
     rating: avgRating,
     reviewCount: reviews.length || undefined,
     sku: product.id,
-    url: `https://vetmedix.lovable.app/product/${product.id}`,
+    url: `https://zagrotech.lovable.app/product/${product.id}`,
   };
 
   return (
     <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
       <SEO 
         title={product.name}
-        description={product.description || `Buy ${product.name} at VetMedix. Premium ${product.category} products for your pets.`}
+        description={product.description || `Buy ${product.name} at Z Agro Tech. Premium ${product.category} for modern farmers in Bangladesh.`}
         image={product.image_url || undefined}
-        url={`https://vetmedix.lovable.app/product/${product.id}`}
+        url={`https://zagrotech.lovable.app/product/${product.id}`}
         type="product"
         schema={productSchema}
-        canonicalUrl={`https://vetmedix.lovable.app/product/${product.id}`}
+        canonicalUrl={`https://zagrotech.lovable.app/product/${product.id}`}
       />
       <Navbar />
       

@@ -83,7 +83,7 @@ interface NotificationSettings {
   lowStockAlerts: boolean;
   newCustomerAlerts: boolean;
   emailNotifications: boolean;
-  appointmentAlerts: boolean;
+  enrollmentAlerts: boolean;
   reviewAlerts: boolean;
 }
 
@@ -91,18 +91,16 @@ interface PlatformSettings {
   maintenanceMode: boolean;
   maintenanceMessage: string;
   enableRegistration: boolean;
-  enableSocialFeed: boolean;
-  enableAppointments: boolean;
   enableShop: boolean;
-  maxPetsPerUser: number;
+  enableAcademy: boolean;
   enableReviews: boolean;
 }
 
 const defaultStoreSettings: StoreSettings = {
-  name: 'VET-MEDIX',
-  email: 'vetmedix.25@gmail.com',
+  name: 'Z Agro Tech',
+  email: 'hello@zagrotech.com',
   phone: '',
-  address: 'Gopalganj, Bangladesh',
+  address: 'Farmgate, Dhaka 1205, Bangladesh',
   currency: 'BDT',
   taxRate: 0,
   aboutText: '',
@@ -125,7 +123,7 @@ const defaultOrderSettings: OrderSettings = {
   enableCOD: true,
   enableOnlinePayment: false,
   lowStockThreshold: 5,
-  orderPrefix: 'VM',
+  orderPrefix: 'ZAG',
 };
 
 const defaultNotifications: NotificationSettings = {
@@ -133,7 +131,7 @@ const defaultNotifications: NotificationSettings = {
   lowStockAlerts: true,
   newCustomerAlerts: false,
   emailNotifications: true,
-  appointmentAlerts: true,
+  enrollmentAlerts: true,
   reviewAlerts: true,
 };
 
@@ -141,10 +139,8 @@ const defaultPlatformSettings: PlatformSettings = {
   maintenanceMode: false,
   maintenanceMessage: 'We are currently performing maintenance. Please check back soon.',
   enableRegistration: true,
-  enableSocialFeed: true,
-  enableAppointments: true,
   enableShop: true,
-  maxPetsPerUser: 30,
+  enableAcademy: true,
   enableReviews: true,
 };
 
@@ -711,8 +707,8 @@ const AdminSettingsContent = () => {
               <SettingRow icon={Users} label="New Customer Alerts" description="Get notified when a new customer registers">
                 <Switch checked={notifications.newCustomerAlerts} onCheckedChange={(c) => setNotifications({ ...notifications, newCustomerAlerts: c })} />
               </SettingRow>
-              <SettingRow icon={Clock} label="Appointment Alerts" description="Get notified for new appointment bookings">
-                <Switch checked={notifications.appointmentAlerts} onCheckedChange={(c) => setNotifications({ ...notifications, appointmentAlerts: c })} />
+              <SettingRow icon={Clock} label="Enrollment Alerts" description="Get notified for new course enrollments">
+                <Switch checked={notifications.enrollmentAlerts} onCheckedChange={(c) => setNotifications({ ...notifications, enrollmentAlerts: c })} />
               </SettingRow>
               <SettingRow icon={MessageSquare} label="Review Alerts" description="Get notified when customers leave reviews">
                 <Switch checked={notifications.reviewAlerts} onCheckedChange={(c) => setNotifications({ ...notifications, reviewAlerts: c })} />
@@ -753,11 +749,8 @@ const AdminSettingsContent = () => {
               <SettingRow icon={Store} label="E-Commerce / Shop" description="Enable the product shop and orders">
                 <Switch checked={platformSettings.enableShop} onCheckedChange={(c) => setPlatformSettings({ ...platformSettings, enableShop: c })} />
               </SettingRow>
-              <SettingRow icon={Clock} label="Appointments" description="Allow clinic appointment booking">
-                <Switch checked={platformSettings.enableAppointments} onCheckedChange={(c) => setPlatformSettings({ ...platformSettings, enableAppointments: c })} />
-              </SettingRow>
-              <SettingRow icon={Eye} label="Social Feed" description="Enable the pet social media feed">
-                <Switch checked={platformSettings.enableSocialFeed} onCheckedChange={(c) => setPlatformSettings({ ...platformSettings, enableSocialFeed: c })} />
+              <SettingRow icon={Clock} label="Academy" description="Allow course browsing and enrollments">
+                <Switch checked={platformSettings.enableAcademy} onCheckedChange={(c) => setPlatformSettings({ ...platformSettings, enableAcademy: c })} />
               </SettingRow>
               <SettingRow icon={MessageSquare} label="Product Reviews" description="Allow customers to review products">
                 <Switch checked={platformSettings.enableReviews} onCheckedChange={(c) => setPlatformSettings({ ...platformSettings, enableReviews: c })} />

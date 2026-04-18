@@ -342,10 +342,10 @@ const ShopPage = () => {
   return (
     <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
       <SEO 
-        title="Pet Shop - Premium Pet & Farm Supplies"
-        description="Shop premium pet supplies, food, medicine, grooming tools, and farm animal products. Free delivery on orders over ৳2000 in Bangladesh."
-        url="https://vetmedix.lovable.app/shop"
-        schema={{ type: 'Organization', name: 'VetMedix Shop', url: 'https://vetmedix.lovable.app/shop', description: 'Premium pet and farm supplies in Bangladesh' }}
+        title="Shop — Premium Agriculture Supplies"
+        description="Shop premium seeds, fertilizers, crop-protection, tools and farm equipment from trusted suppliers. Fast nationwide delivery across Bangladesh."
+        url="https://zagrotech.lovable.app/shop"
+        schema={{ type: 'Organization', name: 'Z Agro Tech Shop', url: 'https://zagrotech.lovable.app/shop', description: 'Premium agriculture supplies in Bangladesh' }}
       />
       <Navbar />
       

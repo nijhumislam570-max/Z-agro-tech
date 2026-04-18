@@ -1,18 +1,20 @@
 {
-  "name": "VET-MEDIX - Pet Care & Veterinary Services",
-  "short_name": "VetMedix",
-  "description": "Pet care, social network & veterinary services in Bangladesh",
+  "name": "Z Agro Tech - Premium Agriculture Supplies & Courses",
+  "short_name": "Z Agro Tech",
+  "description": "Premium agriculture supplies and expert-led farming courses for modern farmers in Bangladesh.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#f97316",
+  "theme_color": "#1f5f3a",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
+      "src": "/favicon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["lifestyle", "shopping", "health"]
+  "categories": ["shopping", "education", "business"]
 }
+

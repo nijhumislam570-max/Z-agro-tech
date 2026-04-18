@@ -22,7 +22,7 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <SEO
         title="Dashboard — Z Agro Tech"
-        description="Your personalized Krishi Clinic: orders, courses, and recommended agri-inputs."
+        description="Your personalized farm hub: orders, courses, and recommended agri-inputs."
         url="/dashboard"
       />
       <Navbar />

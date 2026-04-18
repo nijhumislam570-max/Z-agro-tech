@@ -24,8 +24,8 @@ const contactInfo = [
   {
     icon: <Mail className="h-5 w-5" />,
     label: 'Email',
-    value: 'vetmedix.25@gmail.com',
-    href: 'mailto:vetmedix.25@gmail.com',
+    value: 'hello@zagrotech.com',
+    href: 'mailto:hello@zagrotech.com',
   },
   {
     icon: <Phone className="h-5 w-5" />,
@@ -36,7 +36,7 @@ const contactInfo = [
   {
     icon: <MapPin className="h-5 w-5" />,
     label: 'Location',
-    value: 'Framgate, Dhaka, 1205',
+    value: 'Farmgate, Dhaka 1205, Bangladesh',
     href: null,
   },
 ];
@@ -93,8 +93,8 @@ const ContactPage = () => {
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <SEO
         title="Contact Us"
-        description="Have questions about VetMedix? Get in touch with our team for support, feedback, or partnership inquiries."
-        canonicalUrl="https://vetmedix.lovable.app/contact"
+        description="Have questions about Z Agro Tech? Get in touch with our team for support, product inquiries, or partnership opportunities."
+        canonicalUrl="https://zagrotech.lovable.app/contact"
       />
       <Navbar />
       
@@ -106,7 +106,7 @@ const ContactPage = () => {
               Get in Touch
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Have questions about VetMedix? We'd love to hear from you. 
+              Have questions about Z Agro Tech? We'd love to hear from you.
               Send us a message and we'll respond as soon as possible.
             </p>
           </div>

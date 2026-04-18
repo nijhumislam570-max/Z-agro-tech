@@ -16,8 +16,8 @@ describe('Example Test Suite', () => {
   });
 
   it('should handle objects', () => {
-    const obj = { name: 'VetMedix', type: 'app' };
+    const obj = { name: 'Z Agro Tech', type: 'app' };
     expect(obj).toHaveProperty('name');
-    expect(obj.name).toBe('VetMedix');
+    expect(obj.name).toBe('Z Agro Tech');
   });
 });
