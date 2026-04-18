@@ -33,9 +33,10 @@ export const useAdminStats = () => {
       const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
       if (error) throw error;
 
-      const stats = data as Record<string, any>;
-      const total = stats.totalOrders || 0;
-      const cancelled = stats.cancelledOrders || 0;
+      const stats = (data ?? {}) as Record<string, unknown>;
+      const num = (k: string) => Number(stats[k]) || 0;
+      const total = num('totalOrders');
+      const cancelled = num('cancelledOrders');
 
       return {
         totalProducts: stats.totalProducts || 0,
