@@ -75,6 +75,9 @@ import { downloadCSV } from '@/lib/csvParser';
 import { analyzeFraudRisk, parseShippingAddress, type FraudAnalysis } from '@/lib/fraudDetection';
 import { getStatusColor } from '@/lib/statusColors';
 import { TimeFilterBar, getTimeCutoff, type TimeFilter } from '@/components/admin/TimeFilterBar';
+import { SortableHeader, type SortDir } from '@/components/admin/SortableHeader';
+
+type OrderSortKey = 'created_at' | 'total_amount';
 
 const AdminOrders = () => {
   useDocumentTitle('Orders Management - Admin');
@@ -99,6 +102,17 @@ const AdminOrders = () => {
   const [isBulkShipping, setIsBulkShipping] = useState(false);
   const [trashDialog, setTrashDialog] = useState<string | null>(null);
   const [permanentDeleteDialog, setPermanentDeleteDialog] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<OrderSortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const handleSort = (key: OrderSortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('desc');
+    }
+  };
 
   // Split active vs trashed
   const activeOrders = useMemo(() => orders?.filter(o => !o.trashed_at) || [], [orders]);
