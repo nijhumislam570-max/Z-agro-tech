@@ -25,7 +25,12 @@ export const LowStockAlert = ({ products }: LowStockAlertProps) => {
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 dark:bg-destructive/10 overflow-hidden">
         <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between p-3 sm:p-4 hover:bg-destructive/10 transition-colors">
+          <button
+            type="button"
+            aria-label={`${products.length} stock alerts. ${isOpen ? 'Collapse' : 'Expand'} list.`}
+            aria-expanded={isOpen}
+            className="w-full flex items-center justify-between p-3 sm:p-4 min-h-[44px] hover:bg-destructive/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+          >
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-destructive/15 flex items-center justify-center flex-shrink-0">
                 <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />
