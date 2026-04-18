@@ -242,108 +242,106 @@ const AdminEnrollmentsContent = () => {
       ) : (
         <Card className="border-border/50">
           <CardContent className="p-0">
-            <>
-              {/* Mobile cards */}
-              <div className="sm:hidden divide-y divide-border">
-                {filtered.map((row) => {
-                  const status = (row.status || 'pending') as EnrollmentStatus;
-                  return (
-                    <div key={row.id} className="p-3 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-sm truncate">
-                            {row.profile?.full_name || 'Unnamed Student'}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {row.course?.title || 'Course removed'}
-                          </p>
-                          {row.batch?.name && (
-                            <p className="text-[11px] text-muted-foreground">Batch: {row.batch.name}</p>
-                          )}
-                        </div>
-                        <Badge className={statusVariant[status]}>{status}</Badge>
-                      </div>
-                      {(row.contact_phone || row.profile?.phone) && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {row.contact_phone || row.profile?.phone}
+            {/* Mobile cards */}
+            <div className="sm:hidden divide-y divide-border">
+              {filtered.map((row) => {
+                const status = (row.status || 'pending') as EnrollmentStatus;
+                return (
+                  <div key={row.id} className="p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">
+                          {row.profile?.full_name || 'Unnamed Student'}
                         </p>
-                      )}
-                      <Select value={status} onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}>
-                        <SelectTrigger className="h-9 text-xs rounded-lg">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="confirmed">Confirmed</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {row.course?.title || 'Course removed'}
+                        </p>
+                        {row.batch?.name && (
+                          <p className="text-[11px] text-muted-foreground">Batch: {row.batch.name}</p>
+                        )}
+                      </div>
+                      <Badge className={statusVariant[status]}>{status}</Badge>
                     </div>
-                  );
-                })}
-              </div>
+                    {(row.contact_phone || row.profile?.phone) && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {row.contact_phone || row.profile?.phone}
+                      </p>
+                    )}
+                    <Select value={status} onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}>
+                      <SelectTrigger className="h-9 text-xs rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* Desktop table */}
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Course</TableHead>
-                      <TableHead>Batch</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Enrolled</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((row) => {
-                      const status = (row.status || 'pending') as EnrollmentStatus;
-                      return (
-                        <TableRow key={row.id}>
-                          <TableCell className="font-medium">
-                            {row.profile?.full_name || 'Unnamed'}
-                          </TableCell>
-                          <TableCell>{row.course?.title || '—'}</TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {row.batch?.name || '—'}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {row.contact_phone || row.profile?.phone || '—'}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(row.enrolled_at), 'MMM d, yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={status}
-                              onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}
-                            >
-                              <SelectTrigger className="h-8 w-[140px] text-xs rounded-lg">
-                                <SelectValue>
-                                  <Badge className={statusVariant[status]}>{status}</Badge>
-                                </SelectValue>
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            {/* Desktop table */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Batch</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Enrolled</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((row) => {
+                    const status = (row.status || 'pending') as EnrollmentStatus;
+                    return (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">
+                          {row.profile?.full_name || 'Unnamed'}
+                        </TableCell>
+                        <TableCell>{row.course?.title || '—'}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {row.batch?.name || '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {row.contact_phone || row.profile?.phone || '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {format(new Date(row.enrolled_at), 'MMM d, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={status}
+                            onValueChange={(v) => updateStatus(row.id, v as EnrollmentStatus)}
+                          >
+                            <SelectTrigger className="h-8 w-[140px] text-xs rounded-lg">
+                              <SelectValue>
+                                <Badge className={statusVariant[status]}>{status}</Badge>
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </AdminLayout>
   );
 };
