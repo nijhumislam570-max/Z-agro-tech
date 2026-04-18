@@ -116,22 +116,25 @@ export const useAdminOrders = (page = 0, pageSize = 50) => {
 
       if (ordersError) throw ordersError;
 
-      const userIds = [...new Set((ordersData || []).map(o => o.user_id))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, phone')
-        .in('user_id', userIds);
+      const userIds = uniqueKeys(ordersData ?? [], 'user_id');
+      const { data: profilesData } = userIds.length
+        ? await supabase
+            .from('profiles')
+            .select('user_id, full_name, phone')
+            .in('user_id', userIds)
+        : { data: [] as ProfileLite[] };
 
-      const profileMap = new Map(
-        (profilesData || []).map(p => [p.user_id, { full_name: p.full_name, phone: p.phone }])
-      );
+      const profileMap = indexBy<ProfileLite, 'user_id'>(profilesData ?? [], 'user_id');
 
       return {
-        orders: (ordersData || []).map((order): AdminOrder => ({
-          ...order,
-          items: Array.isArray(order.items) ? order.items : [],
-          profile: profileMap.get(order.user_id) || null,
-        })),
+        orders: (ordersData ?? []).map((order): AdminOrder => {
+          const profile = profileMap.get(order.user_id);
+          return {
+            ...order,
+            items: Array.isArray(order.items) ? order.items : [],
+            profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null,
+          };
+        }),
         totalCount: count || 0,
         page,
         pageSize,
@@ -158,23 +161,18 @@ export const useAdminUsers = (page = 0, pageSize = 50) => {
 
       if (error) throw error;
 
-      const pageUserIds = profiles?.map(p => p.user_id) || [];
+      const pageUserIds = uniqueKeys(profiles ?? [], 'user_id');
       const { data: roles } = pageUserIds.length > 0
         ? await supabase.from('user_roles').select('user_id, role').in('user_id', pageUserIds)
-        : { data: [] };
+        : { data: [] as Array<{ user_id: string; role: string }> };
 
-      const roleMap = new Map<string, typeof roles>();
-      for (const r of roles || []) {
-        const existing = roleMap.get(r.user_id) || [];
-        existing.push(r);
-        roleMap.set(r.user_id, existing);
-      }
+      const rolesByUser = groupBy(roles ?? [], 'user_id');
 
       return {
-        users: profiles?.map(profile => ({
+        users: (profiles ?? []).map(profile => ({
           ...profile,
-          user_roles: roleMap.get(profile.user_id) || []
-        })) || [],
+          user_roles: rolesByUser.get(profile.user_id) ?? [],
+        })),
         totalCount: count || 0,
         page,
         pageSize,
