@@ -111,7 +111,7 @@ const AdminEnrollmentsContent = () => {
         : { data: [] as ProfileJoin[] };
 
       const profileMap = indexBy<ProfileJoin, 'user_id'>(profiles ?? [], 'user_id');
-      return joinByKey(rows, 'user_id', profileMap, 'profile') as EnrollmentRow[];
+      return joinByKey(rows, 'user_id', profileMap, 'profile') satisfies EnrollmentRow[];
     },
     enabled: isAdmin,
   });
