@@ -18,20 +18,20 @@ export interface ShopProduct {
 }
 
 export const ProductCard = ({ product }: { product: ShopProduct }) => {
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
   const stock = product.stock ?? 0;
   const inStock = stock > 0;
   const lowStock = inStock && stock <= 5;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    addToCart({
+    addItem({
       id: product.id,
       name: product.name,
       price: product.price,
       image_url: product.image_url || '',
       category: product.category,
-    });
+    } as any);
     toast.success(`${product.name} added to cart`);
   };
 

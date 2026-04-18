@@ -19,7 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Trash2, Pencil, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Course } from '@/hooks/useCourses';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 
 interface FormState {
   title: string;
