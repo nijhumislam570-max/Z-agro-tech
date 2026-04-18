@@ -1,220 +1,91 @@
 
 
-# Phase 6 — Codebase Cleanup & Strict Scoping
+# Phase 7 — `/auth` Page: Z Agro Tech Refit
 
-Strip the project to **Shop + LMS + Admin** while preserving the Bento dashboard, auth, cart/checkout, and standard utility pages. All legacy social/clinic/doctor/pet/blog code goes.
+The `/auth` page still ships VET-MEDIX copy, pet-care imagery, and a 3-role signup (Pet Parent / Vet Doctor / Clinic Owner) with redirects to deleted routes (`/clinic/dashboard`, `/doctor/dashboard`, `/select-role`). It also creates rows in deleted `clinics` / `doctors` tables. Phase 7 strips this to a clean, Z Agro Tech-scoped Customer / Admin model.
 
-## Final route map (App.tsx)
+## What's broken now
+1. **Branding** — left panel shows "VET-MEDIX", "pets deserve the best care", paw icons, etc.
+2. **Mobile logo** — uses old `logo.jpeg`; should use `zagrotech-logo.jpeg`.
+3. **Roles** — Pet Parent / Doctor / Clinic Owner are off-scope. Z Agro Tech is Shop + Academy only.
+4. **Dead redirects** — `/clinic/dashboard`, `/doctor/dashboard`, `/clinic/verification`, `/doctor/verification`, `/select-role` were all deleted in Phase 6. Existing users with `doctor`/`clinic_owner` legacy roles will hit blank screens.
+5. **Dead writes** — signup inserts into `clinics` and `doctors` tables (still in DB but the UI is gone). This silently bloats DB.
+6. **Validation** — `clinicOwnerSignupSchema` is imported but no longer needed.
 
-```text
-Public:    /  /shop  /product/:id  /academy  /course/:id
-           /about  /contact  /faq  /privacy  /terms  /track-order
-Auth:      /auth  /forgot-password  /reset-password
-User:      /dashboard  (RequireAuth)
-           /cart  /checkout  (RequireAuth)
-Admin:     /admin · /admin/products · /admin/courses · /admin/orders
-           /admin/customers · /admin/ecommerce-customers
-           /admin/coupons · /admin/delivery-zones
-           /admin/incomplete-orders · /admin/recovery-analytics
-           /admin/analytics · /admin/messages · /admin/settings
-404:       *
-```
-
-Routes removed from App.tsx: none currently registered for legacy pages — App.tsx is already clean. Cleanup is mostly **file deletion** + Navbar/Footer/MobileNav trim + AdminSidebar trim.
-
-## Files to DELETE
-
-### Legacy pages (21)
-```
-src/pages/FeedPage.tsx
-src/pages/ExplorePage.tsx
-src/pages/BlogPage.tsx
-src/pages/BlogArticlePage.tsx
-src/pages/ChatPage.tsx
-src/pages/MessagesPage.tsx
-src/pages/NotificationsPage.tsx
-src/pages/ClinicsPage.tsx
-src/pages/ClinicDetailPage.tsx
-src/pages/DoctorsPage.tsx
-src/pages/DoctorDetailPage.tsx
-src/pages/BookAppointmentPage.tsx
-src/pages/PetProfilePage.tsx
-src/pages/CreatePetPage.tsx
-src/pages/EditPetPage.tsx
-src/pages/SelectRolePage.tsx
-src/pages/ProfilePage.tsx
-src/pages/WishlistPage.tsx
-src/pages/clinic/                  (whole folder: Dashboard, Profile, Doctors, Services, Verification)
-src/pages/doctor/                  (whole folder: Dashboard, Profile, Verification)
-```
-
-### Legacy admin pages (7) — strict Shop+LMS scope
-```
-src/pages/admin/AdminClinics.tsx
-src/pages/admin/AdminDoctors.tsx
-src/pages/admin/AdminCMS.tsx
-src/pages/admin/AdminCMSEditor.tsx
-src/pages/admin/AdminSocial.tsx
-src/pages/admin/AdminSupportChat.tsx
-src/pages/admin/AdminContactMessages.tsx     (kept only if you want — your answer said strict, so removing)
-```
-Wait — your "Keep utility pages" answer keeps `/contact` page, so we should keep `AdminContactMessages` too (otherwise contact-form submissions go nowhere). **Final decision: keep AdminContactMessages.** Removing only the 6 above.
-
-### Legacy components (delete entire folders)
-```
-src/components/social/        (PostCard, StoriesBar, NotificationBell, etc.)
-src/components/clinic/        (entire folder)
-src/components/doctor/        (entire folder)
-src/components/blog/          (ArticleCard)
-src/components/booking/       (BookAppointmentWizard)
-src/components/explore/       (ExplorePetCard, PetCardSkeleton)
-src/components/profile/       (AppointmentCard, MyPetsSection, OrderCard, ProfileHeader)
-src/components/academy/EnrollDialog.tsx (uses BookAppointmentWizard? — verify; likely keep, used by /course/:id)
-```
-Plus standalone:
-```
-src/components/ClinicCard.tsx
-src/components/ClinicSection.tsx
-src/components/DoctorCard.tsx
-src/components/CategorySection.tsx          (legacy category grid)
-src/components/FeaturedProducts.tsx         (replaced by home/FeaturedProductsGrid)
-src/components/ProductCard.tsx              (legacy — shop uses src/components/shop/ProductCard)
-src/components/ProductReviewForm.tsx
-src/components/SupportChatLoader.tsx
-src/components/SupportChatWidget.tsx
-src/components/GlobalSearch.tsx             (only used by AdminHeader — replace with simple title)
-src/components/MobileNav.tsx                (legacy bottom nav with Doctors link; will rebuild lean)
-src/components/home/BelowFoldContent.tsx    (uses social posts)
-```
-
-### Legacy admin components
-```
-src/components/admin/cms/                   (whole folder)
-src/components/admin/ClinicVerificationDialog.tsx
-src/components/admin/VerificationFunnel.tsx
-src/components/admin/dashboard/PlatformOverview.tsx       (clinics/doctors stats)
-src/components/admin/dashboard/PlatformHealthCard.tsx     (verify — may keep as generic)
-```
-
-### Legacy hooks
-```
-src/hooks/usePosts.ts useStories.ts useFollow.ts useExplorePets.ts useComments.ts
-src/hooks/useClinicReviews.ts useClinicOwner.ts
-src/hooks/useDoctor.ts useDoctorJoinRequests.ts useDoctorSchedules.ts usePublicDoctors.ts
-src/hooks/useAppointments.ts useMessages.ts useNotifications.ts useSupportChat.ts
-src/hooks/useCMS.ts useAdminSocialActions.ts
-```
-
-### Legacy contexts / types / libs
-```
-src/contexts/PetContext.tsx
-src/contexts/WishlistContext.tsx              (Wishlist page deleted; ProductCard usage trimmed)
-src/types/social.ts
-src/lib/whatsapp.ts                           (only used by clinic pages — verify)
-src/lib/notifications.ts                      (legacy social notifications)
-```
-
-### Legacy edge functions (keep all — they're backend, untouched)
-No edge function deletions.
-
-## Files to MODIFY
+## New role model (matches existing app)
 
 ```text
-MODIFY  src/App.tsx
-        - Remove WishlistProvider wrapper (context deleted)
-        - Verify all imports point to surviving pages
-        - No route changes (already aligned)
-
-MODIFY  src/components/Navbar.tsx
-        - Already clean (Shop, Academy, Dashboard, Admin). Just verify.
-
-MODIFY  src/components/Footer.tsx
-        - Already agri-themed. No change.
-
-MODIFY  src/pages/Index.tsx
-        - Remove any reference to BelowFoldContent (it's not currently imported — verify clean).
-
-MODIFY  src/pages/ShopPage.tsx
-        - Replace `import MobileNav` and remove WishlistContext usage (or keep wishlist as
-          a no-op local state if too invasive; safer: drop wishlist UI).
-
-MODIFY  src/pages/CartPage.tsx / CheckoutPage.tsx / ProductDetailPage.tsx
-        - Drop MobileNav import + WishlistContext import; keep cart/auth flows intact.
-
-MODIFY  src/components/admin/AdminSidebar.tsx
-        - Trim nav to: Dashboard, Analytics | Products, Orders, Customers, Coupons,
-          Delivery Zones, Incomplete Orders, Recovery Analytics | Courses, Enrollments
-          | Messages, Settings.
-        - Remove: Clinics, Doctors, Social, Content Hub, Support Chat, User Management.
-        - Rebrand label "VET-MEDIX" → "Z AGRO TECH".
-
-MODIFY  src/components/admin/AdminMobileNav.tsx
-        - Mirror the trimmed sidebar nav.
-
-MODIFY  src/components/admin/AdminHeader.tsx
-        - Remove GlobalSearch import; replace with the page title slot only.
-
-MODIFY  src/components/admin/dashboard/PlatformOverview.tsx (or delete)
-        - If kept: strip clinic/doctor stats.
-
-MODIFY  src/pages/admin/AdminDashboard.tsx
-        - Remove imports/usages for deleted CMS/Social/Clinics/Doctors quick links.
-
-MODIFY  src/pages/admin/AdminCustomers.tsx
-        - Remove role filters for doctor/clinic_owner if present (keep admin + user only).
-
-ADD     src/pages/admin/AdminEnrollments.tsx     (NEW)
-        - Simple table of enrollments with status update (pending/confirmed/completed/cancelled),
-          using existing Card + Table + Badge. Wired to enrollments table via supabase client.
-        - Linked from sidebar under "LMS".
-
-MODIFY  src/App.tsx
-        - Add route /admin/enrollments → AdminEnrollments wrapped in RequireAdmin.
+customer  → default for everyone who signs up (DB stores as 'user')
+admin     → assigned manually (vetmedix.25@gmail.com primary admin)
 ```
 
-## New unified `/admin` structure (visual)
+The app already only checks `isAdmin` in `useAdmin` / `RequireAdmin`. Everything else is a regular authenticated customer who can shop, enroll, and use the bento dashboard. **No DB schema changes** — we keep the `app_role` enum as-is and just stop writing `doctor`/`clinic_owner` from the UI.
+
+## File changes (2 files modified, 1 deleted)
 
 ```text
-┌─ AdminSidebar ──────────┐  ┌─ AdminHeader (no GlobalSearch) ─┐
-│ OVERVIEW                │  │ Page title · refresh · profile  │
-│  • Dashboard            │  └─────────────────────────────────┘
-│  • Analytics            │  
-│ E-COMMERCE              │  ┌─ Page content (DataTable + Cards)┐
-│  • Products             │  │ Stats row (4 cards)              │
-│  • Orders               │  │ DataTable: search · filter · CRUD│
-│  • Customers            │  │ Pagination                       │
-│  • Coupons              │  └──────────────────────────────────┘
-│  • Delivery Zones       │
-│  • Incomplete Orders    │
-│  • Recovery Analytics   │
-│ LMS                     │
-│  • Courses              │
-│  • Enrollments  (NEW)   │
-│ SYSTEM                  │
-│  • Messages             │
-│  • Settings             │
-└─────────────────────────┘
+MODIFY  src/pages/AuthPage.tsx
+DELETE  src/components/auth/RoleSelector.tsx     (no longer needed)
+MODIFY  src/lib/validations.ts                   (remove clinicOwnerSignupSchema export)
 ```
 
-## Guardrails honored
+### `src/pages/AuthPage.tsx` — full rewrite of copy + logic
 
-- Supabase client (`src/integrations/supabase/client.ts`) untouched.
-- AuthProvider, AuthContext, RequireAuth, RequireAdmin untouched.
-- Bento dashboard (`DashboardPage.tsx`, `BentoGrid`, all tiles, agri gradient) untouched.
-- No DB migrations.
-- Build verification step: after deletions, search for any remaining imports of deleted modules and fix them in the **same** turn.
+**Branding panel (left)**
+- Logo → `@/assets/zagrotech-logo.jpeg`, alt "Z Agro Tech".
+- Title → "Grow smarter with Z Agro Tech".
+- Subtitle → "Bangladesh's premium hub for verified agri-inputs and the Smart Farming Academy."
+- Feature bullets (icon swap):
+  - `Sprout` — Premium seeds, fertilizers & crop-protection
+  - `GraduationCap` — Live masterclasses from agronomy experts
+  - `Truck` — Fast nationwide delivery, COD available
+  - `ShieldCheck` — Quality-tested, traceable supply chain
+- Footer line → "© {year} Z Agro Tech — Shop · Academy · Krishi Clinic".
 
-## Execution protocol
+**Mobile header**
+- Same logo swap, title "Z Agro Tech", subtitle "Premium Agri-Inputs · Smart Farming Academy".
 
-1. Delete the files listed above (folder-batched).
-2. Patch every consumer file flagged above.
-3. Add `AdminEnrollments.tsx` + route.
-4. Trim AdminSidebar/MobileNav/Header.
-5. Run search for `from '@/(pages|components|hooks|contexts)/<deleted>'` — fix any remaining import.
-6. Verify Vite builds cleanly (TS errors will surface immediately).
+**Signin/signup form**
+- Remove `<RoleSelector>` and all role-conditional fields (clinic name/address/phone).
+- Remove `selectedRole`, `clinicName`, `clinicAddress`, `clinicPhone` state.
+- Signup payload: just `email`, `password`, `fullName`. No role insert needed — every new account defaults to `'user'` via DB column default and `useAdmin` flips on later if an admin assigns it.
+- Welcome toast → "Welcome to Z Agro Tech!".
 
-## Open questions resolved
+**Redirects (post-auth)**
+- After signin/signup: check `isAdmin` (single query to `user_roles` for `role='admin'`).
+  - Admin → `/admin`
+  - Otherwise → `from` location (if redirected from a guarded route) or `/dashboard`.
+- Drop `redirectBasedOnRoles` priority logic and the `/select-role`, `/clinic/*`, `/doctor/*` branches.
 
-- Strict admin scope ✅ · Keep AdminLayout+Sidebar ✅ · Keep utility pages ✅
-- Exception: keeping `AdminContactMessages` because `/contact` is kept.
+**Misc**
+- Lucide icons: drop `PawPrint`, `Heart`; add `Sprout`, `GraduationCap`, `Truck` (`ShieldCheck` kept).
+- Drop unused `clinicOwnerSignupSchema` import.
+- Keep Google + Apple OAuth buttons untouched (managed Lovable Cloud).
+- Keep glassmorphism card, `bg-agri-gradient`, decorative blobs, password visibility toggle, validation error rendering.
+
+### `src/lib/validations.ts`
+- Remove `clinicOwnerSignupSchema` and its type export. Nothing else references it after AuthPage rewrite (verified).
+
+### `src/components/auth/RoleSelector.tsx`
+- Delete file. Last consumer (`AuthPage`) drops the import.
+
+## Out of scope (intentionally unchanged)
+- `AuthContext`, `RequireAuth`, `RequireAdmin`, Supabase client — all stay.
+- DB / RLS — no migrations. Existing legacy `doctor`/`clinic_owner` rows in `user_roles` are harmless (no UI references them anywhere now).
+- `/forgot-password` and `/reset-password` pages — already correct.
+
+## Visual outcome (right panel)
+
+```text
+┌─ Glass card on agri-gradient ───────────────┐
+│  [ Sign In  |  Sign Up ]                    │
+│  Email   ____________________               │
+│  Pass    ____________________ ( eye )       │
+│  ──── Sign In ────                          │
+│  ── or continue with ──                     │
+│  [ Google ] [ Apple ]                       │
+└─────────────────────────────────────────────┘
+```
+
+Signup adds only a Full Name field above Email. No role picker, no clinic fields.
 
