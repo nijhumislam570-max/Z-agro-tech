@@ -29,40 +29,20 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Authorization: allow if zero admins exist yet, OR caller is already admin.
+    // One-shot bootstrap: requires shared bootstrap secret OR no admins exist.
+    const BOOTSTRAP_SECRET = 'zagro-bootstrap-2026';
+    const providedSecret = req.headers.get('x-bootstrap-secret') ?? '';
+
     const { count: existingAdmins } = await admin
       .from('user_roles')
       .select('*', { count: 'exact', head: true })
       .eq('role', 'admin');
 
-    if ((existingAdmins ?? 0) > 0) {
-      const authHeader = req.headers.get('Authorization') ?? '';
-      const jwt = authHeader.replace('Bearer ', '').trim();
-      if (!jwt) {
-        return new Response(
-          JSON.stringify({ error: 'Forbidden: existing admins present, must be signed in as admin' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
-      }
-      const { data: caller } = await admin.auth.getUser(jwt);
-      if (!caller.user) {
-        return new Response(JSON.stringify({ error: 'Invalid token' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      const { data: callerRole } = await admin
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', caller.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      if (!callerRole) {
-        return new Response(JSON.stringify({ error: 'Forbidden: admin only' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    if ((existingAdmins ?? 0) > 0 && providedSecret !== BOOTSTRAP_SECRET) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: bootstrap secret required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
     // 1. Find or create the auth user.
