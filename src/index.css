@@ -5,55 +5,63 @@
 
 @layer base {
   :root {
-    /* Playful & Vibrant Pet-Friendly Palette */
-    --background: 45 60% 98%;
-    --foreground: 220 25% 20%;
+    /* Z Agro Tech — Earthy, Organic, Trustworthy */
+    --background: 60 30% 98%;
+    --foreground: 140 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 20%;
+    --card-foreground: 140 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 20%;
+    --popover-foreground: 140 30% 12%;
 
-    /* Coral/Peach Primary - Warm & Friendly */
-    --primary: 15 85% 60%;
-    --primary-foreground: 0 0% 100%;
+    /* Deep forest green primary */
+    --primary: 142 55% 28%;
+    --primary-foreground: 60 30% 98%;
 
-    /* Soft Blue Secondary */
-    --secondary: 210 60% 95%;
-    --secondary-foreground: 210 60% 35%;
+    /* Soft sage secondary */
+    --secondary: 90 25% 92%;
+    --secondary-foreground: 140 35% 22%;
 
-    --muted: 45 30% 94%;
-    /* Improved contrast for accessibility - darkened from 50% to 38% */
-    --muted-foreground: 220 20% 38%;
+    --muted: 80 20% 94%;
+    --muted-foreground: 140 12% 38%;
 
-    /* Mint/Teal Accent - Fresh & Playful */
-    --accent: 165 55% 50%;
+    /* Warm earthy accent (golden harvest) */
+    --accent: 38 70% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 15 85% 60%;
+    --border: 90 15% 88%;
+    --input: 90 15% 88%;
+    --ring: 142 55% 28%;
 
     --radius: 1rem;
 
-    /* Custom pet-friendly tokens */
-    --coral: 15 85% 60%;
-    --coral-light: 15 80% 85%;
-    --coral-dark: 15 90% 45%;
-    --mint: 165 55% 50%;
-    --mint-light: 165 50% 80%;
-    --sky: 200 85% 60%;
-    --sky-light: 200 80% 90%;
-    --lavender: 270 60% 65%;
-    --lavender-light: 270 60% 92%;
-    --sunshine: 45 95% 50%;
-    --sunshine-light: 45 95% 85%;
-    --peach: 25 90% 75%;
-    --cream: 45 60% 97%;
+    /* Brand-specific tokens */
+    --forest: 142 55% 28%;
+    --forest-light: 142 40% 50%;
+    --forest-dark: 142 60% 18%;
+    --sage: 90 25% 70%;
+    --sage-light: 90 25% 92%;
+    --harvest: 38 70% 50%;
+    --harvest-light: 38 80% 88%;
+    --soil: 28 35% 35%;
+    --cream: 45 50% 96%;
+    /* Legacy aliases (kept so older components still resolve) */
+    --coral: 142 55% 28%;
+    --coral-light: 142 30% 88%;
+    --coral-dark: 142 60% 20%;
+    --mint: 142 40% 50%;
+    --mint-light: 90 25% 88%;
+    --sky: 200 50% 55%;
+    --sky-light: 200 50% 92%;
+    --lavender: 142 35% 45%;
+    --lavender-light: 90 25% 92%;
+    --sunshine: 38 80% 55%;
+    --sunshine-light: 38 80% 90%;
+    --peach: 38 60% 80%;
     
     /* Status colors */
     --success: 160 60% 45%;
@@ -64,29 +72,29 @@
     --warning-foreground: 38 92% 20%;
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(15 85% 95%), hsl(45 90% 95%), hsl(200 80% 95%));
-    --gradient-primary: linear-gradient(135deg, hsl(15 85% 60%), hsl(25 90% 65%));
-    --gradient-accent: linear-gradient(135deg, hsl(165 55% 50%), hsl(200 85% 60%));
-    --gradient-fun: linear-gradient(135deg, hsl(15 85% 60%), hsl(270 60% 70%));
-    --gradient-story: linear-gradient(135deg, hsl(15 85% 60%), hsl(45 95% 55%), hsl(165 55% 50%));
-    --gradient-rainbow: linear-gradient(135deg, hsl(0 75% 60%), hsl(45 95% 55%), hsl(165 55% 50%), hsl(200 85% 60%), hsl(270 60% 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(90 30% 96%), hsl(60 40% 97%), hsl(38 60% 95%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 55% 28%), hsl(142 45% 38%));
+    --gradient-accent: linear-gradient(135deg, hsl(38 70% 50%), hsl(38 80% 60%));
+    --gradient-fun: linear-gradient(135deg, hsl(142 55% 28%), hsl(38 70% 50%));
+    --gradient-story: linear-gradient(135deg, hsl(142 55% 28%), hsl(90 40% 50%), hsl(38 70% 50%));
+    --gradient-rainbow: linear-gradient(135deg, hsl(142 55% 28%), hsl(90 40% 50%), hsl(38 70% 50%));
 
     /* Shadows */
-    --shadow-card: 0 4px 20px -4px hsl(220 25% 20% / 0.08);
-    --shadow-hover: 0 12px 40px -12px hsl(15 85% 60% / 0.25);
-    --shadow-button: 0 4px 14px -4px hsl(15 85% 60% / 0.4);
-    --shadow-soft: 0 2px 12px -2px hsl(220 25% 20% / 0.1);
-    --shadow-glow: 0 0 20px hsl(15 85% 60% / 0.3);
-    --shadow-playful: 0 8px 30px -8px hsl(270 60% 70% / 0.25);
+    --shadow-card: 0 4px 20px -4px hsl(140 30% 12% / 0.08);
+    --shadow-hover: 0 12px 40px -12px hsl(142 55% 28% / 0.22);
+    --shadow-button: 0 4px 14px -4px hsl(142 55% 28% / 0.35);
+    --shadow-soft: 0 2px 12px -2px hsl(140 30% 12% / 0.08);
+    --shadow-glow: 0 0 20px hsl(142 55% 28% / 0.25);
+    --shadow-playful: 0 8px 30px -8px hsl(38 70% 50% / 0.22);
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 25% 25%;
-    --sidebar-primary: 15 85% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 60% 95%;
-    --sidebar-accent-foreground: 220 25% 25%;
-    --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 15 85% 60%;
+    --sidebar-foreground: 140 30% 18%;
+    --sidebar-primary: 142 55% 28%;
+    --sidebar-primary-foreground: 60 30% 98%;
+    --sidebar-accent: 90 25% 94%;
+    --sidebar-accent-foreground: 140 30% 18%;
+    --sidebar-border: 90 15% 88%;
+    --sidebar-ring: 142 55% 28%;
   }
 
   .dark {
