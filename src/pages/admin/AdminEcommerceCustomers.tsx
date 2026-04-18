@@ -58,6 +58,8 @@ import { usePagination } from '@/hooks/usePagination';
 import { cn } from '@/lib/utils';
 import { TimeFilterBar, getTimeCutoff, type TimeFilter } from '@/components/admin/TimeFilterBar';
 import { AdminStatCard } from '@/components/admin/AdminStatCard';
+import { TableSkeleton } from '@/components/ui/table-skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 type PaymentFilter = 'all' | 'paid' | 'unpaid';
 
@@ -526,14 +528,20 @@ const AdminEcommerceCustomers = () => {
       {/* Table */}
       <div className="bg-card rounded-xl sm:rounded-2xl border border-border overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="p-3 sm:p-4">
+            <TableSkeleton rows={6} columns={6} />
           </div>
         ) : paginatedData.length === 0 ? (
-          <div className="text-center py-12">
-            <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No customers found</p>
-          </div>
+          <EmptyState
+            bordered={false}
+            icon={ShoppingBag}
+            title={searchQuery || paymentFilter !== 'all' ? 'No matching customers' : 'No e-commerce customers yet'}
+            description={
+              searchQuery || paymentFilter !== 'all'
+                ? 'Adjust the search or payment filter to see results.'
+                : 'When customers place orders, they will show up here.'
+            }
+          />
         ) : (
           <>
             {/* Mobile Card View */}
