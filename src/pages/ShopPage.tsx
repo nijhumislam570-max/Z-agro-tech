@@ -180,7 +180,7 @@ const HeroCarousel = memo(({ products }: { products: Product[] }) => {
 HeroCarousel.displayName = 'HeroCarousel';
 
 const ShopPage = () => {
-  useDocumentTitle('Pet Shop');
+  useDocumentTitle('Shop');
   const { totalItems } = useCart();
   const { wishlistIds } = useWishlist();
   const { recentProducts } = useRecentlyViewed();
@@ -386,11 +386,11 @@ const ShopPage = () => {
                 </span>
               </div>
               <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
-                Premium Pet & Farm
+                Premium Agriculture
                 <span className="block text-primary">Supplies</span>
               </h1>
               <p className="text-muted-foreground text-xs sm:text-base max-w-md hidden sm:block">
-                Quality products for your beloved pets and farm animals. Fast delivery across Bangladesh.
+                Quality seeds, fertilizers, livestock feed, and farm tools for modern farmers. Fast delivery across Bangladesh.
               </p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-muted-foreground bg-background/80 backdrop-blur-sm border border-border rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
