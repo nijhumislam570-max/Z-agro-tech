@@ -187,12 +187,12 @@ const AdminAnalytics = () => {
                 href="/admin/messages"
               />
               <AnalyticsStatCard
-                title="Pending Orders"
-                value={analytics?.pendingOrders || 0}
+                title="Total Orders"
+                value={analytics?.totalOrders || 0}
                 icon={<ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />}
-                subtitle="Awaiting action"
+                subtitle={`${analytics?.activeOrders || 0} active`}
                 iconClassName="bg-amber-100 dark:bg-amber-900/30"
-                href="/admin/orders?status=pending"
+                href="/admin/orders"
               />
             </div>
           </div>
