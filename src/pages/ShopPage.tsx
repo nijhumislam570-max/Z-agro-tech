@@ -353,25 +353,8 @@ const ShopPage = () => {
       <header className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
         <div className="absolute inset-0 overflow-hidden hidden sm:block">
           <div className="absolute inset-0 flex animate-[shop-slide_20s_linear_infinite]" style={{ width: '200%' }}>
-            {[
-              '/products/cat-carrier.jpg',
-              '/products/grooming-set.jpg', 
-              '/products/pet-balls.jpg',
-              '/products/cat-house.jpg',
-              '/products/feeding-bowl.jpg',
-              '/products/pet-collar.jpg',
-              '/products/winter-dress.jpg',
-              '/products/cat-teaser-toy.jpg',
-            ].map((src, i) => (
-              <div key={i} className="flex-shrink-0 w-[12.5%] h-full relative">
-                <img
-                  src={src}
-                  alt=""
-                  loading={i < 4 ? "eager" : "lazy"}
-                  className="w-full h-full object-cover opacity-[0.08]"
-                  aria-hidden="true"
-                />
-              </div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-[12.5%] h-full relative bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" aria-hidden="true" />
             ))}
           </div>
         </div>
