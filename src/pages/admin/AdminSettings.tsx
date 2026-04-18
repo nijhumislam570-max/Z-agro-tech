@@ -756,13 +756,6 @@ const AdminSettingsContent = () => {
                 <Switch checked={platformSettings.enableReviews} onCheckedChange={(c) => setPlatformSettings({ ...platformSettings, enableReviews: c })} />
               </SettingRow>
 
-              <Separator />
-
-              <div className="space-y-1.5">
-                <Label className="text-xs sm:text-sm">Max Pets Per User</Label>
-                <Input type="number" value={platformSettings.maxPetsPerUser} onChange={(e) => setPlatformSettings({ ...platformSettings, maxPetsPerUser: parseInt(e.target.value) || 30 })} className="h-10 sm:h-11 max-w-xs" />
-              </div>
-
               <SaveButton isPending={savePlatformMutation.isPending} onClick={() => savePlatformMutation.mutate(platformSettings)} />
             </CardContent>
           </Card>
