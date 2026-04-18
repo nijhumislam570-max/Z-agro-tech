@@ -52,13 +52,16 @@ const TrackOrderPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchAttempted, setSearchAttempted] = useState(false);
 
-  // Auto-load order from URL param
+  // Auto-load order from URL param.
+  // Depend on user.id (primitive) instead of the user object reference,
+  // otherwise every auth token refresh re-emits a new user object and
+  // re-fires the fetch in a near-loop.
   useEffect(() => {
-    if (orderId && user) {
+    if (orderId && user?.id) {
       setSearchInput(orderId);
       fetchOrder(orderId);
     }
-  }, [orderId, user]);
+  }, [orderId, user?.id, fetchOrder]);
 
   // Real-time order status updates
   useEffect(() => {
