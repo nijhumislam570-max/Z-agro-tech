@@ -1,130 +1,138 @@
 
 
-# Phase 3 — Glass Bento Dashboard
+# Phase 4 — Krishi Clinic Polish (Carousel + Real Imagery)
 
-Premium UI upgrade for the user `/dashboard`: a 12-column bento grid with glassmorphism over the earthy-green brand, real agri copy, and live Supabase data. No schema changes, no routing changes.
+Phase 3 already shipped the bento grid + glassmorphism. Phase 4 layers on the missing pieces from the new brief: a swipeable **Carousel** of featured agri-inputs & masterclasses, real Unsplash imagery as fallbacks, richer agri copy, and Skeleton states for every async tile.
 
-## Scope (visual/layout only)
+## What's already done (Phase 3 — keep)
 
-- Replace `src/pages/DashboardPage.tsx` content with a **Bento Grid** above the existing `Tabs`.
-- Add 5 reusable tiles and a glass design system utility.
-- Wire tiles to existing hooks (`useMyOrders`, `useEnrollments`) + one tiny new query for recommended products.
-- Keep `Tabs` ("My Orders" | "My Courses") below the grid as a deeper drill-down.
-- Skeletons for every async tile.
+- Bento grid (`BentoGrid`, `GlassCard`)
+- Glass utilities (`.glass`, `.bg-agri-gradient`)
+- Tiles: KPI Marquee, Quick Actions, Learning Path, Recommended Inputs, Recent Order, Masterclass
+- Hooks: `useRecommendedProducts`, `useFeaturedMasterclass`, `useDashboardKPIs`
 
-## Bento layout (12-col → 1-col)
+## What gets added (Phase 4)
 
 ```text
-Desktop (lg, 12 cols, ~3 rows)
-┌──────────────────────────────────────────────┬───────────────────────┐
-│ KPI Marquee  (col-span-12 lg:col-span-8)     │ Quick Actions         │
-│ "স্বাগতম, {name}" + 3 stat chips             │ (lg:col-span-4)       │
-├──────────────────────┬───────────────────────┴───────────────────────┤
-│ Learning Path        │ Recommended Inputs                            │
-│ (lg:col-span-5)      │ (lg:col-span-7)  3-up product mini-cards      │
-│ active course +      │                                               │
-│ Progress + Continue  │                                               │
-├──────────────────────┴───────────────────────┬───────────────────────┤
-│ Recent Order Status   (lg:col-span-8)        │ Featured Masterclass  │
-│ latest order, badge, "Track" CTA             │ (lg:col-span-4)       │
-└──────────────────────────────────────────────┴───────────────────────┘
-
-Mobile: every tile col-span-12, stacked.
+Dashboard layout (12-col → 1-col on mobile)
+┌──────────────────────────────────────────────┬──────────────────────┐
+│ KPI Marquee  (col-span-12 lg:col-span-8)     │ Quick Actions (4)    │
+├──────────────────────────────────────────────┴──────────────────────┤
+│ ★ Featured Carousel — col-span-12  (NEW)                            │
+│   Swipeable mix of top products + trending masterclasses            │
+├──────────────────────┬───────────────────────┬──────────────────────┤
+│ Learning Path (5)    │ Recommended Inputs (7)                       │
+├──────────────────────┴───────────────────────┬──────────────────────┤
+│ Recent Order (8)                             │ Masterclass (4)      │
+└──────────────────────────────────────────────┴──────────────────────┘
 ```
 
 ## New files
 
 ```text
-src/components/dashboard/
-  GlassCard.tsx              shadcn Card preset: backdrop-blur-md bg-white/10
-                             border-white/20 shadow-xl rounded-2xl + dark variant
-  BentoGrid.tsx              wrapper: grid grid-cols-12 gap-4 + container padding
-  tiles/
-    KPIMarqueeTile.tsx       welcome + 3 stat chips (Active Courses, Recent Orders, In Progress)
-    LearningPathTile.tsx     latest enrollment → course thumb, instructor Avatar,
-                             Progress bar, "Continue Learning" Button
-    RecommendedInputsTile.tsx 3 in-stock products, mini ProductCard, "Add to Cart"
-    RecentOrderTile.tsx      latest order: status Badge (statusColors), total, Track CTA
-    MasterclassTile.tsx      featured course: cover, difficulty Badge, "Enroll" CTA
-    QuickActionsTile.tsx     4 link buttons: Shop · Academy · Cart · Track Order
+ADD  src/lib/agriImages.ts
+     Curated Unsplash fallback URLs (seeds, fertilizer, pesticide,
+     greenhouse, soil, harvest, instructor portraits) + helper
+     getProductImage(name|category) / getCourseImage(category).
 
-src/hooks/
-  useDashboardData.ts        composes useMyOrders + useEnrollments + new
-                             useRecommendedProducts (top 3 stock>0, is_active)
-                             returns aggregated KPIs for the marquee
+ADD  src/components/dashboard/tiles/FeaturedCarouselTile.tsx
+     Uses shadcn <Carousel> with Embla. Mixes top 3 products +
+     top 3 courses into one swipeable strip. Each slide is a
+     glass card with image, title, badge (In Stock / Enroll Now,
+     difficulty, mode), price/duration, hover lift.
+     Skeleton: 3 placeholder slides.
+
+ADD  src/hooks/useFeaturedAgri.ts
+     Composes useRecommendedProducts(3) + featured courses(3)
+     into a unified `FeaturedItem` array tagged 'product' | 'course'.
 ```
 
 ## Modified files
 
 ```text
 MODIFY  src/pages/DashboardPage.tsx
-        - Adds <BentoGrid> above existing <Tabs>
-        - Section heading uses real agri copy:
-          "Your Krishi Clinic" / "Personalized for your farm"
-        - Tabs labels updated: "AgroShop Orders" | "Academy Enrollments"
-MODIFY  src/index.css
-        - Add gradient background utility for dashboard:
-          .bg-agri-gradient → from emerald-700 via-emerald-500 to-amber-300
-        - Add .glass utility for reuse outside Card
+        - Insert <FeaturedCarouselTile /> as second row of bento.
+
+MODIFY  src/components/dashboard/tiles/RecommendedInputsTile.tsx
+        - Use getProductImage() fallback when image_url missing.
+        - Add semantic <Badge> "In Stock" (green) / "Low" (amber).
+        - Add hover lift: hover:-translate-y-1 hover:shadow-lg.
+
+MODIFY  src/components/dashboard/tiles/LearningPathTile.tsx
+        - Add <Avatar> for instructor (initials fallback).
+        - Use getCourseImage() fallback for thumbnails.
+        - Polish Progress label ("Lesson 3 of 8 · 38%").
+
+MODIFY  src/components/dashboard/tiles/MasterclassTile.tsx
+        - Use getCourseImage() fallback.
+        - Difficulty badge color mapped to green/amber/red.
+
+MODIFY  src/components/dashboard/tiles/KPIMarqueeTile.tsx
+        - Real copy refresh: "Welcome back, {name} 🌱 Your Krishi
+          Clinic is ready" + chips already present.
 ```
 
-## Glassmorphism token (in `index.css`)
+## Component checklist (per brief)
 
-```css
-.glass {
-  @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-xl;
-}
-.bg-agri-gradient {
-  background-image: linear-gradient(135deg,
-    hsl(142 55% 22%), hsl(142 45% 35%) 45%, hsl(38 70% 60%));
-}
-```
-
-The dashboard `<main>` gets `bg-agri-gradient` so glass tiles read correctly. Inner text adapts (white-ish on glass, foreground inside opaque sub-cards).
+- [x] `Card` / `CardHeader` / `CardTitle` / `CardContent` — already used in tiles.
+- [x] `Carousel` — **new** in FeaturedCarouselTile.
+- [x] `Progress` — already in LearningPathTile.
+- [x] `Avatar` — **new** in LearningPathTile (instructor).
+- [x] `Badge` semantic — extended (In Stock / Out of Stock / Enrolled / Difficulty).
+- [x] `Skeleton` — already in tiles; added to carousel.
+- [x] Hover micro-interactions: `transition-all duration-200 hover:-translate-y-1 hover:shadow-lg` on every clickable card.
 
 ## Real copy used
 
-- Section: **"Your Krishi Clinic Dashboard"**, subtitle **"Personalized inputs and learning for your farm"**
-- KPI chips: **Active Courses · Recent Orders · Lessons in Progress**
-- Learning Path: **"Continue your masterclass"**
-- Recommended: **"Recommended Agri-Inputs"** (filter hint: Seeds · Fertilizers · Pest Control)
-- Order tile: **"Latest AgroShop order"**
-- Masterclass tile: **"Featured Masterclass — Crop Disease Management"** (uses real course title when available)
-- Quick Actions: **Shop AgroInputs · Browse Academy · View Cart · Track Order**
+- Carousel header: **"Featured this week"** · subtitle **"Hand-picked agri-inputs & masterclasses from our experts"**
+- Product badges: **In Stock · Low Stock · Out of Stock**
+- Course badges: **Beginner · Intermediate · Advanced · Online · On-site**
+- Section labels stay in English (i18n deferred).
 
-## Data wiring (no schema change)
+## Imagery strategy
 
-- `useMyOrders()` → latest order + count for KPI.
-- `useEnrollments()` → latest enrollment joined with course for Learning Path; count for KPI.
-- New `useRecommendedProducts()` (3 rows): `products` where `is_active=true and stock > 0` order by `is_featured desc, created_at desc` limit 3.
-- New `useFeaturedMasterclass()` (1 row): `courses` where `is_active=true` order by `created_at desc` limit 1.
-- Skeleton components from `@/components/ui/skeleton` for every tile body.
+`src/lib/agriImages.ts` exports Unsplash source URLs grouped by intent:
+
+```ts
+export const AGRI_IMAGES = {
+  product: {
+    seed:        'https://images.unsplash.com/photo-1574323347407-...',
+    fertilizer:  'https://images.unsplash.com/photo-1625246333195-...',
+    pesticide:   'https://images.unsplash.com/photo-1592982537447-...',
+    tool:        'https://images.unsplash.com/photo-1585320806297-...',
+    default:     'https://images.unsplash.com/photo-1500382017468-...',
+  },
+  course: {
+    plant_doctor:    'https://images.unsplash.com/photo-1530836369250-...',
+    smart_farming:   'https://images.unsplash.com/photo-1574943320219-...',
+    organic:         'https://images.unsplash.com/photo-1464226184884-...',
+    urban_farming:   'https://images.unsplash.com/photo-1592419044706-...',
+    plant_protection:'https://images.unsplash.com/photo-1530507629858-...',
+    default:         'https://images.unsplash.com/photo-1500595046743-...',
+  },
+};
+```
+
+Fallback resolver: if DB row has `image_url` / `thumbnail_url` → use it; else map `category` → image; else `default`.
 
 ## Guardrails honored
 
-- No DB migrations. No route changes. No removal of existing Tabs/Orders/Courses tabs.
-- Bento grid degrades to single column at `< lg`.
-- All buttons use existing shadcn `Button` with the existing 200ms transitions from `button.tsx`.
-- Status colors stay consistent with `src/lib/statusColors.ts`.
-- Empty states: each tile shows a friendly empty card with a CTA (no blank tiles).
-
-## Out of scope
-
-Payments, video player, course progress tracking logic, instructor portal, reviews, i18n.
+- No DB migrations, no route changes, no Layout/Tabs disruption.
+- Bento grid still degrades to single column at `< lg`.
+- Carousel uses existing shadcn `Carousel` (Embla) — already installed.
+- All async tiles get Skeleton placeholders to prevent layout shift.
+- Hover transitions strictly `200ms` per brief.
 
 ## File-change summary
 
 ```text
-ADD     src/components/dashboard/GlassCard.tsx
-ADD     src/components/dashboard/BentoGrid.tsx
-ADD     src/components/dashboard/tiles/KPIMarqueeTile.tsx
-ADD     src/components/dashboard/tiles/LearningPathTile.tsx
-ADD     src/components/dashboard/tiles/RecommendedInputsTile.tsx
-ADD     src/components/dashboard/tiles/RecentOrderTile.tsx
-ADD     src/components/dashboard/tiles/MasterclassTile.tsx
-ADD     src/components/dashboard/tiles/QuickActionsTile.tsx
-ADD     src/hooks/useDashboardData.ts
-MODIFY  src/pages/DashboardPage.tsx   (mount bento grid + agri copy)
-MODIFY  src/index.css                 (.glass + .bg-agri-gradient)
+ADD     src/lib/agriImages.ts
+ADD     src/hooks/useFeaturedAgri.ts
+ADD     src/components/dashboard/tiles/FeaturedCarouselTile.tsx
+MODIFY  src/pages/DashboardPage.tsx
+MODIFY  src/components/dashboard/tiles/RecommendedInputsTile.tsx
+MODIFY  src/components/dashboard/tiles/LearningPathTile.tsx
+MODIFY  src/components/dashboard/tiles/MasterclassTile.tsx
+MODIFY  src/components/dashboard/tiles/KPIMarqueeTile.tsx
 ```
 
