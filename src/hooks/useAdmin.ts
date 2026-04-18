@@ -58,19 +58,26 @@ export const useAdminStats = () => {
   });
 };
 
-export const useAdminProducts = () => {
+export const useAdminProducts = (page = 0, pageSize = 50) => {
   const { isAdmin } = useAdmin();
 
   return useQuery({
-    queryKey: ['admin-products'],
+    queryKey: ['admin-products', page, pageSize],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data, error, count } = await supabase
         .from('products')
-        .select('id, name, description, price, compare_price, category, product_type, image_url, stock, badge, discount, is_active, is_featured, sku, created_at')
-        .order('created_at', { ascending: false });
+        .select(
+          'id, name, description, price, compare_price, category, product_type, image_url, stock, badge, discount, is_active, is_featured, sku, created_at',
+          { count: 'exact' },
+        )
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      return data;
+      return { products: data ?? [], totalCount: count ?? 0, page, pageSize };
     },
     enabled: isAdmin,
   });
