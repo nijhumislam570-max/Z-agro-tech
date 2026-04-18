@@ -1,7 +1,6 @@
 import { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { useIncompleteOrders } from '@/hooks/useIncompleteOrders';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -263,10 +262,4 @@ const AdminRecoveryAnalytics = () => {
   );
 };
 
-const AdminRecoveryAnalyticsGuarded = () => (
-  <RequireAdmin>
-    <AdminRecoveryAnalytics />
-  </RequireAdmin>
-);
-
-export default AdminRecoveryAnalyticsGuarded;
+export default AdminRecoveryAnalytics;
