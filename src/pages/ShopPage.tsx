@@ -93,10 +93,20 @@ const HeroCarousel = memo(({ products }: { products: Product[] }) => {
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   
   const featured = useMemo(() => {
-    const adminFeatured = products.filter(p => p.is_featured && p.is_active !== false && p.image_url);
+    // Single pass: bucket products into admin-featured, discounted, and
+    // generic-active groups while iterating once instead of running .filter()
+    // three times over the same array.
+    const adminFeatured: Product[] = [];
+    const discounted: Product[] = [];
+    const activeWithImage: Product[] = [];
+    for (const p of products) {
+      if (p.is_active === false || !p.image_url) continue;
+      activeWithImage.push(p);
+      if (p.is_featured) adminFeatured.push(p);
+      if (p.discount && p.discount > 0) discounted.push(p);
+    }
     if (adminFeatured.length > 0) return adminFeatured.slice(0, 8);
-    const discounted = products.filter(p => p.discount && p.discount > 0 && p.image_url && p.is_active !== false);
-    const pool = discounted.length >= 5 ? discounted : products.filter(p => p.image_url && p.is_active !== false);
+    const pool = discounted.length >= 5 ? discounted : activeWithImage;
     return pool.slice(0, 5);
   }, [products]);
 
