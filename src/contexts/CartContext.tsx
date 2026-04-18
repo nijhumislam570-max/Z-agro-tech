@@ -14,13 +14,29 @@ export interface CartItem {
 // ─── Module-level store (singleton, no React context needed) ─────────
 
 const CART_STORAGE_KEY = 'zagrotech-cart';
+const LEGACY_CART_STORAGE_KEY = 'vetmedix-cart';
 
 function readStoredCart(): CartItem[] {
   try {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (stored) return JSON.parse(stored);
+
+    // One-time migration from the legacy Vetmedix-era storage key.
+    // Any returning user with an old cart in localStorage will keep their
+    // items on first load, then we delete the legacy entry.
+    const legacy = localStorage.getItem(LEGACY_CART_STORAGE_KEY);
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
+      localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
+      if (Array.isArray(parsed)) {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(parsed));
+        return parsed;
+      }
+    }
+    return [];
   } catch {
     localStorage.removeItem(CART_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_CART_STORAGE_KEY);
     return [];
   }
 }

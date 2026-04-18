@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDeliveryCharge } from '@/hooks/useDeliveryCharge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -135,31 +135,9 @@ const CheckoutPage = () => {
   };
   const { markRecovered } = useCheckoutTracking(trackingData, items, totalAmount, paymentMethod);
 
-  // Fetch delivery zones
-  const { data: deliveryZones = [] } = useQuery({
-    queryKey: ['delivery-zones'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('delivery_zones')
-        .select('*')
-        .eq('is_active', true);
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-
+  // Centralized delivery-charge calc — same hook used by CartPage to keep totals consistent.
   const watchedDivision = watchedValues.division;
-
-  const matchedZone = useMemo(() => {
-    if (!watchedDivision) return null;
-    const normalizedDiv = watchedDivision.trim();
-    return deliveryZones.find(z => 
-      (z.divisions as string[])?.some(d => d.toLowerCase() === normalizedDiv.toLowerCase())
-    ) || null;
-  }, [watchedDivision, deliveryZones]);
-
-  const deliveryCharge = matchedZone ? Number(matchedZone.charge) : (watchedDivision ? 120 : 60);
+  const { charge: deliveryCharge, zoneName: matchedZoneName } = useDeliveryCharge(totalAmount, watchedDivision);
   
   // Calculate coupon discount
   const couponDiscount = (() => {
@@ -352,7 +330,7 @@ const CheckoutPage = () => {
               <Button onClick={() => navigate('/shop')} size="lg" className="rounded-xl">
                 Continue Shopping
               </Button>
-              <Button onClick={() => navigate('/profile')} variant="outline" size="lg" className="rounded-xl">
+              <Button onClick={() => navigate('/dashboard')} variant="outline" size="lg" className="rounded-xl">
                 View Orders
               </Button>
             </div>

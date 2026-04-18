@@ -7,8 +7,15 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { getStatusColor, getStatusIcon } from './OrderStatusHelpers';
 
+interface RecentOrderSummary {
+  id: string;
+  total_amount: number;
+  status: string | null;
+  created_at: string;
+}
+
 interface RecentOrdersListProps {
-  orders: any[] | undefined;
+  orders: RecentOrderSummary[] | undefined;
   isLoading: boolean;
 }
 
@@ -50,7 +57,7 @@ export const RecentOrdersList = memo(({ orders, isLoading }: RecentOrdersListPro
           </div>
         ) : (
           <div className="space-y-2">
-            {orders.map((order: any) => (
+            {orders.map((order) => (
               <div
                 key={order.id}
                 onClick={() => navigate('/admin/orders')}

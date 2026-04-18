@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, ShoppingBag } from 'lucide-react';
 import { useMyOrders } from '@/hooks/useMyOrders';
+import type { Order } from '@/types/database';
 
 const statusVariants: Record<string, string> = {
   pending: 'bg-warning/15 text-warning-foreground border-warning/30',
@@ -49,7 +50,7 @@ export const OrdersTab = () => {
 
   return (
     <div className="space-y-3">
-      {orders.map((order: any) => (
+      {orders.map((order: Order) => (
         <Card key={order.id} className="overflow-hidden">
           <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
