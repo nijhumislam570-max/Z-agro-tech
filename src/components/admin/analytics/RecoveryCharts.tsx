@@ -101,7 +101,7 @@ const RecoveryCharts = ({ dailyData, pieData }: Props) => {
           </ResponsiveContainer>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 };
 
