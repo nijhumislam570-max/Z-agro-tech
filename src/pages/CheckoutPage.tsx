@@ -260,15 +260,6 @@ const CheckoutPage = () => {
 
       const orderData = { id: orderId };
 
-      // Notify admins of new order
-      if (orderData) {
-        await notifyAdminsOfNewOrder({
-          orderId: orderData.id,
-          orderTotal: grandTotal,
-          itemCount: totalItems,
-        });
-      }
-
       // Mark incomplete order as recovered
       if (orderData?.id) {
         await markRecovered(orderData.id);
