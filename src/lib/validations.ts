@@ -12,11 +12,13 @@ export const emailSchema = z
   .email('Please enter a valid email address')
   .max(255, 'Email must be less than 255 characters');
 
-// Password validation schema
+// Password validation schema (Pillar 1: ≥8 chars, must include letter + number)
 export const passwordSchema = z
   .string()
-  .min(6, 'Password must be at least 6 characters')
-  .max(100, 'Password must be less than 100 characters');
+  .min(8, 'Password must be at least 8 characters')
+  .max(100, 'Password must be less than 100 characters')
+  .regex(/[A-Za-z]/, 'Password must contain at least one letter')
+  .regex(/[0-9]/, 'Password must contain at least one number');
 
 // Login form validation
 export const loginSchema = z.object({
