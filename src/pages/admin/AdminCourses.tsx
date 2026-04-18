@@ -118,7 +118,7 @@ const AdminCourses = () => {
   const openNew = () => { setEditing(null); setForm(empty); setOpen(true); };
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Courses">
       <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
