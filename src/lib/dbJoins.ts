@@ -50,16 +50,16 @@ export function groupBy<T, K extends keyof T>(
  *   const profiles = await supabase.from('profiles').select(...).in('user_id', ids);
  *   const merged = joinByKey(orders, 'user_id', indexBy(profiles, 'user_id'), 'profile');
  */
-export function joinByKey<P, R, K extends keyof P>(
+export function joinByKey<P, R, K extends keyof P, A extends string>(
   parents: readonly P[],
   parentKey: K,
   lookup: Map<NonNullable<P[K]>, R>,
-  attachAs: string,
-): Array<P & Record<string, R | null>> {
+  attachAs: A,
+): Array<P & { [Key in A]: R | null }> {
   return parents.map((p) => {
     const k = p[parentKey];
     const related = k !== null && k !== undefined ? lookup.get(k as NonNullable<P[K]>) ?? null : null;
-    return { ...p, [attachAs]: related } as P & Record<string, R | null>;
+    return { ...p, [attachAs]: related } as P & { [Key in A]: R | null };
   });
 }
 
