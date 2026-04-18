@@ -339,7 +339,7 @@ export type Database = {
           status: string | null
           trashed_at: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           cart_total?: number | null
@@ -357,7 +357,7 @@ export type Database = {
           status?: string | null
           trashed_at?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           cart_total?: number | null
@@ -375,7 +375,7 @@ export type Database = {
           status?: string | null
           trashed_at?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
