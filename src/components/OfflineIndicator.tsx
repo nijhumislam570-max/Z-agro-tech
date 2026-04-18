@@ -52,7 +52,7 @@ export function OfflineIndicator() {
   if (showReconnected) {
     return (
       <div 
-        className="fixed top-0 left-0 right-0 z-[100] bg-green-600 text-white py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium shadow-lg animate-slide-down"
+        className="fixed top-0 left-0 right-0 z-[100] bg-success text-success-foreground py-2 px-4 flex items-center justify-center gap-2 text-sm font-medium shadow-lg animate-slide-down"
         role="status"
         aria-live="polite"
       >

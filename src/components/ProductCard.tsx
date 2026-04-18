@@ -90,7 +90,7 @@ const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(({ id, nam
             <span className="badge-sale text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5">{discount}%</span>
           )}
           {isLowStock && (
-            <span className="bg-amber-500 text-white text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-medium">
+            <span className="bg-warning text-warning-foreground text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-medium">
               {stock} left
             </span>
           )}
@@ -118,7 +118,7 @@ const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(({ id, nam
         {/* Rating Display */}
         {avgRating !== undefined && avgRating > 0 && (
           <div className="flex items-center gap-0.5">
-            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-amber-400 fill-amber-400" />
+            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning fill-warning" />
             <span className="text-[9px] sm:text-[10px] font-medium text-foreground">{avgRating.toFixed(1)}</span>
             {reviewCount !== undefined && reviewCount > 0 && (
               <span className="text-[9px] sm:text-[10px] text-muted-foreground">({reviewCount})</span>
