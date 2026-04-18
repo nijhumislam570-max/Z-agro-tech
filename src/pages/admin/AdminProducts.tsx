@@ -874,8 +874,17 @@ const AdminProducts = () => {
         </DialogContent>
       </Dialog>
 
-      <CSVImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
-      <PDFImportDialog open={isPDFImportOpen} onOpenChange={setIsPDFImportOpen} />
+      {/* Lazy dialogs only mount when triggered, keeping initial route chunk small */}
+      {isImportOpen && (
+        <Suspense fallback={null}>
+          <CSVImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
+        </Suspense>
+      )}
+      {isPDFImportOpen && (
+        <Suspense fallback={null}>
+          <PDFImportDialog open={isPDFImportOpen} onOpenChange={setIsPDFImportOpen} />
+        </Suspense>
+      )}
     </AdminLayout>
   );
 };
