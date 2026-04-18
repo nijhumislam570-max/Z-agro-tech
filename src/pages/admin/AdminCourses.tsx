@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,7 +33,10 @@ import {
   type Course, COURSE_CATEGORIES, COURSE_MODES,
 } from '@/hooks/useCourses';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { CurriculumEditor } from '@/components/admin/CurriculumEditor';
+// Lazy — curriculum editor only renders inside the create/edit dialog
+const CurriculumEditor = lazy(() =>
+  import('@/components/admin/CurriculumEditor').then((m) => ({ default: m.CurriculumEditor })),
+);
 import { CourseBatchesTable } from '@/components/admin/CourseBatchesTable';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { courseFormSchema, type CourseFormData } from '@/lib/validations';
@@ -337,7 +340,9 @@ const AdminCourses = () => {
                     name="curriculum"
                     render={({ field }) => (
                       <FormItem>
-                        <CurriculumEditor value={field.value} onChange={field.onChange} />
+                        <Suspense fallback={<div className="h-32 rounded-md bg-muted/40 animate-pulse" />}>
+                          <CurriculumEditor value={field.value} onChange={field.onChange} />
+                        </Suspense>
                         <FormMessage />
                       </FormItem>
                     )}

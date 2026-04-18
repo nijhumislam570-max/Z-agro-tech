@@ -12,6 +12,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertTriangle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import MobileNav from '@/components/MobileNav';
 import { Separator } from '@/components/ui/separator';
@@ -71,7 +74,7 @@ const paymentMethods = [
   },
 ];
 
-const CheckoutPage = () => {
+const CheckoutPageInner = () => {
   useDocumentTitle('Checkout');
   const { items, totalAmount, clearCart, totalItems } = useCart();
   const { user } = useAuth();
@@ -795,5 +798,45 @@ const CheckoutPage = () => {
     </div>
   );
 };
+
+/**
+ * Checkout-scoped error boundary so a render failure during checkout
+ * doesn't crash the app shell — the user keeps Navbar/MobileNav and can retry
+ * without losing route or cart context.
+ */
+const CheckoutErrorFallback = () => (
+  <div className="min-h-screen bg-muted/30 pb-36 md:pb-8">
+    <Navbar />
+    <main id="main-content" className="container mx-auto px-4 py-12">
+      <Card className="max-w-md mx-auto border-destructive/30">
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Checkout hit a snag</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your cart is safe. Refresh the page to try again.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Reload Checkout
+          </button>
+        </CardContent>
+      </Card>
+    </main>
+    <MobileNav />
+  </div>
+);
+
+const CheckoutPage = () => (
+  <ErrorBoundary fallback={<CheckoutErrorFallback />}>
+    <CheckoutPageInner />
+  </ErrorBoundary>
+);
 
 export default CheckoutPage;

@@ -1,34 +1,63 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { useIncompleteOrders } from '@/hooks/useIncompleteOrders';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, TrendingUp, DollarSign, Percent, Phone, Package } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { ShoppingCart, TrendingUp, DollarSign, Percent, Package } from 'lucide-react';
 import { subDays, format, isAfter, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--muted-foreground))'];
+// Lazy — recharts is ~95 KB gzipped; only load it for this page
+const RecoveryCharts = lazy(() => import('@/components/admin/analytics/RecoveryCharts'));
 
-const RecoveryStatCard = ({ icon: Icon, label, value, iconColor, iconBg, bgClass, onClick }: { icon: React.ElementType; label: string; value: string | number; iconColor: string; iconBg: string; bgClass: string; onClick?: () => void }) => (
+const ChartsFallback = () => (
+  <div className="space-y-5">
+    <div className="grid lg:grid-cols-2 gap-5">
+      <Skeleton className="h-[330px] rounded-xl" />
+      <Skeleton className="h-[330px] rounded-xl" />
+    </div>
+    <Skeleton className="h-[280px] rounded-xl" />
+  </div>
+);
+
+const RecoveryStatCard = ({
+  icon: Icon,
+  label,
+  value,
+  iconColor,
+  iconBg,
+  bgClass,
+  onClick,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
+  iconColor: string;
+  iconBg: string;
+  bgClass: string;
+  onClick?: () => void;
+}) => (
   <div
     className={cn(
       'rounded-xl sm:rounded-2xl p-3 sm:p-4 border shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]',
-      bgClass
+      bgClass,
     )}
     onClick={onClick}
     role="button"
     tabIndex={0}
-    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick?.(); }}
+    onKeyDown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') onClick?.();
+    }}
   >
     <div className="flex items-start justify-between gap-2">
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider leading-tight mb-0.5 sm:mb-1">{label}</p>
+        <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider leading-tight mb-0.5 sm:mb-1">
+          {label}
+        </p>
         <p className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">{value}</p>
       </div>
       <div className={cn('h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0', iconBg)}>
@@ -41,26 +70,24 @@ const RecoveryStatCard = ({ icon: Icon, label, value, iconColor, iconBg, bgClass
 const AdminRecoveryAnalytics = () => {
   useDocumentTitle('Recovery Analytics');
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { orders, isLoading, totalIncomplete, totalRecovered, recoveryRate, lostRevenue, recoveredRevenue } = useIncompleteOrders();
   const [dateRange, setDateRange] = useState('14');
 
   const filteredOrders = useMemo(() => {
     if (dateRange === 'all') return orders;
     const cutoff = subDays(new Date(), parseInt(dateRange));
-    return orders.filter(o => isAfter(new Date(o.created_at), cutoff));
+    return orders.filter((o) => isAfter(new Date(o.created_at), cutoff));
   }, [orders, dateRange]);
 
-  // Daily chart data
   const dailyData = useMemo(() => {
     const days = dateRange === 'all' ? 30 : parseInt(dateRange);
     const data = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = startOfDay(subDays(new Date(), i));
       const dateStr = format(date, 'yyyy-MM-dd');
-      const dayOrders = filteredOrders.filter(o => format(new Date(o.created_at), 'yyyy-MM-dd') === dateStr);
+      const dayOrders = filteredOrders.filter((o) => format(new Date(o.created_at), 'yyyy-MM-dd') === dateStr);
       const total = dayOrders.length;
-      const recovered = dayOrders.filter(o => o.status === 'recovered').length;
+      const recovered = dayOrders.filter((o) => o.status === 'recovered').length;
       data.push({
         date: format(date, 'MMM dd'),
         total,
@@ -71,12 +98,11 @@ const AdminRecoveryAnalytics = () => {
     return data;
   }, [filteredOrders, dateRange]);
 
-  // Funnel data
   const funnelData = useMemo(() => {
     const total = filteredOrders.length;
-    const withPhone = filteredOrders.filter(o => o.customer_phone).length;
-    const withAddress = filteredOrders.filter(o => o.shipping_address).length;
-    const recovered = filteredOrders.filter(o => o.status === 'recovered').length;
+    const withPhone = filteredOrders.filter((o) => o.customer_phone).length;
+    const withAddress = filteredOrders.filter((o) => o.shipping_address).length;
+    const recovered = filteredOrders.filter((o) => o.status === 'recovered').length;
     return [
       { name: 'Checkout Started', value: total },
       { name: 'Phone Entered', value: withPhone },
@@ -85,20 +111,18 @@ const AdminRecoveryAnalytics = () => {
     ];
   }, [filteredOrders]);
 
-  // Pie data
   const pieData = useMemo(() => {
-    const recovered = filteredOrders.filter(o => o.status === 'recovered').length;
-    const incomplete = filteredOrders.filter(o => o.status === 'incomplete').length;
+    const recovered = filteredOrders.filter((o) => o.status === 'recovered').length;
+    const incomplete = filteredOrders.filter((o) => o.status === 'incomplete').length;
     return [
       { name: 'Recovered', value: recovered },
       { name: 'Incomplete', value: incomplete },
     ];
   }, [filteredOrders]);
 
-  // Top recovered
   const topRecovered = useMemo(() => {
     return filteredOrders
-      .filter(o => o.status === 'recovered')
+      .filter((o) => o.status === 'recovered')
       .sort((a, b) => (b.cart_total || 0) - (a.cart_total || 0))
       .slice(0, 5);
   }, [filteredOrders]);
@@ -109,7 +133,9 @@ const AdminRecoveryAnalytics = () => {
         <div className="p-4 sm:p-6 space-y-6">
           <Skeleton className="h-8 w-64" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-20" />)}
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-20" />
+            ))}
           </div>
           <Skeleton className="h-80" />
         </div>
@@ -160,54 +186,31 @@ const AdminRecoveryAnalytics = () => {
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Recharts (lazy chunk) — wrapped in its own ErrorBoundary so a chart
+            failure can't take down the whole page */}
+        <ErrorBoundary
+          fallback={
+            <Card className="border-destructive/30">
+              <CardContent className="p-6 text-center text-sm text-muted-foreground">
+                Charts couldn't load. Refresh the page to try again.
+              </CardContent>
+            </Card>
+          }
+        >
+          <Suspense fallback={<ChartsFallback />}>
+            <RecoveryCharts dailyData={dailyData} pieData={pieData} />
+          </Suspense>
+        </ErrorBoundary>
+
+        {/* Funnel + Top Recovered (no recharts needed) */}
         <div className="grid lg:grid-cols-2 gap-5">
-          <Card className="border-border/50">
-            <CardHeader className="p-4 pb-2">
-              <CardTitle className="text-sm font-semibold">Daily Conversion Trend</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} className="text-muted-foreground" />
-                  <YAxis tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="hsl(var(--muted-foreground))" name="Total" radius={[4,4,0,0]} />
-                  <Bar dataKey="recovered" fill="hsl(var(--primary))" name="Recovered" radius={[4,4,0,0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/50">
-            <CardHeader className="p-4 pb-2">
-              <CardTitle className="text-sm font-semibold">Recovery Rate Trend</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} unit="%" />
-                  <Tooltip formatter={(value: number) => `${value}%`} />
-                  <Line type="monotone" dataKey="rate" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="Recovery %" />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bottom Section */}
-        <div className="grid lg:grid-cols-3 gap-5">
-          {/* Funnel */}
           <Card className="border-border/50">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-sm font-semibold">Conversion Funnel</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-3">
-              {funnelData.map((step, idx) => {
-                const maxVal = Math.max(...funnelData.map(s => s.value), 1);
+              {funnelData.map((step) => {
+                const maxVal = Math.max(...funnelData.map((s) => s.value), 1);
                 const width = Math.max((step.value / maxVal) * 100, 8);
                 return (
                   <div key={step.name}>
@@ -227,25 +230,6 @@ const AdminRecoveryAnalytics = () => {
             </CardContent>
           </Card>
 
-          {/* Pie */}
-          <Card className="border-border/50">
-            <CardHeader className="p-4 pb-2">
-              <CardTitle className="text-sm font-semibold">Conversion Ratio</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={4}>
-                    {pieData.map((_, idx) => <Cell key={idx} fill={COLORS[idx]} />)}
-                  </Pie>
-                  <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs">{value}</span>} />
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Top Recovered */}
           <Card className="border-border/50">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="text-sm font-semibold">Top Recovered Orders</CardTitle>

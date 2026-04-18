@@ -16,8 +16,11 @@ import RecommendedInputsTile from '@/components/dashboard/tiles/RecommendedInput
 import RecentOrderTile from '@/components/dashboard/tiles/RecentOrderTile';
 import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
 import FeaturedCarouselTile from '@/components/dashboard/tiles/FeaturedCarouselTile';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertTriangle } from 'lucide-react';
 
-const DashboardPage = () => {
+const DashboardPageInner = () => {
   useDocumentTitle('Dashboard');
 
   return (
@@ -97,5 +100,44 @@ const DashboardPage = () => {
     </div>
   );
 };
+
+/**
+ * Dashboard-scoped error boundary — keeps the user on the page if any tile
+ * or tab throws, so they can retry without bouncing to the home fallback.
+ */
+const DashboardErrorFallback = () => (
+  <div className="min-h-screen bg-background flex flex-col">
+    <Navbar />
+    <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
+      <Card className="max-w-md mx-auto border-destructive/30">
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Dashboard couldn't load</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              One of your tiles failed to render. Reload to try again.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Reload Dashboard
+          </button>
+        </CardContent>
+      </Card>
+    </main>
+    <Footer />
+  </div>
+);
+
+const DashboardPage = () => (
+  <ErrorBoundary fallback={<DashboardErrorFallback />}>
+    <DashboardPageInner />
+  </ErrorBoundary>
+);
 
 export default DashboardPage;

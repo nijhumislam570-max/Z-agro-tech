@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -56,8 +56,13 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { CSVImportDialog } from '@/components/admin/CSVImportDialog';
-import { PDFImportDialog } from '@/components/admin/PDFImportDialog';
+// Lazy-load heavy import dialogs — only fetched when admin clicks "Import"
+const CSVImportDialog = lazy(() =>
+  import('@/components/admin/CSVImportDialog').then((m) => ({ default: m.CSVImportDialog })),
+);
+const PDFImportDialog = lazy(() =>
+  import('@/components/admin/PDFImportDialog').then((m) => ({ default: m.PDFImportDialog })),
+);
 import { ProductStatsBar } from '@/components/admin/ProductStatsBar';
 import { ProductsStatsSkeleton, ProductsTableSkeleton } from '@/components/admin/ProductsSkeleton';
 import { ProductFormFields, type ProductFormData } from '@/components/admin/ProductFormFields';
@@ -869,8 +874,17 @@ const AdminProducts = () => {
         </DialogContent>
       </Dialog>
 
-      <CSVImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
-      <PDFImportDialog open={isPDFImportOpen} onOpenChange={setIsPDFImportOpen} />
+      {/* Lazy dialogs only mount when triggered, keeping initial route chunk small */}
+      {isImportOpen && (
+        <Suspense fallback={null}>
+          <CSVImportDialog open={isImportOpen} onOpenChange={setIsImportOpen} />
+        </Suspense>
+      )}
+      {isPDFImportOpen && (
+        <Suspense fallback={null}>
+          <PDFImportDialog open={isPDFImportOpen} onOpenChange={setIsPDFImportOpen} />
+        </Suspense>
+      )}
     </AdminLayout>
   );
 };

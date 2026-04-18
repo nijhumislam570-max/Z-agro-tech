@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,12 +31,21 @@ import { Separator } from '@/components/ui/separator';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import SEO from '@/components/SEO';
 
+/**
+ * Outer guard — bounces malformed/missing :id to /shop before any hooks
+ * mount. Keeps the inner component's hook order stable.
+ */
 const ProductDetailPage = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  if (!id) return <Navigate to="/shop" replace />;
+  return <ProductDetailPageInner id={id} />;
+};
+
+const ProductDetailPageInner = ({ id }: { id: string }) => {
   const navigate = useNavigate();
   const { addItem } = useCart();
-  
-  
+
+
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -47,7 +56,7 @@ const ProductDetailPage = () => {
   const { user } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
-  const wishlisted = id ? isWishlisted(id) : false;
+  const wishlisted = isWishlisted(id);
   
   useDocumentTitle(product?.name || 'Product Details');
 
