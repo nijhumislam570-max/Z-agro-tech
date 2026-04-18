@@ -719,12 +719,12 @@ const CheckoutPage = () => {
                   <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                   <span className="text-muted-foreground">
                     {watchedDivision ? (
-                      matchedZone ? (
+                      matchedZoneName ? (
                         <span className="text-success font-medium">
-                          {matchedZone.zone_name} — ৳{Number(matchedZone.charge)} • {matchedZone.estimated_days}
+                          {matchedZoneName} — ৳{deliveryCharge}
                         </span>
                       ) : (
-                        <span className="text-warning-foreground font-medium">Default rate — ৳120</span>
+                        <span className="text-warning-foreground font-medium">Default rate — ৳{deliveryCharge}</span>
                       )
                     ) : (
                       'Enter division for delivery rate'
