@@ -1,8 +1,9 @@
+import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const CourseSkeleton = () => (
-  <Card className="overflow-hidden">
+export const CourseSkeleton = React.forwardRef<HTMLDivElement>((_, ref) => (
+  <Card ref={ref} className="overflow-hidden">
     <Skeleton className="aspect-video w-full rounded-none" />
     <CardContent className="p-4 space-y-2">
       <Skeleton className="h-5 w-full" />
@@ -14,6 +15,7 @@ export const CourseSkeleton = () => (
       </div>
     </CardContent>
   </Card>
-);
+));
+CourseSkeleton.displayName = 'CourseSkeleton';
 
 export default CourseSkeleton;
