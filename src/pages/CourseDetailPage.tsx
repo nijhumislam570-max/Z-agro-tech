@@ -42,7 +42,25 @@ const CourseDetailPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <SEO title={course?.title ?? 'Course'} description={course?.description ?? ''} url={`/course/${id}`} />
+      <SEO
+        title={course?.title ?? 'Course'}
+        description={course?.description ?? 'Expert-led farming course on Z Agro Tech Academy.'}
+        image={course?.thumbnail_url ?? undefined}
+        url={`https://zagrotech.lovable.app/course/${id}`}
+        canonicalUrl={`https://zagrotech.lovable.app/course/${id}`}
+        schema={course ? {
+          type: 'Course',
+          name: course.title,
+          description: course.description ?? undefined,
+          image: course.thumbnail_url ?? undefined,
+          url: `https://zagrotech.lovable.app/course/${id}`,
+          price: course.price,
+          priceCurrency: 'BDT',
+          language: course.language ?? 'en',
+          difficulty: course.difficulty,
+          duration: course.duration_label ?? undefined,
+        } : undefined}
+      />
       <Navbar />
       <main id="main-content" className="flex-1 container mx-auto px-4 sm:px-6 py-8">
         <Link to="/academy" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">

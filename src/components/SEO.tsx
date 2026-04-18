@@ -41,7 +41,34 @@ interface ProductSchema {
   url?: string;
 }
 
-type Schema = OrganizationSchema | LocalBusinessSchema | ProductSchema;
+interface CourseSchema {
+  type: 'Course';
+  name: string;
+  description?: string;
+  provider?: string;
+  providerUrl?: string;
+  image?: string;
+  url?: string;
+  price?: number;
+  priceCurrency?: string;
+  language?: string;
+  duration?: string;
+  difficulty?: string;
+  rating?: number;
+  reviewCount?: number;
+}
+
+interface BreadcrumbItem {
+  name: string;
+  url: string;
+}
+
+interface BreadcrumbSchema {
+  type: 'BreadcrumbList';
+  items: BreadcrumbItem[];
+}
+
+type Schema = OrganizationSchema | LocalBusinessSchema | ProductSchema | CourseSchema | BreadcrumbSchema;
 
 interface SEOProps {
   // Page meta
@@ -249,6 +276,56 @@ function generateJsonLd(schema: Schema): object {
         } : undefined,
       };
       
+    case 'Course':
+      return {
+        ...baseContext,
+        '@type': 'Course',
+        name: schema.name,
+        description: schema.description,
+        image: schema.image,
+        url: schema.url,
+        inLanguage: schema.language,
+        educationalLevel: schema.difficulty,
+        timeRequired: schema.duration,
+        provider: {
+          '@type': 'Organization',
+          name: schema.provider || 'Z Agro Tech',
+          sameAs: schema.providerUrl || 'https://zagrotech.lovable.app',
+        },
+        offers: schema.price !== undefined ? {
+          '@type': 'Offer',
+          price: schema.price,
+          priceCurrency: schema.priceCurrency || 'BDT',
+          category: 'Paid',
+          availability: 'https://schema.org/InStock',
+          url: schema.url,
+        } : undefined,
+        hasCourseInstance: {
+          '@type': 'CourseInstance',
+          courseMode: 'Blended',
+          inLanguage: schema.language || 'en',
+        },
+        aggregateRating: schema.rating ? {
+          '@type': 'AggregateRating',
+          ratingValue: schema.rating,
+          reviewCount: schema.reviewCount || 1,
+          bestRating: 5,
+          worstRating: 1,
+        } : undefined,
+      };
+
+    case 'BreadcrumbList':
+      return {
+        ...baseContext,
+        '@type': 'BreadcrumbList',
+        itemListElement: schema.items.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: item.url,
+        })),
+      };
+
     default:
       return baseContext;
   }

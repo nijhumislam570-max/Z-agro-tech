@@ -1,13 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://vetmedix.lovable.app',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   'Content-Type': 'application/xml',
-  'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+  'Cache-Control': 'public, max-age=3600',
 };
 
-const SITE_URL = 'https://vetmedix.lovable.app';
+const SITE_URL = 'https://zagrotech.lovable.app';
 
 interface SitemapUrl {
   loc: string;
@@ -17,13 +17,11 @@ interface SitemapUrl {
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -31,17 +29,15 @@ Deno.serve(async (req: Request) => {
     const urls: SitemapUrl[] = [];
     const now = new Date().toISOString().split('T')[0];
 
-    // Static pages
+    // Public static pages (admin, dashboard, checkout, cart excluded — see robots.txt)
     const staticPages = [
       { path: '', priority: 1.0, changefreq: 'daily' as const },
-      { path: '/clinics', priority: 0.9, changefreq: 'daily' as const },
-      { path: '/doctors', priority: 0.9, changefreq: 'daily' as const },
       { path: '/shop', priority: 0.9, changefreq: 'daily' as const },
-      { path: '/feed', priority: 0.8, changefreq: 'hourly' as const },
-      { path: '/explore', priority: 0.8, changefreq: 'hourly' as const },
-      { path: '/about', priority: 0.5, changefreq: 'monthly' as const },
-      { path: '/contact', priority: 0.5, changefreq: 'monthly' as const },
+      { path: '/academy', priority: 0.9, changefreq: 'daily' as const },
+      { path: '/about', priority: 0.6, changefreq: 'monthly' as const },
+      { path: '/contact', priority: 0.6, changefreq: 'monthly' as const },
       { path: '/faq', priority: 0.5, changefreq: 'monthly' as const },
+      { path: '/track-order', priority: 0.4, changefreq: 'monthly' as const },
       { path: '/privacy-policy', priority: 0.3, changefreq: 'yearly' as const },
       { path: '/terms', priority: 0.3, changefreq: 'yearly' as const },
     ];
@@ -55,48 +51,11 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Fetch verified clinics from public view
-    const { data: clinics } = await supabase
-      .from('clinics_public')
-      .select('id, created_at')
-      .eq('is_verified', true)
-      .order('created_at', { ascending: false })
-      .limit(500);
-
-    if (clinics) {
-      for (const clinic of clinics) {
-        urls.push({
-          loc: `${SITE_URL}/clinic/${clinic.id}`,
-          lastmod: clinic.created_at?.split('T')[0] || now,
-          changefreq: 'weekly',
-          priority: 0.8,
-        });
-      }
-    }
-
-    // Fetch verified doctors from public view
-    const { data: doctors } = await supabase
-      .from('doctors_public')
-      .select('id, updated_at')
-      .eq('is_verified', true)
-      .order('updated_at', { ascending: false })
-      .limit(500);
-
-    if (doctors) {
-      for (const doctor of doctors) {
-        urls.push({
-          loc: `${SITE_URL}/doctor/${doctor.id}`,
-          lastmod: doctor.updated_at?.split('T')[0] || now,
-          changefreq: 'weekly',
-          priority: 0.7,
-        });
-      }
-    }
-
-    // Fetch products
+    // Active products
     const { data: products } = await supabase
       .from('products')
       .select('id, created_at')
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(1000);
 
@@ -111,15 +70,32 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Generate XML
-    const xml = generateSitemapXml(urls);
+    // Active courses
+    const { data: courses } = await supabase
+      .from('courses')
+      .select('id, updated_at')
+      .eq('is_active', true)
+      .order('updated_at', { ascending: false })
+      .limit(500);
 
+    if (courses) {
+      for (const course of courses) {
+        urls.push({
+          loc: `${SITE_URL}/course/${course.id}`,
+          lastmod: course.updated_at?.split('T')[0] || now,
+          changefreq: 'weekly',
+          priority: 0.8,
+        });
+      }
+    }
+
+    const xml = generateSitemapXml(urls);
     return new Response(xml, { headers: corsHeaders });
   } catch (error) {
     console.error('Sitemap generation error:', error);
     return new Response(
       '<?xml version="1.0" encoding="UTF-8"?><error>Failed to generate sitemap</error>',
-      { 
+      {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/xml' }
       }
