@@ -299,9 +299,9 @@
     @apply ring-2 ring-muted-foreground/30 ring-offset-2 ring-offset-background;
   }
 
-  /* Pet paw pattern background */
+  /* Subtle leaf pattern background for agriculture sections */
   .paw-pattern {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath fill='%23f97316' fill-opacity='0.05' d='M30 15c2.5 0 4.5 2 4.5 4.5S32.5 24 30 24s-4.5-2-4.5-4.5S27.5 15 30 15zm-8 8c1.5 0 3 1.5 3 3s-1.5 3-3 3-3-1.5-3-3 1.5-3 3-3zm16 0c1.5 0 3 1.5 3 3s-1.5 3-3 3-3-1.5-3-3 1.5-3 3-3zm-8 6c4 0 8 4 8 8s-4 8-8 8-8-4-8-8 4-8 8-8z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath fill='%2316a34a' fill-opacity='0.05' d='M30 8c-6 6-10 14-10 22 0 8 4 16 10 22 6-6 10-14 10-22 0-8-4-16-10-22zm0 8c2 4 4 9 4 14s-2 10-4 14c-2-4-4-9-4-14s2-10 4-14z'/%3E%3C/svg%3E");
   }
 
   /* Avatar with gradient border */
