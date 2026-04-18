@@ -38,33 +38,33 @@ const statCards = [
   },
   { 
     key: 'pending', label: 'Pending', icon: Clock,
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    iconBg: 'bg-amber-500/10',
-    bgClass: 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50',
+    iconColor: 'text-warning-foreground',
+    iconBg: 'bg-warning/10',
+    bgClass: 'bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50',
   },
   { 
     key: 'processing', label: 'Processing', icon: Processing,
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    iconBg: 'bg-blue-500/10',
-    bgClass: 'bg-gradient-to-br from-blue-50 to-cyan-50/50 border-blue-100 dark:from-blue-950/30 dark:to-cyan-950/20 dark:border-blue-900/50',
+    iconColor: 'text-info',
+    iconBg: 'bg-info/10',
+    bgClass: 'bg-gradient-to-br from-info-soft to-info-soft/50 border-info-border dark:from-info-soft/30 dark:to-info-soft/20 dark:border-info-border/50',
   },
   { 
     key: 'shipped', label: 'Shipped', icon: Truck,
-    iconColor: 'text-purple-600 dark:text-purple-400',
-    iconBg: 'bg-purple-500/10',
-    bgClass: 'bg-gradient-to-br from-purple-50 to-indigo-50/50 border-purple-100 dark:from-purple-950/30 dark:to-indigo-950/20 dark:border-purple-900/50',
+    iconColor: 'text-accent',
+    iconBg: 'bg-accent/10',
+    bgClass: 'bg-gradient-to-br from-accent/10 to-info-soft/50 border-accent/30 dark:from-accent/10/30 dark:to-info-soft/20 dark:border-accent/30/50',
   },
   { 
     key: 'delivered', label: 'Delivered', icon: CheckCircle,
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    iconBg: 'bg-emerald-500/10',
-    bgClass: 'bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50',
+    iconColor: 'text-success',
+    iconBg: 'bg-success/10',
+    bgClass: 'bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50',
   },
   { 
     key: 'cancelled', label: 'Cancelled', icon: XCircle,
-    iconColor: 'text-red-600 dark:text-red-400',
-    iconBg: 'bg-red-500/10',
-    bgClass: 'bg-gradient-to-br from-red-50 to-rose-50/50 border-red-100 dark:from-red-950/30 dark:to-rose-950/20 dark:border-red-900/50',
+    iconColor: 'text-danger',
+    iconBg: 'bg-danger/10',
+    bgClass: 'bg-gradient-to-br from-danger-soft to-danger-soft/50 border-danger-border dark:from-danger-soft/30 dark:to-danger-soft/20 dark:border-danger-border/50',
   },
 ] as const;
 
@@ -129,7 +129,7 @@ export const OrderStatsBar = memo(function OrderStatsBar({ stats, activeFilter, 
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onFilterChange(activeFilter === 'flagged' ? 'all' : 'flagged'); }}
             className={cn(
               'rounded-xl px-3 py-2 border shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98] flex items-center gap-2',
-              'bg-gradient-to-br from-red-50 to-rose-50/50 border-red-100 dark:from-red-950/30 dark:to-rose-950/20 dark:border-red-900/50',
+              'bg-gradient-to-br from-danger-soft to-danger-soft/50 border-danger-border dark:from-danger-soft/30 dark:to-danger-soft/20 dark:border-danger-border/50',
               activeFilter === 'flagged' && 'ring-2 ring-destructive/50'
             )}
           >

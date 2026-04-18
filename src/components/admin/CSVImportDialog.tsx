@@ -229,8 +229,8 @@ export function CSVImportDialog({ open, onOpenChange }: CSVImportDialogProps) {
 
               {/* Success Summary */}
               {parseResult.data.length > 0 && (
-                <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                  <div className="flex items-center gap-2 text-green-600">
+                <div className="p-3 bg-success/10 rounded-lg border border-green-500/20">
+                  <div className="flex items-center gap-2 text-success">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="text-sm font-medium">
                       {parseResult.data.length} product(s) ready to import

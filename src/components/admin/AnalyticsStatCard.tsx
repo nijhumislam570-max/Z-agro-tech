@@ -40,8 +40,8 @@ export const AnalyticsStatCard = ({
 
   const getTrendColor = () => {
     if (!trend) return '';
-    if (trend.value > 0) return 'text-emerald-600 dark:text-emerald-400';
-    if (trend.value < 0) return 'text-red-500 dark:text-red-400';
+    if (trend.value > 0) return 'text-success';
+    if (trend.value < 0) return 'text-danger dark:text-danger';
     return 'text-muted-foreground';
   };
 

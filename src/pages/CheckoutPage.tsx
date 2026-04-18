@@ -287,8 +287,8 @@ const CheckoutPage = () => {
           <div className="max-w-xl mx-auto">
             {/* Success Header */}
             <div className="text-center mb-8">
-              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-600 dark:text-green-400" />
+              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-success-light flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-success" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Order Confirmed!</h1>
               {placedOrderId && (
@@ -336,7 +336,7 @@ const CheckoutPage = () => {
               </div>
               {paymentMethod === 'cod' && (
                 <div className="flex items-start gap-3">
-                  <Banknote className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <Banknote className="h-5 w-5 text-warning-foreground flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-foreground">Cash on Delivery</p>
                     <p className="text-xs text-muted-foreground">
@@ -598,8 +598,8 @@ const CheckoutPage = () => {
                   </RadioGroup>
 
                   {paymentMethod === 'cod' && (
-                    <div className="mt-4 p-3 sm:p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
-                      <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200">
+                    <div className="mt-4 p-3 sm:p-4 rounded-xl bg-warning-light dark:bg-warning-light/30 border border-warning-border">
+                      <p className="text-xs sm:text-sm text-warning-foreground dark:text-amber-200">
                         💵 <strong>Cash on Delivery:</strong> Please keep the exact amount ready. 
                         Our delivery partner will collect <strong>৳{grandTotal.toLocaleString()}</strong> at your doorstep.
                       </p>
@@ -660,12 +660,12 @@ const CheckoutPage = () => {
               {/* Coupon Code Input */}
               <div className="p-4 sm:p-5 border-t border-border">
                 {appliedCoupon ? (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-success-light dark:bg-success-light/30 border border-success-border">
                     <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-green-600" />
+                      <Tag className="h-4 w-4 text-success" />
                       <div>
-                        <span className="font-mono font-bold text-sm text-green-700 dark:text-green-400">{appliedCoupon.code}</span>
-                        <p className="text-xs text-green-600 dark:text-green-400">
+                        <span className="font-mono font-bold text-sm text-success">{appliedCoupon.code}</span>
+                        <p className="text-xs text-success">
                           {appliedCoupon.discount_type === 'free_delivery' ? 'Free delivery' : 
                            appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}% off` : 
                            `৳${appliedCoupon.discount_value} off`}
@@ -673,8 +673,8 @@ const CheckoutPage = () => {
                         </p>
                       </div>
                     </div>
-                    <button onClick={removeCoupon} className="p-1 hover:bg-green-100 dark:hover:bg-green-900 rounded-full">
-                      <X className="h-4 w-4 text-green-600" />
+                    <button onClick={removeCoupon} className="p-1 hover:bg-success-light dark:hover:bg-success-light rounded-full">
+                      <X className="h-4 w-4 text-success" />
                     </button>
                   </div>
                 ) : (
@@ -717,7 +717,7 @@ const CheckoutPage = () => {
                 </div>
 
                 {appliedCoupon && couponDiscount > 0 && (
-                  <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                  <div className="flex justify-between text-sm text-success">
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4" />
                       <span>Coupon ({appliedCoupon.code})</span>
@@ -727,7 +727,7 @@ const CheckoutPage = () => {
                 )}
 
                 {appliedCoupon?.discount_type === 'free_delivery' && (
-                  <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                  <div className="flex justify-between text-sm text-success">
                     <div className="flex items-center gap-2">
                       <Truck className="h-4 w-4" />
                       <span>Free Delivery</span>
@@ -742,11 +742,11 @@ const CheckoutPage = () => {
                   <span className="text-muted-foreground">
                     {watchedDivision ? (
                       matchedZone ? (
-                        <span className="text-green-600 dark:text-green-400 font-medium">
+                        <span className="text-success font-medium">
                           {matchedZone.zone_name} — ৳{Number(matchedZone.charge)} • {matchedZone.estimated_days}
                         </span>
                       ) : (
-                        <span className="text-amber-600 dark:text-amber-400 font-medium">Default rate — ৳120</span>
+                        <span className="text-warning-foreground font-medium">Default rate — ৳120</span>
                       )
                     ) : (
                       'Enter division for delivery rate'

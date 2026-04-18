@@ -46,10 +46,10 @@ interface EnrollmentRow {
 }
 
 const statusVariant: Record<EnrollmentStatus, string> = {
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  confirmed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  completed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-  cancelled: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
+  pending: 'bg-warning-light text-warning-foreground dark:bg-warning-light/30 dark:text-warning',
+  confirmed: 'bg-info-light text-info dark:bg-info-light/30 dark:text-info',
+  completed: 'bg-success-light text-success dark:bg-success-light/30 dark:text-success',
+  cancelled: 'bg-danger-light text-danger dark:bg-danger-light/30 dark:text-danger',
 };
 
 const AdminEnrollmentsContent = () => {
@@ -135,10 +135,10 @@ const AdminEnrollmentsContent = () => {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {([
           { key: 'all', label: 'Total', value: stats.total, color: 'from-primary/10 to-accent/10' },
-          { key: 'pending', label: 'Pending', value: stats.pending, color: 'from-amber-50 to-orange-50/50 dark:from-amber-950/30 dark:to-orange-950/20' },
-          { key: 'confirmed', label: 'Confirmed', value: stats.confirmed, color: 'from-blue-50 to-indigo-50/50 dark:from-blue-950/30 dark:to-indigo-950/20' },
-          { key: 'completed', label: 'Completed', value: stats.completed, color: 'from-emerald-50 to-green-50/50 dark:from-emerald-950/30 dark:to-green-950/20' },
-          { key: 'cancelled', label: 'Cancelled', value: stats.cancelled, color: 'from-rose-50 to-pink-50/50 dark:from-rose-950/30 dark:to-pink-950/20' },
+          { key: 'pending', label: 'Pending', value: stats.pending, color: 'from-warning-soft to-warning-soft/50 dark:from-warning-soft/30 dark:to-warning-soft/20' },
+          { key: 'confirmed', label: 'Confirmed', value: stats.confirmed, color: 'from-info-soft to-info-soft/50 dark:from-info-soft/30 dark:to-info-soft/20' },
+          { key: 'completed', label: 'Completed', value: stats.completed, color: 'from-success-soft to-success-soft/50 dark:from-success-soft/30 dark:to-success-soft/20' },
+          { key: 'cancelled', label: 'Cancelled', value: stats.cancelled, color: 'from-danger-soft to-danger-soft/50 dark:from-danger-soft/30 dark:to-danger-soft/20' },
         ] as const).map((s) => (
           <button
             key={s.key}

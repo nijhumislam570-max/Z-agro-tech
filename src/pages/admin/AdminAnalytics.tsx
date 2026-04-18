@@ -109,40 +109,40 @@ const AdminAnalytics = () => {
               <AnalyticsStatCard
                 title="Active Revenue"
                 value={formatCurrency(analytics?.totalRevenue || 0)}
-                icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />}
+                icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-success" />}
                 trend={analytics?.revenueGrowth !== 0 ? { value: analytics?.revenueGrowth || 0, label: 'vs last month' } : undefined}
                 subtitle={analytics?.cancelledRevenue ? `৳${analytics.cancelledRevenue.toLocaleString()} cancelled` : 'Excl. cancelled/rejected'}
-                iconClassName="bg-emerald-100 dark:bg-emerald-900/30"
-                className="bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50"
+                iconClassName="bg-success-light"
+                className="bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50"
                 href="/admin/orders"
               />
               <AnalyticsStatCard
                 title="Total Orders"
                 value={analytics?.totalOrders || 0}
-                icon={<ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
+                icon={<ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-info" />}
                 trend={analytics?.orderGrowth !== 0 ? { value: analytics?.orderGrowth || 0, label: 'vs last month' } : undefined}
                 subtitle={`${analytics?.activeOrders || 0} active · ${analytics?.cancelledOrders || 0} cancelled`}
-                iconClassName="bg-blue-100 dark:bg-blue-900/30"
-                className="bg-gradient-to-br from-blue-50 to-indigo-50/50 border-blue-100 dark:from-blue-950/30 dark:to-indigo-950/20 dark:border-blue-900/50"
+                iconClassName="bg-info-light"
+                className="bg-gradient-to-br from-info-soft to-info-soft/50 border-info-border dark:from-info-soft/30 dark:to-info-soft/20 dark:border-info-border/50"
                 href="/admin/orders"
               />
               <AnalyticsStatCard
                 title="Avg. Order Value"
                 value={formatCurrency(Math.round(analytics?.averageOrderValue || 0))}
-                icon={<TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />}
+                icon={<TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />}
                 subtitle="Active orders avg."
-                iconClassName="bg-purple-100 dark:bg-purple-900/30"
-                className="bg-gradient-to-br from-purple-50 to-violet-50/50 border-purple-100 dark:from-purple-950/30 dark:to-violet-950/20 dark:border-purple-900/50"
+                iconClassName="bg-accent/10"
+                className="bg-gradient-to-br from-accent/10 to-accent/10/50 border-accent/30 dark:from-accent/10/30 dark:to-accent/10/20 dark:border-accent/30/50"
                 href="/admin/orders"
               />
               <AnalyticsStatCard
                 title="New Users"
                 value={analytics?.newUsersThisMonth || 0}
-                icon={<Users className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />}
+                icon={<Users className="h-4 w-4 sm:h-5 sm:w-5 text-warning-foreground" />}
                 trend={analytics?.userGrowth !== 0 ? { value: analytics?.userGrowth || 0, label: 'this month' } : undefined}
                 subtitle={`${analytics?.totalUsers || 0} total users`}
-                iconClassName="bg-orange-100 dark:bg-orange-900/30"
-                className="bg-gradient-to-br from-orange-50 to-amber-50/50 border-orange-100 dark:from-orange-950/30 dark:to-amber-950/20 dark:border-orange-900/50"
+                iconClassName="bg-warning-light"
+                className="bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-orange-900/50"
                 href="/admin/customers"
               />
             </div>
@@ -165,33 +165,33 @@ const AdminAnalytics = () => {
               <AnalyticsStatCard
                 title="Total Users"
                 value={analytics?.totalUsers || 0}
-                icon={<Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
+                icon={<Users className="h-4 w-4 sm:h-5 sm:w-5 text-info" />}
                 subtitle={`${analytics?.newUsersThisMonth || 0} new this month`}
-                iconClassName="bg-blue-100 dark:bg-blue-900/30"
+                iconClassName="bg-info-light"
                 href="/admin/customers"
               />
               <AnalyticsStatCard
                 title="Products"
                 value={analytics?.totalProducts || 0}
-                icon={<Package className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />}
+                icon={<Package className="h-4 w-4 sm:h-5 sm:w-5 text-info" />}
                 subtitle="Listed products"
-                iconClassName="bg-indigo-100 dark:bg-indigo-900/30"
+                iconClassName="bg-info-light"
                 href="/admin/products"
               />
               <AnalyticsStatCard
                 title="Messages"
                 value={analytics?.unreadMessages || 0}
-                icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5 text-pink-600" />}
+                icon={<Mail className="h-4 w-4 sm:h-5 sm:w-5 text-danger" />}
                 subtitle="Unread contacts"
-                iconClassName="bg-pink-100 dark:bg-pink-900/30"
+                iconClassName="bg-danger-light"
                 href="/admin/messages"
               />
               <AnalyticsStatCard
                 title="Total Orders"
                 value={analytics?.totalOrders || 0}
-                icon={<ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />}
+                icon={<ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-warning-foreground" />}
                 subtitle={`${analytics?.activeOrders || 0} active`}
-                iconClassName="bg-amber-100 dark:bg-amber-900/30"
+                iconClassName="bg-warning-light"
                 href="/admin/orders"
               />
             </div>

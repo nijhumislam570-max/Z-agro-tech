@@ -23,32 +23,32 @@ export const ECommerceOverview = memo(({ stats }: ECommerceOverviewProps) => (
       <StatCard
         title="Active Revenue"
         value={`৳${stats?.activeRevenue?.toLocaleString() || 0}`}
-        icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />}
+        icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-success" />}
         description={stats?.cancelledRevenue ? `৳${stats.cancelledRevenue.toLocaleString()} cancelled` : undefined}
         href="/admin/analytics"
-        className="bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50"
+        className="bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50"
       />
       <StatCard
         title="Total Orders"
         value={stats?.totalOrders || 0}
-        icon={<Truck className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
+        icon={<Truck className="h-4 w-4 sm:h-5 sm:w-5 text-info" />}
         description={`${stats?.activeOrders || 0} active · ${stats?.cancelledOrders || 0} cancelled`}
         href="/admin/orders"
-        className="bg-gradient-to-br from-blue-50 to-indigo-50/50 border-blue-100 dark:from-blue-950/30 dark:to-indigo-950/20 dark:border-blue-900/50"
+        className="bg-gradient-to-br from-info-soft to-info-soft/50 border-info-border dark:from-info-soft/30 dark:to-info-soft/20 dark:border-info-border/50"
       />
       <StatCard
         title="Products"
         value={stats?.totalProducts || 0}
-        icon={<Package className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />}
+        icon={<Package className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />}
         href="/admin/products"
-        className="bg-gradient-to-br from-purple-50 to-violet-50/50 border-purple-100 dark:from-purple-950/30 dark:to-violet-950/20 dark:border-purple-900/50"
+        className="bg-gradient-to-br from-accent/10 to-accent/10/50 border-accent/30 dark:from-accent/10/30 dark:to-accent/10/20 dark:border-accent/30/50"
       />
       <StatCard
         title="Pending"
         value={stats?.pendingOrders || 0}
-        icon={<CalendarClock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />}
+        icon={<CalendarClock className="h-4 w-4 sm:h-5 sm:w-5 text-warning-foreground" />}
         href="/admin/orders?status=pending"
-        className="bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50"
+        className="bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50"
       />
     </div>
   </div>

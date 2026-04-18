@@ -25,27 +25,27 @@ const statCards = [
   },
   { 
     key: 'in-stock', label: 'In Stock', icon: PackageCheck,
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
-    iconBg: 'bg-emerald-500/10',
-    bgClass: 'bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50',
+    iconColor: 'text-success',
+    iconBg: 'bg-success/10',
+    bgClass: 'bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50',
   },
   { 
     key: 'out-of-stock', label: 'Out of Stock', icon: PackageX,
-    iconColor: 'text-red-600 dark:text-red-400',
-    iconBg: 'bg-red-500/10',
-    bgClass: 'bg-gradient-to-br from-red-50 to-rose-50/50 border-red-100 dark:from-red-950/30 dark:to-rose-950/20 dark:border-red-900/50',
+    iconColor: 'text-danger',
+    iconBg: 'bg-danger/10',
+    bgClass: 'bg-gradient-to-br from-danger-soft to-danger-soft/50 border-danger-border dark:from-danger-soft/30 dark:to-danger-soft/20 dark:border-danger-border/50',
   },
   { 
     key: 'low-stock', label: 'Low Stock', icon: AlertTriangle,
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    iconBg: 'bg-amber-500/10',
-    bgClass: 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-amber-100 dark:from-amber-950/30 dark:to-orange-950/20 dark:border-amber-900/50',
+    iconColor: 'text-warning-foreground',
+    iconBg: 'bg-warning/10',
+    bgClass: 'bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50',
   },
   { 
     key: 'featured', label: 'Featured', icon: Star,
-    iconColor: 'text-amber-500 dark:text-amber-300',
+    iconColor: 'text-warning dark:text-warning',
     iconBg: 'bg-amber-400/10',
-    bgClass: 'bg-gradient-to-br from-amber-50 to-yellow-50/50 border-amber-100 dark:from-amber-950/30 dark:to-yellow-950/20 dark:border-amber-900/50',
+    bgClass: 'bg-gradient-to-br from-warning-soft to-warning-soft/50 border-warning-border dark:from-warning-soft/30 dark:to-warning-soft/20 dark:border-warning-border/50',
   },
 ] as const;
 

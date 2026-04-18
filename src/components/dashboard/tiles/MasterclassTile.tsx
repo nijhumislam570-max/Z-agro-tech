@@ -10,9 +10,9 @@ import { getCourseImage } from '@/lib/agriImages';
 
 function difficultyClass(level: string) {
   const l = level.toLowerCase();
-  if (l.includes('begin')) return 'bg-emerald-500/90 text-white hover:bg-emerald-500/90';
-  if (l.includes('inter')) return 'bg-amber-500/90 text-white hover:bg-amber-500/90';
-  if (l.includes('adv')) return 'bg-rose-500/90 text-white hover:bg-rose-500/90';
+  if (l.includes('begin')) return 'bg-success/90 text-white hover:bg-success/90';
+  if (l.includes('inter')) return 'bg-warning/90 text-white hover:bg-warning/90';
+  if (l.includes('adv')) return 'bg-danger/90 text-white hover:bg-danger/90';
   return 'bg-white/90 text-foreground hover:bg-white/90';
 }
 

@@ -163,7 +163,7 @@ const AdminCustomers = () => {
     const role = userRoles?.[0]?.role;
     switch (role) {
       case 'admin':
-        return <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
+        return <Badge className="bg-accent/10 text-accent dark:bg-purple-900/30 dark:text-accent"><ShieldCheck className="h-3 w-3 mr-1" />Admin</Badge>;
       default:
         return <Badge variant="outline"><User className="h-3 w-3 mr-1" />User</Badge>;
     }
@@ -213,8 +213,8 @@ const AdminCustomers = () => {
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
           { key: 'all' as RoleFilter, label: 'Total Users', value: stats.total, icon: Users, iconColor: 'text-primary', iconBg: 'bg-primary/10', bgClass: 'bg-gradient-to-br from-primary/5 to-accent/5 border-primary/10 dark:from-primary/10 dark:to-accent/10 dark:border-primary/20' },
-          { key: 'user' as RoleFilter, label: 'Users', value: stats.users, icon: User, iconColor: 'text-emerald-600 dark:text-emerald-400', iconBg: 'bg-emerald-500/10', bgClass: 'bg-gradient-to-br from-emerald-50 to-green-50/50 border-emerald-100 dark:from-emerald-950/30 dark:to-green-950/20 dark:border-emerald-900/50' },
-          { key: 'admin' as RoleFilter, label: 'Admins', value: stats.admins, icon: ShieldCheck, iconColor: 'text-purple-600 dark:text-purple-400', iconBg: 'bg-purple-500/10', bgClass: 'bg-gradient-to-br from-purple-50 to-violet-50/50 border-purple-100 dark:from-purple-950/30 dark:to-violet-950/20 dark:border-purple-900/50' },
+          { key: 'user' as RoleFilter, label: 'Users', value: stats.users, icon: User, iconColor: 'text-success', iconBg: 'bg-success/10', bgClass: 'bg-gradient-to-br from-success-soft to-success-soft/50 border-success-border dark:from-success-soft/30 dark:to-success-soft/20 dark:border-success-border/50' },
+          { key: 'admin' as RoleFilter, label: 'Admins', value: stats.admins, icon: ShieldCheck, iconColor: 'text-accent', iconBg: 'bg-accent/10', bgClass: 'bg-gradient-to-br from-accent/10 to-accent/10/50 border-accent/30 dark:from-accent/10/30 dark:to-accent/10/20 dark:border-accent/30/50' },
         ].map(({ key, label, value, icon: Icon, iconColor, iconBg, bgClass }) => {
           const isActive = roleFilter === key;
           return (
@@ -331,7 +331,7 @@ const AdminCustomers = () => {
                       <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'user')}>
                         <User className="h-4 w-4 mr-2" />Set as User
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'admin')} className="text-purple-600">
+                      <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'admin')} className="text-accent">
                         <ShieldCheck className="h-4 w-4 mr-2" />Set as Admin
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -398,7 +398,7 @@ const AdminCustomers = () => {
                             <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'user')}>
                               <User className="h-4 w-4 mr-2" />Set as User
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'admin')} className="text-purple-600">
+                            <DropdownMenuItem onClick={() => updateUserRole(customer.user_id, 'admin')} className="text-accent">
                               <ShieldCheck className="h-4 w-4 mr-2" />Set as Admin
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
