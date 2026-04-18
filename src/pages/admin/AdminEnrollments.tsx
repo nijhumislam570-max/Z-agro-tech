@@ -390,6 +390,13 @@ const AdminEnrollmentsContent = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={allVisibleSelected ? true : someVisibleSelected ? 'indeterminate' : false}
+                        onCheckedChange={(c) => toggleAllVisible(c === true)}
+                        aria-label="Select all visible"
+                      />
+                    </TableHead>
                     <TableHead>Student</TableHead>
                     <TableHead>Course</TableHead>
                     <TableHead>Batch</TableHead>
@@ -401,8 +408,16 @@ const AdminEnrollmentsContent = () => {
                 <TableBody>
                   {filtered.map((row) => {
                     const status = (row.status || 'pending') as EnrollmentStatus;
+                    const isChecked = selected.has(row.id);
                     return (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.id} data-state={isChecked ? 'selected' : undefined}>
+                        <TableCell className="w-10">
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(c) => toggleOne(row.id, c === true)}
+                            aria-label="Select enrollment"
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">
                           {row.profile?.full_name || 'Unnamed'}
                         </TableCell>
