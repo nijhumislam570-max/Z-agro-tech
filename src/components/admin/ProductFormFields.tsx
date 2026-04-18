@@ -154,7 +154,7 @@ export function ProductFormFields({ formData, onChange }: ProductFormFieldsProps
             <Input
               value={formData.product_type}
               onChange={(e) => update('product_type', e.target.value)}
-              placeholder="e.g., Food, Toys"
+              placeholder="e.g., Seeds, Fertilizer"
               className="mt-1.5 h-11 rounded-xl"
             />
           </div>

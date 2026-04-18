@@ -33,7 +33,7 @@ function getSnapshot(): AuthState {
   return state;
 }
 
-// Also export for other stores (Wishlist, Pet) to subscribe to auth changes
+// Also export for other stores (Wishlist, Cart) to subscribe to auth changes
 export const authSubscribe = subscribe;
 export function getAuthUser(): User | null { return state.user; }
 

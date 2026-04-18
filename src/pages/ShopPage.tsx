@@ -180,7 +180,7 @@ const HeroCarousel = memo(({ products }: { products: Product[] }) => {
 HeroCarousel.displayName = 'HeroCarousel';
 
 const ShopPage = () => {
-  useDocumentTitle('Pet Shop');
+  useDocumentTitle('Shop');
   const { totalItems } = useCart();
   const { wishlistIds } = useWishlist();
   const { recentProducts } = useRecentlyViewed();
@@ -353,25 +353,8 @@ const ShopPage = () => {
       <header className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
         <div className="absolute inset-0 overflow-hidden hidden sm:block">
           <div className="absolute inset-0 flex animate-[shop-slide_20s_linear_infinite]" style={{ width: '200%' }}>
-            {[
-              '/products/cat-carrier.jpg',
-              '/products/grooming-set.jpg', 
-              '/products/pet-balls.jpg',
-              '/products/cat-house.jpg',
-              '/products/feeding-bowl.jpg',
-              '/products/pet-collar.jpg',
-              '/products/winter-dress.jpg',
-              '/products/cat-teaser-toy.jpg',
-            ].map((src, i) => (
-              <div key={i} className="flex-shrink-0 w-[12.5%] h-full relative">
-                <img
-                  src={src}
-                  alt=""
-                  loading={i < 4 ? "eager" : "lazy"}
-                  className="w-full h-full object-cover opacity-[0.08]"
-                  aria-hidden="true"
-                />
-              </div>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex-shrink-0 w-[12.5%] h-full relative bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" aria-hidden="true" />
             ))}
           </div>
         </div>
@@ -386,11 +369,11 @@ const ShopPage = () => {
                 </span>
               </div>
               <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
-                Premium Pet & Farm
+                Premium Agriculture
                 <span className="block text-primary">Supplies</span>
               </h1>
               <p className="text-muted-foreground text-xs sm:text-base max-w-md hidden sm:block">
-                Quality products for your beloved pets and farm animals. Fast delivery across Bangladesh.
+                Quality seeds, fertilizers, livestock feed, and farm tools for modern farmers. Fast delivery across Bangladesh.
               </p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-muted-foreground bg-background/80 backdrop-blur-sm border border-border rounded-full px-2 sm:px-3 py-1 sm:py-1.5">

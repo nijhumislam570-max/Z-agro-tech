@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PRODUCT_CATEGORIES, type ProductCategory } from './productCategories';
 
 // Zod schema for product validation - prevents XSS and ensures data integrity
 export const productSchema = z.object({
@@ -17,8 +18,8 @@ export const productSchema = z.object({
     .number()
     .positive('Price must be positive')
     .max(9999999, 'Price must be less than 10,000,000'),
-  category: z.enum(['Pet', 'Farm'], { 
-    errorMap: () => ({ message: 'Category must be "Pet" or "Farm"' }) 
+  category: z.enum(PRODUCT_CATEGORIES, {
+    errorMap: () => ({ message: `Category must be one of: ${PRODUCT_CATEGORIES.join(', ')}` }),
   }),
   product_type: z
     .string()
@@ -122,7 +123,7 @@ export function parseCSV(csvText: string): ParseResult {
       name: sanitizeString(row.name || ''),
       description: row.description?.trim() ? sanitizeString(row.description) : undefined,
       price: parseFloat(row.price) || 0,
-      category: row.category?.trim() as 'Pet' | 'Farm',
+      category: row.category?.trim() as ProductCategory,
       product_type: row.product_type?.trim() ? sanitizeString(row.product_type) : undefined,
       stock: row.stock?.trim() ? parseInt(row.stock) : undefined,
       badge: row.badge?.trim() ? sanitizeString(row.badge) : undefined,
@@ -177,7 +178,7 @@ function parseCSVLine(line: string): string[] {
 
 export function generateCSVTemplate(): string {
   const headers = ['name', 'description', 'price', 'category', 'product_type', 'stock', 'badge', 'discount', 'image_url'];
-  const exampleRow = ['Dog Food Premium', 'High quality dog food', '500', 'Pet', 'Food', '100', 'New', '10', 'https://example.com/image.jpg'];
+  const exampleRow = ['Hybrid Maize Seeds', 'High-yield drought-tolerant maize seeds, 1kg pack', '850', 'Crops', 'Seeds', '100', 'New', '10', 'https://example.com/image.jpg'];
   
   return [headers.join(','), exampleRow.join(',')].join('\n');
 }

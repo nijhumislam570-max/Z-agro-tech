@@ -3,8 +3,8 @@ import { logger } from '@/lib/logger';
 
 /**
  * Extracts the storage path from a full Supabase public URL.
- * E.g., "https://xxx.supabase.co/storage/v1/object/public/pet-media/user-id/avatars/123.webp"
- * returns "user-id/avatars/123.webp"
+ * E.g., "https://xxx.supabase.co/storage/v1/object/public/site_assets/logo.png"
+ * returns "logo.png"
  */
 export function extractStoragePath(publicUrl: string, bucket: string): string | null {
   try {
@@ -21,7 +21,7 @@ export function extractStoragePath(publicUrl: string, bucket: string): string | 
  * Removes files from a storage bucket given their full public URLs.
  * Silently skips URLs that don't match the bucket pattern.
  */
-export async function removeStorageFiles(urls: string[], bucket = 'pet-media'): Promise<void> {
+export async function removeStorageFiles(urls: string[], bucket: string): Promise<void> {
   const paths = urls
     .map((url) => extractStoragePath(url, bucket))
     .filter((p): p is string => p !== null);

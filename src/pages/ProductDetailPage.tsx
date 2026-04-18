@@ -759,7 +759,7 @@ const ProductDetailPage = () => {
                     id={p.id}
                     name={p.name}
                     price={p.price}
-                    category={p.category as 'Pet' | 'Farm'}
+                    category={p.category}
                     image={p.image_url || ''}
                     badge={p.badge || undefined}
                     discount={p.discount || undefined}
