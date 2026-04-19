@@ -23,6 +23,7 @@ import {
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { prefetchAdminRoute } from '@/lib/adminPrefetch';
+import { startRouteProgress } from '@/components/RouteProgress';
 import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -128,6 +129,7 @@ const NavLinkItem = memo(({ icon: Icon, label, path, isActive, collapsed, badge,
       onMouseEnter={prefetchHandler}
       onFocus={prefetchHandler}
       onTouchStart={prefetchHandler}
+      onPointerDown={isActive ? undefined : startRouteProgress}
       className={cn(
         'relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200',
         collapsed ? 'px-3 py-2.5 justify-center mx-auto' : 'px-3 py-2.5',
