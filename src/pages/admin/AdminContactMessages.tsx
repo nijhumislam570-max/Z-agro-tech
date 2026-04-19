@@ -268,10 +268,10 @@ const AdminContactMessages = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openMessage(msg)}>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-8 sm:w-8" onClick={() => openMessage(msg)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(msg.id)}>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-8 sm:w-8 text-destructive hover:text-destructive" onClick={() => setDeleteId(msg.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
