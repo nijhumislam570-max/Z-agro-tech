@@ -1,16 +1,26 @@
-import { forwardRef } from 'react';
+import { forwardRef, useCallback } from 'react';
 import { Home, Store, ShoppingCart, GraduationCap, User, Shield, LogIn, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { prefetchRoute } from '@/lib/imageUtils';
+import { prefetchPublicRoute } from '@/lib/publicPrefetch';
+import { prefetchAdminRoute } from '@/lib/adminPrefetch';
 
 const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
   const location = useLocation();
   const { user } = useAuth();
   const { totalItems } = useCart();
   const { isAdmin } = useUserRole();
+  const qc = useQueryClient();
+
+  const prefetch = useCallback((path: string) => {
+    prefetchRoute(path);
+    if (path.startsWith('/admin')) prefetchAdminRoute(path, qc);
+    else prefetchPublicRoute(path, qc);
+  }, [qc]);
 
   const getProfileItem = () => {
     if (isAdmin) return { icon: Shield, label: 'Admin', path: '/admin' };
@@ -48,7 +58,9 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
             <Link
               key={index}
               to={item.path}
-              onTouchStart={() => prefetchRoute(item.path)}
+              onTouchStart={() => prefetch(item.path)}
+              onFocus={() => prefetch(item.path)}
+              onMouseEnter={() => prefetch(item.path)}
               aria-label={item.badge > 0 ? `${item.label}, ${item.badge} unread` : item.label}
               className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors active:scale-95 active:bg-primary/10 rounded-lg ${
                 active ? 'text-primary' : 'text-muted-foreground'
