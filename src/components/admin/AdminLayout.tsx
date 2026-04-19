@@ -34,16 +34,35 @@ export const useAdminPageMeta = (title: string, subtitle?: string) => {
   }, [ctx, title, subtitle]);
 };
 
-interface AdminLayoutProps {
+interface AdminShellProps {
   children?: ReactNode;
 }
+
+/**
+ * Backwards-compatible page wrapper. Pages still write
+ *   <AdminLayout title="X" subtitle="Y">...</AdminLayout>
+ * but it now just registers the page meta against the persistent
+ * shell (rendered once at the route level) and renders children.
+ *
+ * No DOM, no remount cost.
+ */
+interface AdminLayoutCompatProps {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}
+
+export const AdminLayout = ({ title, subtitle, children }: AdminLayoutCompatProps) => {
+  useAdminPageMeta(title, subtitle);
+  return <>{children}</>;
+};
 
 /**
  * Persistent admin shell — sidebar, header, pending-count query.
  * Mounted ONCE for the `/admin` route tree; each child page renders
  * via <Outlet /> without remounting the shell.
  */
-export const AdminLayout = ({ children }: AdminLayoutProps) => {
+export const AdminShell = ({ children }: AdminShellProps) => {
   const [collapsed, setCollapsed] = useState(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     return stored === 'true';

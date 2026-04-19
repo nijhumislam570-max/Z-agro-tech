@@ -11,7 +11,7 @@ import { useFocusManagement } from "@/hooks/useFocusManagement";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { RequireAuth } from "@/components/auth/RequireAuth";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminShell } from "@/components/admin/AdminLayout";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -120,7 +120,7 @@ const App = () => (
                     <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
                     {/* Admin — single persistent shell, child pages render via <Outlet /> */}
-                    <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+                    <Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>
                       <Route index element={<AdminDashboard />} />
                       <Route path="analytics" element={<AdminAnalytics />} />
                       <Route path="products" element={<AdminProducts />} />
