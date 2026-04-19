@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Mail, Send, Sprout } from 'lucide-react';
+import { Mail, Send, Sprout, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const NewsletterCTA = () => {
@@ -15,7 +15,6 @@ export const NewsletterCTA = () => {
       return;
     }
     setSubmitting(true);
-    // Simulate request
     await new Promise((r) => setTimeout(r, 600));
     toast.success("You're on the list! We'll keep you posted.");
     setEmail('');
@@ -28,11 +27,26 @@ export const NewsletterCTA = () => {
       aria-labelledby="newsletter-heading"
     >
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-[hsl(142,45%,32%)] p-8 sm:p-12 lg:p-16 shadow-xl">
-        {/* decorative elements */}
+        {/* decorative shapes */}
         <div aria-hidden="true" className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-primary-foreground/10 blur-3xl" />
           <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
           <Sprout className="absolute top-8 right-8 h-12 w-12 text-primary-foreground/10" />
+
+          {/* Hexagon */}
+          <div
+            className="hidden sm:block absolute top-10 left-10 w-14 h-14 bg-primary-foreground/10"
+            style={{ clipPath: 'polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)' }}
+          />
+          {/* Triangle */}
+          <div
+            className="hidden sm:block absolute bottom-10 right-20 w-10 h-10 bg-primary-foreground/15"
+            style={{ clipPath: 'polygon(50% 0%, 100% 100%, 0% 100%)' }}
+          />
+          {/* Small circle */}
+          <div className="hidden sm:block absolute top-1/2 left-[8%] w-6 h-6 rounded-full bg-primary-foreground/15" />
+          {/* Square rotated */}
+          <div className="hidden sm:block absolute bottom-16 left-[35%] w-7 h-7 bg-accent/30 rotate-45" />
         </div>
 
         <div className="relative z-10 max-w-2xl mx-auto text-center">
@@ -63,7 +77,7 @@ export const NewsletterCTA = () => {
               placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 bg-background/95 border-primary-foreground/20 placeholder:text-muted-foreground/70"
+              className="h-12 rounded-full px-5 bg-background/95 border-primary-foreground/20 placeholder:text-muted-foreground/70"
               required
             />
             <Button
@@ -71,15 +85,18 @@ export const NewsletterCTA = () => {
               size="lg"
               variant="accent"
               disabled={submitting}
-              className="h-12 px-6 rounded-xl gap-2 shrink-0"
+              className="h-12 px-6 rounded-full gap-2 shrink-0 shadow-lg"
             >
               {submitting ? 'Joining…' : 'Subscribe'}
               <Send className="h-4 w-4" />
             </Button>
           </form>
-          <p className="text-xs text-primary-foreground/70 mt-4">
-            No spam. Unsubscribe anytime.
-          </p>
+
+          {/* "100% free" badge chip */}
+          <div className="mt-5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-foreground/15 border border-primary-foreground/20 text-xs font-medium text-primary-foreground">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span>100% free · No spam · Unsubscribe anytime</span>
+          </div>
         </div>
       </div>
     </section>

@@ -107,22 +107,68 @@ const Index = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {valueProps.map((v) => (
-              <Card
-                key={v.title}
-                className={`border-border/60 bg-gradient-to-br ${v.accent} hover:border-primary/30 hover:shadow-soft hover:-translate-y-1 transition-all ${v.span}`}
-              >
-                <CardContent className="p-6 flex items-start gap-4 h-full">
-                  <div className={`h-12 w-12 rounded-xl ${v.iconBg} flex items-center justify-center flex-shrink-0`}>
-                    <v.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-foreground mb-1">{v.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{v.desc}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {valueProps.map((v) => {
+              const isLarge = v.span.includes('col-span-2');
+              return (
+                <Card
+                  key={v.title}
+                  className={`relative overflow-hidden border-border/60 bg-gradient-to-br ${v.accent} hover:border-primary/30 hover:shadow-soft hover:-translate-y-1 transition-all ${v.span}`}
+                >
+                  {/* Dotted texture overlay on large cards */}
+                  {isLarge && (
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 opacity-40 pointer-events-none"
+                      style={{
+                        backgroundImage:
+                          'radial-gradient(circle, hsl(var(--foreground) / 0.06) 1px, transparent 1px)',
+                        backgroundSize: '14px 14px',
+                      }}
+                    />
+                  )}
+
+                  {/* Corner accent — small circle on large cards */}
+                  {isLarge && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute top-3 left-3 h-2 w-2 rounded-full bg-primary/40"
+                    />
+                  )}
+
+                  {/* "Featured" pill on large cards */}
+                  {isLarge && (
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold uppercase tracking-wider text-primary">
+                      Featured
+                    </span>
+                  )}
+
+                  <CardContent className="relative p-6 flex items-start gap-4 h-full">
+                    {/* Hexagon icon for large cards, rounded square for small */}
+                    {isLarge ? (
+                      <div
+                        className={`h-14 w-14 ${v.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm`}
+                        style={{
+                          clipPath:
+                            'polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)',
+                        }}
+                      >
+                        <v.icon className="h-6 w-6" />
+                      </div>
+                    ) : (
+                      <div
+                        className={`h-12 w-12 rounded-xl ${v.iconBg} flex items-center justify-center flex-shrink-0`}
+                      >
+                        <v.icon className="h-5 w-5" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-bold text-foreground mb-1">{v.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{v.desc}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </section>
 
