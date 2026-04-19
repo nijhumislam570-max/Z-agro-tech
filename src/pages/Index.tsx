@@ -78,7 +78,7 @@ const Index = () => {
           type: 'Organization',
           name: 'Z Agro Tech',
           url: 'https://zagrotech.lovable.app',
-          logo: 'https://zagrotech.lovable.app/favicon.jpg',
+          logo: 'https://zagrotech.lovable.app/favicon.png',
           description: 'Bangladesh\'s trusted platform for premium agriculture supplies and expert-led farming courses.',
           sameAs: [],
         }}

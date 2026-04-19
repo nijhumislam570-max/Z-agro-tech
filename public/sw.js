@@ -1,6 +1,6 @@
 const CACHE_NAME = 'zagrotech-v1';
 const STATIC_ASSETS = [
-  '/favicon.ico',
+  '/favicon.png',
 ];
 const MAX_IMAGE_CACHE_ENTRIES = 80;
 

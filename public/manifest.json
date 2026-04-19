@@ -9,12 +9,17 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.jpg",
+      "src": "/favicon.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
   "categories": ["shopping", "education", "business"]
 }
-
