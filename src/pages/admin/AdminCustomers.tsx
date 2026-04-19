@@ -57,6 +57,7 @@ import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
+import { uuidSchema } from '@/lib/validations/customerActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -76,7 +77,7 @@ const AdminCustomers = () => {
   void isAdmin;
   const { user } = useAuth();
   const [adminUserPage, setAdminUserPage] = useState(0);
-  const { data: customersData, isLoading } = useAdminUsers(adminUserPage);
+  const { data: customersData, isLoading, error, refetch } = useAdminUsers(adminUserPage);
   const customers = customersData?.users ?? [];
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,10 +138,16 @@ const AdminCustomers = () => {
   }, []);
 
   const updateUserRole = useCallback(async (userId: string, role: 'admin' | 'user') => {
+    // Defense-in-depth: validate userId format before sending to DB
+    const uidCheck = uuidSchema.safeParse(userId);
+    if (!uidCheck.success) {
+      toast.error('Invalid user ID');
+      return;
+    }
     try {
       const { data: existingRole } = await supabase
         .from('user_roles')
-        .select('*')
+        .select('id')
         .eq('user_id', userId)
         .maybeSingle();
 
