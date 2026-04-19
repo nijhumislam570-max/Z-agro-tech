@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Quote, Star } from 'lucide-react';
+import { Quote, Star, BadgeCheck } from 'lucide-react';
 
 const testimonials = [
   {
@@ -51,10 +51,17 @@ export const Testimonials = () => (
         {testimonials.map((t) => (
           <Card
             key={t.name}
-            className="border-border/60 bg-card/80 backdrop-blur-sm hover:shadow-soft hover:-translate-y-1 transition-all"
+            className="relative overflow-hidden border-border/60 bg-card/80 backdrop-blur-sm hover:shadow-soft hover:-translate-y-1 transition-all"
           >
-            <CardContent className="p-6 flex flex-col h-full">
-              <Quote className="h-7 w-7 text-primary/30 mb-3" aria-hidden="true" />
+            {/* Giant decorative quote mark */}
+            <Quote
+              aria-hidden="true"
+              className="absolute -top-4 -right-4 h-32 w-32 text-primary/5 rotate-12 pointer-events-none"
+              strokeWidth={1}
+            />
+
+            <CardContent className="relative p-6 flex flex-col h-full">
+              <Quote className="h-7 w-7 text-primary/40 mb-3" aria-hidden="true" />
               <div className="flex gap-0.5 mb-3" aria-label="5 out of 5 stars">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-4 w-4 text-warning fill-warning" />
@@ -64,14 +71,23 @@ export const Testimonials = () => (
                 "{t.quote}"
               </p>
               <div className="flex items-center gap-3 pt-4 border-t border-border/60">
-                <Avatar className="h-10 w-10 border border-primary/20">
+                <Avatar className="h-11 w-11 ring-2 ring-primary/30 ring-offset-2 ring-offset-card">
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                     {t.initials}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="font-semibold text-sm text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.location}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-semibold text-sm text-foreground truncate">{t.name}</p>
+                    <span
+                      className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-info/10 text-info text-[10px] font-semibold flex-shrink-0"
+                      title="Verified farmer"
+                    >
+                      <BadgeCheck className="h-3 w-3" />
+                      Verified
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{t.location}</p>
                 </div>
               </div>
             </CardContent>

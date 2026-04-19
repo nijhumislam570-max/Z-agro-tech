@@ -9,6 +9,9 @@ const categories = [
     icon: Sprout,
     gradient: 'from-success/20 via-success/10 to-success-soft',
     iconBg: 'bg-success/15 text-success',
+    barColor: 'bg-success',
+    popularity: 92,
+    n: '01',
   },
   {
     name: 'Livestock & Feed',
@@ -17,6 +20,9 @@ const categories = [
     icon: Beef,
     gradient: 'from-warning/20 via-warning/10 to-warning-soft',
     iconBg: 'bg-warning/15 text-warning',
+    barColor: 'bg-warning',
+    popularity: 78,
+    n: '02',
   },
   {
     name: 'Fertilizer & Soil',
@@ -25,6 +31,9 @@ const categories = [
     icon: FlaskConical,
     gradient: 'from-info/20 via-info/10 to-info-soft',
     iconBg: 'bg-info/15 text-info',
+    barColor: 'bg-info',
+    popularity: 85,
+    n: '03',
   },
   {
     name: 'Tools & Equipment',
@@ -33,6 +42,9 @@ const categories = [
     icon: Wrench,
     gradient: 'from-accent/20 via-accent/10 to-accent/5',
     iconBg: 'bg-accent/15 text-accent',
+    barColor: 'bg-accent',
+    popularity: 70,
+    n: '04',
   },
 ];
 
@@ -66,19 +78,45 @@ export const CategoriesShowcase = () => (
         <Link
           key={cat.slug}
           to={`/shop?category=${encodeURIComponent(cat.slug)}`}
-          className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${cat.gradient} p-4 sm:p-6 hover:shadow-soft hover:-translate-y-1 transition-all duration-300 min-h-[140px] sm:min-h-[180px] flex flex-col justify-between`}
+          className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${cat.gradient} p-4 sm:p-6 hover:shadow-soft hover:-translate-y-1 transition-all duration-300 min-h-[160px] sm:min-h-[200px] flex flex-col justify-between`}
           aria-label={`Browse ${cat.name}`}
         >
-          <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl ${cat.iconBg} flex items-center justify-center`}>
+          {/* Number badge — circle */}
+          <span
+            aria-hidden="true"
+            className="absolute top-3 right-3 h-8 w-8 rounded-full bg-card/90 backdrop-blur-sm border border-border/60 flex items-center justify-center text-[11px] font-bold text-muted-foreground group-hover:text-primary group-hover:border-primary/40 transition-colors"
+          >
+            {cat.n}
+          </span>
+
+          <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-xl ${cat.iconBg} flex items-center justify-center shadow-sm`}>
             <cat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
+
           <div>
             <h3 className="font-display font-bold text-base sm:text-lg text-foreground mb-1 leading-tight">
               {cat.name}
             </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{cat.desc}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3">{cat.desc}</p>
+
+            {/* Animated arrow line */}
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <span className="inline-block w-4 group-hover:w-7 h-px bg-primary transition-all duration-300" aria-hidden="true" />
+              <span>Explore</span>
+              <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
-          <ArrowRight className="absolute top-4 right-4 h-4 w-4 text-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+
+          {/* Decorative popularity bar */}
+          <div
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 right-0 h-1 bg-background/40 overflow-hidden"
+          >
+            <div
+              className={`h-full ${cat.barColor} opacity-70 transition-all duration-700 group-hover:opacity-100`}
+              style={{ width: `${cat.popularity}%` }}
+            />
+          </div>
         </Link>
       ))}
     </div>
