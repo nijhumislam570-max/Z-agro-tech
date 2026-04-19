@@ -421,6 +421,22 @@ const AdminProducts = () => {
 
   return (
     <AdminLayout title="Products" subtitle="Manage your product catalog">
+      {/* Error state with retry — graceful fallback when product query fails */}
+      {error && !isLoading && (
+        <div className="mb-4 p-4 bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Couldn't load products</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="rounded-xl text-xs h-8 flex-shrink-0">
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Low Stock Alert Banner */}
       {!isLoading && (stats.outOfStock > 0 || stats.lowStock > 0) && (
         <div className="mb-4 p-3 sm:p-4 bg-destructive/5 border border-destructive/20 rounded-xl flex items-center gap-3">
