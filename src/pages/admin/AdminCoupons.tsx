@@ -21,7 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -58,7 +58,7 @@ const AdminCoupons = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [formData, setFormData] = useState(emptyCoupon);
   const [dialogOpen, setDialogOpen] = useState(false);

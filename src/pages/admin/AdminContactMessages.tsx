@@ -45,7 +45,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -73,7 +73,7 @@ const AdminContactMessages = () => {
   
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');

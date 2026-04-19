@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { 
   Loader2,
@@ -184,7 +184,7 @@ const AdminSettingsContent = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { isAdmin } = useAdmin();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
 
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(defaultStoreSettings);
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(defaultShippingSettings);
