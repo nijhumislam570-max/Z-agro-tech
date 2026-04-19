@@ -89,7 +89,7 @@ const AdminOrders = () => {
   const { isAdmin } = useAdmin();
   void isAdmin;
   const [adminOrderPage, setAdminOrderPage] = useState(0);
-  const { data: ordersData, isLoading } = useAdminOrders(adminOrderPage);
+  const { data: ordersData, isLoading, isError, error: ordersError, refetch } = useAdminOrders(adminOrderPage);
   const orders = ordersData?.orders ?? [];
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,6 +129,16 @@ const AdminOrders = () => {
     return activeOrders.filter(o => isAfter(new Date(o.created_at), cutoff));
   }, [activeOrders, trashedOrders, timeFilter, statusFilter]);
 
+
+  // Parse every shipping address ONCE per orders dataset.
+  // Used by getCustomerName, getCustomerPhone, fraud analysis, CSV export.
+  const parsedByOrder = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof parseShippingAddress>>();
+    for (const o of orders) {
+      map.set(o.id, parseShippingAddress(o.shipping_address));
+    }
+    return map;
+  }, [orders]);
 
   // Compute fraud analysis for all orders (memoized)
   const fraudAnalysisMap = useMemo(() => {
@@ -335,23 +345,15 @@ const AdminOrders = () => {
     }
   };
 
-  const getCustomerName = (order: AdminOrder): string => {
+  const getCustomerName = useCallback((order: AdminOrder): string => {
     if (order.profile?.full_name) return order.profile.full_name;
-    if (order.shipping_address) {
-      const parsed = parseShippingAddress(order.shipping_address);
-      return parsed.name || 'Unknown';
-    }
-    return 'Unknown';
-  };
+    return parsedByOrder.get(order.id)?.name || 'Unknown';
+  }, [parsedByOrder]);
 
-  const getCustomerPhone = (order: AdminOrder): string => {
+  const getCustomerPhone = useCallback((order: AdminOrder): string => {
     if (order.profile?.phone) return order.profile.phone;
-    if (order.shipping_address) {
-      const parsed = parseShippingAddress(order.shipping_address);
-      return parsed.phone || '';
-    }
-    return '';
-  };
+    return parsedByOrder.get(order.id)?.phone || '';
+  }, [parsedByOrder]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
