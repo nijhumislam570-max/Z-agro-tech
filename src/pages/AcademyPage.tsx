@@ -76,7 +76,7 @@ const AcademyPage = () => {
             : undefined
         }
       />
-      <main id="main-content" className="flex-1 @container animate-page-enter">
+      <main id="main-content" className="flex-1 animate-page-enter">
         {/* HERO */}
         <section className="bg-gradient-to-b from-secondary/40 to-background py-12 sm:py-16">
           <div className="container mx-auto px-4 sm:px-6 text-center max-w-2xl">
@@ -182,7 +182,7 @@ const AcademyPage = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 @md:grid-cols-2 @3xl:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => <CourseSkeleton key={i} />)
               : filtered.map((c) => <CourseCard key={c.id} course={c} />)}
