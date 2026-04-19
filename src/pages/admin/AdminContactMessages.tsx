@@ -85,7 +85,7 @@ const AdminContactMessages = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('contact_messages')
-        .select('*')
+        .select('id, name, email, subject, message, status, created_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as ContactMessage[];

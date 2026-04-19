@@ -47,7 +47,9 @@ const ADMIN_PREFETCH: Record<string, AdminPrefetchEntry> = {
         queryFn: async () => {
           const { data, error } = await supabase
             .from('products')
-            .select('*')
+            .select(
+              'id, name, description, price, compare_price, category, product_type, image_url, stock, badge, discount, is_active, is_featured, sku, created_at',
+            )
             .order('created_at', { ascending: false });
           if (error) throw error;
           return data ?? [];
@@ -118,20 +120,9 @@ const ADMIN_PREFETCH: Record<string, AdminPrefetchEntry> = {
       }),
   },
   '/admin/enrollments': {
-    chunk: () => import('@/pages/admin/AdminEnrollments'),
-    data: (qc) =>
-      qc.prefetchQuery({
-        queryKey: ['admin-enrollments'],
-        queryFn: async () => {
-          const { data, error } = await supabase
-            .from('enrollments')
-            .select('*')
-            .order('enrolled_at', { ascending: false });
-          if (error) throw error;
-          return data ?? [];
-        },
-        staleTime: STALE_2MIN,
-      }),
+    // Page hook joins courses + batches + profiles — let it own the fetch.
+    // Warming the chunk alone is enough; data prefetch here would key-collide
+    // and refetch with the wrong shape.
   },
   '/admin/customers': {
     chunk: () => import('@/pages/admin/AdminCustomers'),
@@ -144,7 +135,7 @@ const ADMIN_PREFETCH: Record<string, AdminPrefetchEntry> = {
         queryFn: async () => {
           const { data, error } = await supabase
             .from('contact_messages')
-            .select('*')
+            .select('id, name, email, subject, message, status, created_at')
             .order('created_at', { ascending: false });
           if (error) throw error;
           return data ?? [];
