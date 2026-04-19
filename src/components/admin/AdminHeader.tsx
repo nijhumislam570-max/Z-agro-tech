@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bell, Menu, User, LogOut, Home, PanelLeft, ShoppingCart, Mail, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
