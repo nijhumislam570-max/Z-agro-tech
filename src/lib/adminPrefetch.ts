@@ -59,10 +59,85 @@ const ADMIN_PREFETCH: Record<string, AdminPrefetchEntry> = {
   },
   '/admin/orders': {
     chunk: () => import('@/pages/admin/AdminOrders'),
-    // Page paginates with ['admin-orders', page, pageSize] — warming chunk only is enough
+    // Warm the default page (page=0, pageSize=50) so the table paints from cache.
+    data: (qc) =>
+      qc.prefetchQuery({
+        queryKey: ['admin-orders', 0, 50],
+        queryFn: async () => {
+          const { data: ordersData, error, count } = await supabase
+            .from('orders')
+            .select(
+              'id, user_id, items, total_amount, status, shipping_address, created_at, tracking_id, payment_method, payment_status, trashed_at, consignment_id, rejection_reason',
+              { count: 'exact' },
+            )
+            .order('created_at', { ascending: false })
+            .range(0, 49);
+          if (error) throw error;
+          const userIds = Array.from(new Set((ordersData ?? []).map((o) => o.user_id)));
+          const { data: profilesData } = userIds.length
+            ? await supabase
+                .from('profiles')
+                .select('user_id, full_name, phone')
+                .in('user_id', userIds)
+            : { data: [] as Array<{ user_id: string; full_name: string | null; phone: string | null }> };
+          const profileMap = new Map((profilesData ?? []).map((p) => [p.user_id, p]));
+          return {
+            orders: (ordersData ?? []).map((order) => {
+              const profile = profileMap.get(order.user_id);
+              return {
+                ...order,
+                items: Array.isArray(order.items) ? order.items : [],
+                profile: profile ? { full_name: profile.full_name, phone: profile.phone } : null,
+              };
+            }),
+            totalCount: count || 0,
+            page: 0,
+            pageSize: 50,
+          };
+        },
+        staleTime: STALE_2MIN,
+      }),
   },
   '/admin/ecommerce-customers': {
     chunk: () => import('@/pages/admin/AdminEcommerceCustomers'),
+    data: (qc) =>
+      Promise.all([
+        qc.prefetchQuery({
+          queryKey: ['admin-ecommerce-customers'],
+          queryFn: async () => {
+            const { data, error } = await supabase
+              .from('orders')
+              .select('user_id, total_amount, payment_status, payment_method, created_at, status')
+              .order('created_at', { ascending: false })
+              .limit(2000);
+            if (error) throw error;
+            return data ?? [];
+          },
+          staleTime: STALE_2MIN,
+        }),
+        qc.prefetchQuery({
+          queryKey: ['admin-profiles-for-ecom'],
+          queryFn: async () => {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('user_id, full_name, phone, avatar_url');
+            if (error) throw error;
+            return data ?? [];
+          },
+          staleTime: STALE_2MIN,
+        }),
+        qc.prefetchQuery({
+          queryKey: ['admin-user-roles-for-ecom'],
+          queryFn: async () => {
+            const { data, error } = await supabase
+              .from('user_roles')
+              .select('user_id, role');
+            if (error) throw error;
+            return data ?? [];
+          },
+          staleTime: STALE_2MIN,
+        }),
+      ]),
   },
   '/admin/coupons': {
     chunk: () => import('@/pages/admin/AdminCoupons'),
