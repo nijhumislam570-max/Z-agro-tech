@@ -16,7 +16,7 @@ const ALL: Array<{ value: CourseCategory | 'all'; label: string }> = [
 
 export const CourseCategoryChips = ({ value, onChange, counts }: Props) => {
   return (
-    <div className="flex flex-wrap gap-2 justify-center">
+    <div className="flex gap-2 overflow-x-auto snap-x scrollbar-hide pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center sm:overflow-visible">
       {ALL.map((cat) => {
         const active = value === cat.value;
         const count = counts?.[cat.value];
