@@ -28,7 +28,7 @@ export const CourseCategoryChips = ({ value, onChange, counts }: Props) => {
             size="sm"
             onClick={() => onChange(cat.value)}
             className={cn(
-              'rounded-full text-xs sm:text-sm h-8 sm:h-9 gap-1.5',
+              'rounded-full text-xs sm:text-sm h-8 sm:h-9 gap-1.5 snap-start shrink-0',
               active && 'shadow-soft',
             )}
           >
