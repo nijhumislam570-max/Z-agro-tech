@@ -6,11 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package, ArrowRight } from 'lucide-react';
 import { useMyOrders } from '@/hooks/useMyOrders';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 export default function RecentOrderTile() {
   const { data, isLoading } = useMyOrders();
   const latest = data?.[0];
   const items = (latest?.items as Array<{ name?: string; quantity?: number }> | undefined) ?? [];
+  const prefetchShop = usePrefetch('/shop');
+  const prefetchTrack = usePrefetch('/track-order');
 
   return (
     <GlassCard className="col-span-1 lg:col-span-8">
@@ -29,7 +32,7 @@ export default function RecentOrderTile() {
               No orders yet. Discover premium agri-inputs for your farm.
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/shop">Shop AgroInputs</Link>
+              <Link to="/shop" {...prefetchShop}>Shop AgroInputs</Link>
             </Button>
           </div>
         ) : (
@@ -53,7 +56,7 @@ export default function RecentOrderTile() {
               </p>
             </div>
             <Button asChild variant="secondary" className="shrink-0">
-              <Link to={`/track-order?id=${latest.id}`}>
+              <Link to={`/track-order?id=${latest.id}`} {...prefetchTrack}>
                 Track Order <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

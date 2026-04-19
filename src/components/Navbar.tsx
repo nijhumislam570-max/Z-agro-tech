@@ -13,6 +13,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet';
 import { CartQuickPeek } from '@/components/cart/CartQuickPeek';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 const navLinks = [
   { path: '/shop', label: 'Shop', icon: Store },
@@ -26,6 +27,19 @@ const Navbar = memo(() => {
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const prefetchShop = usePrefetch('/shop');
+  const prefetchAcademy = usePrefetch('/academy');
+  const prefetchDashboard = usePrefetch('/dashboard');
+  const prefetchAdmin = usePrefetch('/admin');
+  const prefetchAuth = usePrefetch('/auth');
+  const prefetchByPath: Record<string, ReturnType<typeof usePrefetch>> = {
+    '/shop': prefetchShop,
+    '/academy': prefetchAcademy,
+    '/dashboard': prefetchDashboard,
+    '/admin': prefetchAdmin,
+    '/auth': prefetchAuth,
+  };
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + '/');
@@ -44,7 +58,7 @@ const Navbar = memo(() => {
 
           <div className="hidden md:flex items-center gap-1 ml-4">
             {navLinks.map(({ path, label, icon: Icon }) => (
-              <Link key={path} to={path}>
+              <Link key={path} to={path} {...prefetchByPath[path]}>
                 <Button
                   variant={isActive(path) ? 'secondary' : 'ghost'}
                   size="sm"
@@ -56,7 +70,7 @@ const Navbar = memo(() => {
               </Link>
             ))}
             {user && (
-              <Link to="/dashboard">
+              <Link to="/dashboard" {...prefetchDashboard}>
                 <Button
                   variant={isActive('/dashboard') ? 'secondary' : 'ghost'}
                   size="sm"
@@ -68,7 +82,7 @@ const Navbar = memo(() => {
               </Link>
             )}
             {isAdmin && (
-              <Link to="/admin">
+              <Link to="/admin" {...prefetchAdmin}>
                 <Button
                   variant={isActive('/admin') ? 'secondary' : 'outline'}
                   size="sm"
@@ -97,7 +111,7 @@ const Navbar = memo(() => {
 
             {user ? (
               <div className="hidden md:flex items-center gap-1">
-                <Link to="/dashboard">
+                <Link to="/dashboard" {...prefetchDashboard}>
                   <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Account">
                     <User className="h-4 w-4" />
                   </Button>
@@ -113,7 +127,7 @@ const Navbar = memo(() => {
                 </Button>
               </div>
             ) : (
-              <Link to="/auth" className="hidden md:inline-flex">
+              <Link to="/auth" className="hidden md:inline-flex" {...prefetchAuth}>
                 <Button size="sm" className="h-9 px-4">Sign In</Button>
               </Link>
             )}
@@ -136,6 +150,7 @@ const Navbar = memo(() => {
                       key={path}
                       to={path}
                       onClick={() => setOpen(false)}
+                      {...prefetchByPath[path]}
                       className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
                         isActive(path) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'
                       }`}
@@ -148,6 +163,7 @@ const Navbar = memo(() => {
                     <Link
                       to="/dashboard"
                       onClick={() => setOpen(false)}
+                      {...prefetchDashboard}
                       className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
                         isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'
                       }`}
@@ -160,6 +176,7 @@ const Navbar = memo(() => {
                     <Link
                       to="/admin"
                       onClick={() => setOpen(false)}
+                      {...prefetchAdmin}
                       className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-primary hover:bg-primary/10 min-h-[44px]"
                     >
                       <Shield className="h-5 w-5" />
@@ -179,6 +196,7 @@ const Navbar = memo(() => {
                     <Link
                       to="/auth"
                       onClick={() => setOpen(false)}
+                      {...prefetchAuth}
                       className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground min-h-[44px]"
                     >
                       <User className="h-5 w-5" />

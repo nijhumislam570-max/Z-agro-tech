@@ -6,6 +6,8 @@ import { GraduationCap, Clock, MapPin, Calendar, Award, Sparkles } from 'lucide-
 import { cn } from '@/lib/utils';
 import type { Course } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
+import { usePrefetch } from '@/hooks/usePrefetch';
+import OptimizedImage from '@/components/ui/OptimizedImage';
 
 const difficultyStyles: Record<Course['difficulty'], string> = {
   beginner: 'bg-success/15 text-success border-success/30',
@@ -37,22 +39,25 @@ export const CourseCard = React.forwardRef<HTMLAnchorElement, CourseCardProps>(
     const { data: batches } = useCourseBatches(course.id);
     const nextBatch = batches?.find((b) => b.status === 'open' || b.status === 'filling') ?? null;
     const isFree = course.price <= 0;
+    const prefetch = usePrefetch(`/course/${course.id}`);
 
     return (
       <Link
         ref={ref}
         to={`/course/${course.id}`}
+        {...prefetch}
         className={cn('group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl', className)}
         {...rest}
       >
         <Card className="h-full overflow-hidden border-border/60 hover:border-primary/40 hover:shadow-hover hover:-translate-y-1 transition-all duration-300">
           <div className="relative aspect-video bg-gradient-to-br from-primary/15 to-accent/15 overflow-hidden">
             {course.thumbnail_url ? (
-              <img
+              <OptimizedImage
                 src={course.thumbnail_url}
                 alt={course.title}
-                loading="lazy"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                preset="medium"
+                aspectRatio={16 / 9}
+                className="w-full h-full"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-primary/40">

@@ -2,6 +2,12 @@ import { forwardRef } from 'react';
 import { Phone, Mail, MapPin, Facebook, Instagram, Youtube, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '@/components/Logo';
+import { prefetchRoute } from '@/lib/imageUtils';
+
+const prefetchHandlers = (path: string) => ({
+  onMouseEnter: () => prefetchRoute(path),
+  onTouchStart: () => prefetchRoute(path),
+});
 
 const quickLinks = [
   { label: 'Shop', path: '/shop' },
@@ -60,7 +66,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
               <ul className="space-y-2.5">
                 {quickLinks.map((l) => (
                   <li key={l.label}>
-                    <Link to={l.path} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
+                    <Link to={l.path} {...prefetchHandlers(l.path)} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
                       {l.label}
                     </Link>
                   </li>
@@ -73,7 +79,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
               <ul className="space-y-2.5">
                 {categories.map((l) => (
                   <li key={l.label}>
-                    <Link to={l.path} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
+                    <Link to={l.path} {...prefetchHandlers(l.path)} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
                       {l.label}
                     </Link>
                   </li>

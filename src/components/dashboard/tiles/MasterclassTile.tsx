@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { useFeaturedMasterclass } from '@/hooks/useDashboardData';
 import { getCourseImage } from '@/lib/agriImages';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 function difficultyClass(level: string) {
   const l = level.toLowerCase();
@@ -18,6 +19,8 @@ function difficultyClass(level: string) {
 
 export default function MasterclassTile() {
   const { data, isLoading } = useFeaturedMasterclass();
+  const prefetchAcademy = usePrefetch('/academy');
+  const prefetchCourse = usePrefetch(data?.id ? `/course/${data.id}` : '/academy');
 
   return (
     <GlassCard className="col-span-1 lg:col-span-4 overflow-hidden">
@@ -36,7 +39,7 @@ export default function MasterclassTile() {
               New masterclasses are coming soon.
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/academy">Browse Academy</Link>
+              <Link to="/academy" {...prefetchAcademy}>Browse Academy</Link>
             </Button>
           </div>
         ) : (
@@ -71,7 +74,7 @@ export default function MasterclassTile() {
               )}
             </div>
             <Button asChild variant="secondary" className="w-full">
-              <Link to={`/course/${data.id}`}>
+              <Link to={`/course/${data.id}`} {...prefetchCourse}>
                 Enroll Now <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

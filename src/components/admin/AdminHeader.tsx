@@ -17,6 +17,12 @@ import logo from '@/assets/zagrotech-logo.jpeg';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { prefetchRoute } from '@/lib/imageUtils';
+
+const prefetch = (path: string) => ({
+  onMouseEnter: () => prefetchRoute(path),
+  onTouchStart: () => prefetchRoute(path),
+});
 
 interface AdminHeaderProps {
   title: string;
@@ -195,7 +201,7 @@ export const AdminHeader = ({
           </DropdownMenu>
 
           <Button variant="ghost" size="sm" className="hidden 2xl:flex gap-2 text-muted-foreground hover:text-foreground" asChild>
-            <Link to="/">
+            <Link to="/" {...prefetch('/')}>
               <Home className="h-4 w-4" />
               <span>Site</span>
             </Link>
@@ -218,13 +224,13 @@ export const AdminHeader = ({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-2.5">
-                <Link to="/dashboard">
+                <Link to="/dashboard" {...prefetch('/dashboard')}>
                   <User className="mr-2 h-4 w-4" />
                   My Dashboard
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-2.5">
-                <Link to="/">
+                <Link to="/" {...prefetch('/')}>
                   <Home className="mr-2 h-4 w-4" />
                   Back to Site
                 </Link>

@@ -60,6 +60,13 @@ const routePrefetchMap: Record<string, () => Promise<unknown>> = {
   '/about': () => import('@/pages/AboutPage'),
   '/contact': () => import('@/pages/ContactPage'),
   '/faq': () => import('@/pages/FAQPage'),
+  '/auth': () => import('@/pages/AuthPage'),
+  '/forgot-password': () => import('@/pages/ForgotPasswordPage'),
+  '/track-order': () => import('@/pages/TrackOrderPage'),
+  '/privacy': () => import('@/pages/PrivacyPolicyPage'),
+  '/terms': () => import('@/pages/TermsPage'),
+  '/product': () => import('@/pages/ProductDetailPage'),
+  '/course': () => import('@/pages/CourseDetailPage'),
 };
 
 const prefetchedRoutes = new Set<string>();

@@ -9,10 +9,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, ArrowRight } from 'lucide-react';
 import { useMyEnrollments } from '@/hooks/useEnrollments';
 import { getCourseImage } from '@/lib/agriImages';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 export default function LearningPathTile() {
   const { data, isLoading } = useMyEnrollments();
   const latest = data?.[0];
+  const prefetchAcademy = usePrefetch('/academy');
+  const prefetchCourse = usePrefetch(latest?.course_id ? `/course/${latest.course_id}` : '/academy');
 
   return (
     <GlassCard className="col-span-1 lg:col-span-5">
@@ -35,7 +38,7 @@ export default function LearningPathTile() {
               No enrollments yet. Start your Smart Farming journey.
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/academy">Explore Masterclasses</Link>
+              <Link to="/academy" {...prefetchAcademy}>Explore Masterclasses</Link>
             </Button>
           </div>
         ) : (
@@ -74,7 +77,7 @@ export default function LearningPathTile() {
               <Progress value={latest.progress ?? 0} className="h-2 bg-white/15" />
             </div>
             <Button asChild className="w-full" variant="secondary">
-              <Link to={`/course/${latest.course_id}`}>
+              <Link to={`/course/${latest.course_id}`} {...prefetchCourse}>
                 Continue Learning <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
