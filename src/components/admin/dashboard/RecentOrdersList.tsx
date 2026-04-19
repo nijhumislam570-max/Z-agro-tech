@@ -1,11 +1,12 @@
 import { memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Package, ArrowUpRight, Loader2 } from 'lucide-react';
+import { ShoppingCart, Package, ArrowUpRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { getStatusColor, getStatusIcon } from './OrderStatusHelpers';
+import { RecentOrdersSkeleton } from './RecentOrdersSkeleton';
 
 interface RecentOrderSummary {
   id: string;
@@ -47,9 +48,7 @@ export const RecentOrdersList = memo(({ orders, isLoading }: RecentOrdersListPro
       </CardHeader>
       <CardContent className="p-3 sm:p-4 lg:p-5">
         {isLoading ? (
-          <div className="flex items-center justify-center py-6 sm:py-8">
-            <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
-          </div>
+          <RecentOrdersSkeleton count={5} />
         ) : !orders?.length ? (
           <div className="text-center py-6 sm:py-8 text-muted-foreground">
             <ShoppingCart className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-2 sm:mb-3 opacity-30" />
