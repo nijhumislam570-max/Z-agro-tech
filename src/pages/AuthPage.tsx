@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
-import logo from '@/assets/zagrotech-logo.jpeg';
+import logo from '@/assets/zagrotech-logo-circle.png';
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validations';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import SEO from '@/components/SEO';

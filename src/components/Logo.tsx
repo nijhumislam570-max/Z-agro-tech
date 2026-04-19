@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
-import logo from '@/assets/zagrotech-logo.jpeg';
+import logo from '@/assets/zagrotech-logo-circle.png';
 import { cn } from '@/lib/utils';
 
 interface LogoProps {
@@ -37,7 +37,7 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
   const content = (
     <div ref={ref} className={cn('flex items-center gap-2 sm:gap-3 group', className)}>
       <div className="relative flex-shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         <img
           src={logo}
           alt="Z Agro Tech logo"
@@ -46,10 +46,9 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
           fetchPriority="high"
           decoding="async"
           className={cn(
-            'relative rounded-xl object-contain bg-white shadow-soft transition-all duration-300',
+            'relative rounded-full object-cover bg-white shadow-soft transition-all duration-300',
             'border-2 border-primary/20 group-hover:border-primary/40 group-hover:scale-105',
             sizeClasses[size],
-            variant === 'footer' && 'rounded-full',
           )}
         />
       </div>
