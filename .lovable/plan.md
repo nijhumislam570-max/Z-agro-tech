@@ -1,56 +1,56 @@
 
 
-## Plan: Connect everything end-to-end + fix the polish gaps
+## Plan: Targeted admin responsiveness refactor (NOT a full rebuild)
 
-I audited all 26 routes, the navbar/footer/admin sidebar, RLS-backed data hooks, and the dashboard tiles. The wiring is mostly there. What's **broken / disconnected / rough**:
+I audited every admin page. **The good news:** the architecture you're asking for is largely already built — and exceeds what's described:
 
-### Bugs & disconnects to fix
+| Phase | Already in place |
+|---|---|
+| 1. App shell | `AdminSidebar` (collapsible w-72/w-260) + mobile `Sheet` triggered by hamburger in sticky `AdminHeader` with `bg-background/80 backdrop-blur-xl` glassmorphism |
+| 2. Data tables | Every table page (Orders, Products, Customers, Enrollments, Messages, Incomplete Orders) ships **dual layouts**: `sm:hidden` mobile cards + `hidden sm:block overflow-x-auto` desktop table |
+| 3. Bento grids | Dashboard + Analytics already use `grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4` with stat cards |
+| 4. Touch targets | Sidebar items, mobile sheet items, primary buttons honor 44px (`min-h-[44px]`, `h-10 w-10` icon buttons) |
+| 5. Skeletons | `AdminPageSkeleton`, `ProductsTableSkeleton`, `EnrollmentsSkeleton`, `OrdersSkeleton`, `AnalyticsSkeleton`, `RecentOrdersSkeleton` all wired through `<Suspense>` in `AdminShell` |
 
-1. **Multiple `<h1>` on every page (a11y + Core memory violation).** `Logo.tsx` renders the brand name as `<h1>` — so every page that mounts the Navbar gets ≥2 H1s (Navbar logo + page H1 + Footer logo). Fix: change Logo to a `<span>` with same styling.
+Rebuilding all of this would regress polished work. Here is what's **actually broken** and worth fixing:
 
-2. **Stale runtime crash trail** ("Component is not a function" in old console) was from a previous edit cycle — the current TS compiles clean and components are wired correctly. Verifying with a hard reload after fix #1.
+### Real issues found (5 small, surgical fixes)
 
-3. **Admin Quick Actions → Orders filter is a dead link.** `QuickActionsCard` navigates to `/admin/orders?status=pending`, but `AdminOrders` never reads the `status` URL param — the filter stays on "all". Fix: read `useSearchParams()` and seed `statusFilter`.
+1. **Sub-44px icon buttons inside tables** — `h-8 w-8` action buttons in `AdminOrders` row dropdown, `AdminProducts` row dropdown + category delete, `AdminContactMessages` row actions, `AdminDeliveryZones` row actions, and the `h-7 w-7` copy button in the Order detail sheet. Bump these to `h-9 w-9` (36px) on mobile via `h-9 w-9 sm:h-8 sm:w-8` so desktop density stays tight while mobile gets the touch budget.
 
-4. **Newsletter `<Button variant="accent">` does work**, but the placeholder text class on dark gradient is hard to read. Tightening contrast.
+2. **Settings page tabs overflow on mobile** — `AdminSettings` uses a 5-tab `TabsList` with no horizontal scroll wrapper, causing label clipping under 380px. Wrap the trigger row in a horizontally scrollable container with `overflow-x-auto -mx-3 px-3 scrollbar-none` so users can swipe through tabs.
 
-5. **Cart "Have a coupon?" hint** is text-only — wire it to actually focus the coupon input on `/checkout` via `#coupon` hash anchor for a real connection.
+3. **Tables wrapped in `overflow-x-auto` div but no shadcn `ScrollArea`** — visible scrollbar on Windows/Linux, no swipe-affordance. Replace the four `<div className="hidden sm:block overflow-x-auto">` wrappers in Orders/Customers/EcommerceCustomers/DeliveryZones with `<ScrollArea>` + horizontal `ScrollBar` so the rail is consistent across OSes and mobile users get visible swipe affordance when those tables show on tablet.
 
-6. **Track Order page** can be reached from MobileNav profile slot indirectly but not from the Navbar — we'll keep current design (it's accessible via dashboard / footer); no change.
+4. **Coupon form dialog stacks 2-col on tiny screens** — `grid-cols-2` is unconditional in `AdminCoupons` form (Code+Type, Discount+MaxDiscount, MinOrder+UsageLimit), inputs become 140px wide and unreadable. Change to `grid-cols-1 sm:grid-cols-2`.
 
-7. **Logo `<h1>` removal** — also fixes the third decorative H1 in the footer.
+5. **Coupon list row is a single horizontal flex** — at <380px the code button + badges + switch + 2 icon buttons jam together. Restructure to stack metadata on mobile, action row underneath.
 
-### Files to modify (4)
+### Files to modify (5)
 
-1. **`src/components/Logo.tsx`** — Change brand `<h1>` → `<span>` (semantic fix; visual unchanged). This is the single biggest win: removes the duplicate-H1 problem across **every page in scope** in one shot.
+1. `src/pages/admin/AdminOrders.tsx` — bump 4 action buttons to responsive sizes
+2. `src/pages/admin/AdminProducts.tsx` — bump 2 action buttons; wrap desktop table in `ScrollArea`
+3. `src/pages/admin/AdminContactMessages.tsx` — bump 2 action buttons
+4. `src/pages/admin/AdminDeliveryZones.tsx` — bump 2 action buttons; wrap desktop table in `ScrollArea`
+5. `src/pages/admin/AdminSettings.tsx` — wrap `TabsList` in scrollable container
+6. `src/pages/admin/AdminCoupons.tsx` — `grid-cols-1 sm:grid-cols-2` in form; restructure list card for narrow screens
+7. `src/pages/admin/AdminEcommerceCustomers.tsx` — wrap desktop table in `ScrollArea`
+8. `src/pages/admin/AdminCustomers.tsx` — wrap desktop table in `ScrollArea`
 
-2. **`src/pages/admin/AdminOrders.tsx`** — Read `?status=` query param and seed `statusFilter` initial state; sync via `useEffect` so cross-page links from `QuickActionsCard` actually filter.
+### What I'm NOT doing (and why)
 
-3. **`src/components/home/NewsletterCTA.tsx`** — Improve input contrast on dark gradient (`bg-background` not `bg-background/95`, stronger placeholder color).
-
-4. **`src/pages/CartPage.tsx`** — Change "Apply it at checkout" to a `<Link to="/checkout#coupon">` and add `id="coupon"` on the coupon input in `CheckoutPage.tsx` (so users land focused on the coupon field).
-
-### Files to verify (no changes — already wired correctly)
-
-- All 14 admin pages registered in `App.tsx` ✓
-- `AdminSidebar` + `AdminMobileNav` cover every admin route ✓
-- Public navbar/mobile-nav cover all public routes ✓
-- `RequireAuth` guards `/cart`, `/checkout`, `/dashboard` ✓
-- `RequireAdmin` guards all `/admin/*` ✓
-- `/profile` redirects to `/dashboard` ✓
-- `NotFound` is the catch-all for unknown public routes ✓
-- Auth redirect-after-login honors `?redirect=` and admin-vs-user routing ✓
-- Cart→Checkout→Order→TrackOrder→Dashboard flow uses RLS-backed hooks and `create_order_with_stock` RPC ✓
-- Dashboard `QuickActionsTile` links to `/shop`, `/academy`, `/cart`, `/track-order` ✓
-- Categories on home → `/shop?type=` and footer categories use the same param ✓
-- All UI components used (`Sheet`, `Accordion`, `Card`, `Button` variants incl. `accent`, `Avatar`) exist and export correctly ✓
+- ❌ **Not** rebuilding `AdminSidebar` to use shadcn `<Sidebar>` primitive — current implementation is more performant (memoized, prefetch-cached) and already collapsible + mobile-sheet-backed
+- ❌ **Not** swapping every form to the shadcn `Field` family — would touch 7K+ lines of working forms with no UX gain (current forms already use `<Label>` + `<Input h-11>` properly stacked)
+- ❌ **Not** adding new skeletons — every async page already has one wired
+- ❌ **Not** changing the bento grid breakpoints — current `grid-cols-2 lg:grid-cols-4` is correct; forcing `grid-cols-1` on mobile would make stat cards 2x taller and require more scrolling
+- ❌ **Not** touching Supabase, RLS, or business logic
 
 ### Constraints honored
 
-- Semantic tokens only — no raw Tailwind palette
-- 44px touch targets preserved
-- One `<h1>` per page rule restored
-- No DB migrations, no RLS changes, no new routes, no edge functions, no new dependencies
+- Semantic tokens only (no raw palette colors)
+- All edits are class-only (Tailwind + shadcn props)
+- Zero new dependencies
+- Zero behavior changes
 
-Reply **"approve"** and I'll execute.
+Reply **"approve"** and I'll execute all 8 file edits in one pass.
 
