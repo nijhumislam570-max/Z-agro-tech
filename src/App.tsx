@@ -13,6 +13,7 @@ import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AdminShell } from "@/components/admin/AdminLayout";
 import PublicShell from "@/components/PublicShell";
+import RouteProgress from "@/components/RouteProgress";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
