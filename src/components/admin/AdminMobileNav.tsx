@@ -18,8 +18,9 @@ import {
   GraduationCap,
   Users,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { prefetchRoute } from '@/lib/imageUtils';
+import { prefetchAdminRoute } from '@/lib/adminPrefetch';
 import Logo from '@/components/Logo';
 import { Badge } from '@/components/ui/badge';
 import { SheetClose } from '@/components/ui/sheet';
@@ -92,6 +93,8 @@ export const AdminMobileNav = ({
   unreadMessages = 0,
 }: AdminMobileNavProps) => {
   const location = useLocation();
+  const queryClient = useQueryClient();
+  const prefetch = (path: string) => prefetchAdminRoute(path, queryClient);
   const totalPending = pendingOrders;
 
   const sectionsWithBadges = navSections.map((section) => ({
@@ -166,8 +169,9 @@ export const AdminMobileNav = ({
                   <SheetClose asChild key={item.path}>
                     <Link
                       to={item.path}
-                      onTouchStart={() => prefetchRoute(item.path)}
-                      onMouseEnter={() => prefetchRoute(item.path)}
+                      onTouchStart={() => prefetch(item.path)}
+                      onMouseEnter={() => prefetch(item.path)}
+                      onFocus={() => prefetch(item.path)}
                       className={cn(
                         'relative flex items-center gap-3 px-3 py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98]',
                         isActive
