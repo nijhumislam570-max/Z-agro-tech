@@ -179,3 +179,44 @@ export function prefetchAdminRoute(path: string, qc: QueryClient): void {
     entry.data(qc).catch(() => prefetchedData.delete(path));
   }
 }
+
+/**
+ * Eagerly warm ALL admin route chunks during browser idle time once the
+ * admin enters /admin. This makes every subsequent sidebar click an
+ * instant cache hit (no network round-trip, no parse delay) — the single
+ * biggest win for "feels-like-native" admin navigation.
+ *
+ * Chunks are loaded one-at-a-time on the idle queue so we never block the
+ * main thread or the initial dashboard render. Data prefetches are skipped
+ * (they're warmed individually on hover/focus to respect staleTime).
+ */
+let warmingStarted = false;
+export function warmAllAdminChunks(): void {
+  if (warmingStarted) return;
+  warmingStarted = true;
+
+  const paths = Object.keys(ADMIN_PREFETCH).filter(
+    (p) => ADMIN_PREFETCH[p].chunk && !prefetchedChunks.has(p),
+  );
+
+  const ric: (cb: () => void) => void =
+    typeof window !== 'undefined' && 'requestIdleCallback' in window
+      ? (cb) => (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(cb, { timeout: 2000 })
+      : (cb) => setTimeout(cb, 200) as unknown as void;
+
+  const loadNext = (i: number) => {
+    if (i >= paths.length) return;
+    const path = paths[i];
+    const entry = ADMIN_PREFETCH[path];
+    if (entry?.chunk && !prefetchedChunks.has(path)) {
+      prefetchedChunks.add(path);
+      entry.chunk()
+        .catch(() => prefetchedChunks.delete(path))
+        .finally(() => ric(() => loadNext(i + 1)));
+    } else {
+      ric(() => loadNext(i + 1));
+    }
+  };
+
+  ric(() => loadNext(0));
+}
