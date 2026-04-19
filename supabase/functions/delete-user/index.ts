@@ -69,9 +69,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Prevent deletion of the primary admin account
-    const { data: targetUser } = await adminClient.auth.admin.getUserById(user_id)
-    if (targetUser?.user?.email === 'nijhumislam570@gmail.com') {
+    // Prevent deletion of the primary admin account (no hardcoded PII — looked up via secure RPC)
+    const { data: protectedId } = await adminClient.rpc('get_protected_admin_user_id')
+    if (protectedId && user_id === protectedId) {
       return new Response(JSON.stringify({ error: 'The primary admin account cannot be deleted' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
