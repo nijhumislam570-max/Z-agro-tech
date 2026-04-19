@@ -17,6 +17,12 @@ import logo from '@/assets/zagrotech-logo.jpeg';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { prefetchRoute } from '@/lib/imageUtils';
+
+const prefetch = (path: string) => ({
+  onMouseEnter: () => prefetchRoute(path),
+  onTouchStart: () => prefetchRoute(path),
+});
 
 interface AdminHeaderProps {
   title: string;
