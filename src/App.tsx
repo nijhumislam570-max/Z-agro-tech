@@ -11,6 +11,7 @@ import { useFocusManagement } from "@/hooks/useFocusManagement";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -118,21 +119,23 @@ const App = () => (
                     <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
                     <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
-                    {/* Admin */}
-                    <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-                    <Route path="/admin/analytics" element={<RequireAdmin><AdminAnalytics /></RequireAdmin>} />
-                    <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
-                    <Route path="/admin/orders" element={<RequireAdmin><AdminOrders /></RequireAdmin>} />
-                    <Route path="/admin/ecommerce-customers" element={<RequireAdmin><AdminEcommerceCustomers /></RequireAdmin>} />
-                    <Route path="/admin/coupons" element={<RequireAdmin><AdminCoupons /></RequireAdmin>} />
-                    <Route path="/admin/delivery-zones" element={<RequireAdmin><AdminDeliveryZones /></RequireAdmin>} />
-                    <Route path="/admin/incomplete-orders" element={<RequireAdmin><AdminIncompleteOrders /></RequireAdmin>} />
-                    <Route path="/admin/recovery-analytics" element={<RequireAdmin><AdminRecoveryAnalytics /></RequireAdmin>} />
-                    <Route path="/admin/courses" element={<RequireAdmin><AdminCourses /></RequireAdmin>} />
-                    <Route path="/admin/enrollments" element={<RequireAdmin><AdminEnrollments /></RequireAdmin>} />
-                    <Route path="/admin/customers" element={<RequireAdmin><AdminCustomers /></RequireAdmin>} />
-                    <Route path="/admin/messages" element={<RequireAdmin><AdminContactMessages /></RequireAdmin>} />
-                    <Route path="/admin/settings" element={<RequireAdmin><AdminSettings /></RequireAdmin>} />
+                    {/* Admin — single persistent shell, child pages render via <Outlet /> */}
+                    <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="analytics" element={<AdminAnalytics />} />
+                      <Route path="products" element={<AdminProducts />} />
+                      <Route path="orders" element={<AdminOrders />} />
+                      <Route path="ecommerce-customers" element={<AdminEcommerceCustomers />} />
+                      <Route path="coupons" element={<AdminCoupons />} />
+                      <Route path="delivery-zones" element={<AdminDeliveryZones />} />
+                      <Route path="incomplete-orders" element={<AdminIncompleteOrders />} />
+                      <Route path="recovery-analytics" element={<AdminRecoveryAnalytics />} />
+                      <Route path="courses" element={<AdminCourses />} />
+                      <Route path="enrollments" element={<AdminEnrollments />} />
+                      <Route path="customers" element={<AdminCustomers />} />
+                      <Route path="messages" element={<AdminContactMessages />} />
+                      <Route path="settings" element={<AdminSettings />} />
+                    </Route>
 
                     <Route path="*" element={<NotFound />} />
                   </Routes>

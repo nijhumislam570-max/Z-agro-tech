@@ -1,24 +1,54 @@
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 
-interface AdminLayoutProps {
-  children: ReactNode;
+const SIDEBAR_COLLAPSED_KEY = 'admin-sidebar-collapsed';
+
+interface AdminPageMeta {
   title: string;
   subtitle?: string;
 }
 
-const SIDEBAR_COLLAPSED_KEY = 'admin-sidebar-collapsed';
+interface AdminPageMetaContextValue {
+  meta: AdminPageMeta;
+  setMeta: (meta: AdminPageMeta) => void;
+}
 
-export const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => {
+const AdminPageMetaContext = createContext<AdminPageMetaContextValue | null>(null);
+
+/**
+ * Set the admin page header (title + optional subtitle) from any page
+ * rendered inside the shared AdminLayout shell.
+ *
+ * Replaces the legacy `<AdminLayout title=... subtitle=...>` wrapper.
+ */
+export const useAdminPageMeta = (title: string, subtitle?: string) => {
+  const ctx = useContext(AdminPageMetaContext);
+  useEffect(() => {
+    ctx?.setMeta({ title, subtitle });
+  }, [ctx, title, subtitle]);
+};
+
+interface AdminLayoutProps {
+  children?: ReactNode;
+}
+
+/**
+ * Persistent admin shell — sidebar, header, pending-count query.
+ * Mounted ONCE for the `/admin` route tree; each child page renders
+ * via <Outlet /> without remounting the shell.
+ */
+export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const [collapsed, setCollapsed] = useState(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     return stored === 'true';
   });
+  const [meta, setMeta] = useState<AdminPageMeta>({ title: 'Admin' });
   const { isAdmin } = useAdmin();
 
   useEffect(() => {
@@ -50,33 +80,40 @@ export const AdminLayout = ({ children, title, subtitle }: AdminLayoutProps) => 
 
   const toggleSidebar = () => setCollapsed(prev => !prev);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/20">
-      <AdminSidebar
-        collapsed={collapsed}
-        onToggle={toggleSidebar}
-        pendingOrders={pendingCounts?.pendingOrders}
-        incompleteOrders={pendingCounts?.incompleteOrders}
-        unreadMessages={pendingCounts?.unreadMessages}
-      />
+  const ctxValue = useMemo<AdminPageMetaContextValue>(
+    () => ({ meta, setMeta }),
+    [meta]
+  );
 
-      <div className={cn(
-        "min-h-screen flex flex-col transition-[margin] duration-300 ease-in-out",
-        collapsed ? "md:ml-[72px]" : "md:ml-[260px]"
-      )}>
-        <AdminHeader
-          title={title}
-          subtitle={subtitle}
-          onToggleSidebar={toggleSidebar}
+  return (
+    <AdminPageMetaContext.Provider value={ctxValue}>
+      <div className="min-h-screen bg-gradient-to-br from-muted/30 via-background to-muted/20">
+        <AdminSidebar
           collapsed={collapsed}
+          onToggle={toggleSidebar}
           pendingOrders={pendingCounts?.pendingOrders}
           incompleteOrders={pendingCounts?.incompleteOrders}
           unreadMessages={pendingCounts?.unreadMessages}
         />
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
-          {children}
-        </main>
+
+        <div className={cn(
+          "min-h-screen flex flex-col transition-[margin] duration-300 ease-in-out",
+          collapsed ? "md:ml-[72px]" : "md:ml-[260px]"
+        )}>
+          <AdminHeader
+            title={meta.title}
+            subtitle={meta.subtitle}
+            onToggleSidebar={toggleSidebar}
+            collapsed={collapsed}
+            pendingOrders={pendingCounts?.pendingOrders}
+            incompleteOrders={pendingCounts?.incompleteOrders}
+            unreadMessages={pendingCounts?.unreadMessages}
+          />
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
+            {children ?? <Outlet />}
+          </main>
+        </div>
       </div>
-    </div>
+    </AdminPageMetaContext.Provider>
   );
 };
