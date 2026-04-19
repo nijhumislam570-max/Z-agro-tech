@@ -91,6 +91,7 @@ const App = () => (
           <OfflineIndicator />
           <BrowserRouter>
             <ScrollToTop />
+            <RouteProgress />
             <ErrorBoundary>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
