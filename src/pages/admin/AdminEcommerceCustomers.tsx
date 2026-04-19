@@ -445,6 +445,22 @@ const AdminEcommerceCustomers = () => {
 
   return (
     <AdminLayout title="E-Commerce Customers" subtitle="Payments, buyers & revenue overview">
+      {/* Error state with retry — graceful fallback when orders query fails */}
+      {ordersError && !isLoading && (
+        <div className="mb-4 p-4 bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Couldn't load customers</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {ordersError instanceof Error ? ordersError.message : 'Unknown error'}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetchOrders()} className="rounded-xl text-xs h-8 flex-shrink-0">
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Time Filter */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <TimeFilterBar value={timeFilter} onChange={setTimeFilter} />
