@@ -556,7 +556,8 @@
     will-change: width;
   }
 
-  /* Page transition animation */
+  /* Page transition animation — short, GPU-friendly fade with no transform
+     to avoid sub-pixel reflow on the new route's content. */
   @keyframes page-enter {
     from {
       opacity: 0;

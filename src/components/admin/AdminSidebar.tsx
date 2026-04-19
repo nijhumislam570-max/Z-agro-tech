@@ -110,14 +110,18 @@ const getPrefetchHandler = (qc: QueryClient, path: string) => {
 };
 
 interface NavLinkItemProps {
-  item: NavItem;
+  icon: React.ElementType;
+  label: string;
+  path: string;
   isActive: boolean;
   collapsed: boolean;
+  badge?: number;
+  badgeVariant?: 'default' | 'destructive' | 'outline';
   prefetchHandler: () => void;
 }
 
-const NavLinkItem = memo(({ item, isActive, collapsed, prefetchHandler }: NavLinkItemProps) => {
-  const Icon = item.icon;
+const NavLinkItem = memo(({ icon: Icon, label, path, isActive, collapsed, badge, badgeVariant, prefetchHandler }: NavLinkItemProps) => {
+  const item = { icon: Icon, label, path, badge, badgeVariant };
   const link = (
     <Link
       to={item.path}
@@ -286,15 +290,16 @@ const AdminSidebarInner = ({
                       currentPath === item.path ||
                       (item.path !== '/admin' && currentPath.startsWith(item.path));
                     const badgeInfo = badges[item.path];
-                    const itemWithBadge = badgeInfo
-                      ? { ...item, badge: badgeInfo.badge, badgeVariant: badgeInfo.badgeVariant }
-                      : item;
                     return (
                       <NavLinkItem
                         key={item.path}
-                        item={itemWithBadge}
+                        icon={item.icon}
+                        label={item.label}
+                        path={item.path}
                         isActive={isActive}
                         collapsed={collapsed}
+                        badge={badgeInfo?.badge}
+                        badgeVariant={badgeInfo?.badgeVariant}
                         prefetchHandler={getPrefetchHandler(queryClient, item.path)}
                       />
                     );
