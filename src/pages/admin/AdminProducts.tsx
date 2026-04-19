@@ -103,7 +103,7 @@ const AdminProducts = () => {
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
   void isAdmin;
-  const { data: products, isLoading } = useAdminProducts();
+  const { data: products, isLoading, error, refetch } = useAdminProducts();
   const { categories, addCategory, updateCategory, deleteCategory } = useProductCategories();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -166,8 +166,13 @@ const AdminProducts = () => {
     } else if (stockFilter === 'inactive') {
       list = list.filter(p => !p.is_active);
     }
-    // Sort
+    // Sort — pre-compute date timestamps once to avoid repeated parsing
     const dir = sortDir === 'asc' ? 1 : -1;
+    if (sortKey === 'created_at') {
+      const withTs = list.map(p => ({ p, ts: new Date(p.created_at).getTime() }));
+      withTs.sort((a, b) => (a.ts - b.ts) * dir);
+      return withTs.map(x => x.p);
+    }
     const sorted = [...list].sort((a, b) => {
       switch (sortKey) {
         case 'name':
@@ -176,9 +181,8 @@ const AdminProducts = () => {
           return ((a.price ?? 0) - (b.price ?? 0)) * dir;
         case 'stock':
           return ((a.stock ?? 0) - (b.stock ?? 0)) * dir;
-        case 'created_at':
         default:
-          return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+          return 0;
       }
     });
     return sorted;
@@ -310,19 +314,26 @@ const AdminProducts = () => {
   };
 
   const handleQuickStockUpdate = async (productId: string, newStock: number) => {
+    // Validate input via Zod — prevents negatives, non-integers, and absurd values
+    const parsed = quickStockSchema.safeParse({ stock: newStock });
+    if (!parsed.success) {
+      toast.error(parsed.error.errors[0]?.message ?? 'Invalid stock value');
+      return;
+    }
+    const validatedStock = parsed.data.stock;
     try {
       // Auto-sync badge with stock status
       const product = products?.find(p => p.id === productId);
       const currentBadge = product?.badge;
-      const updateData: { stock: number; badge?: string | null } = { stock: newStock };
-      if (newStock > 0 && currentBadge?.toLowerCase() === 'stock out') {
+      const updateData: { stock: number; badge?: string | null } = { stock: validatedStock };
+      if (validatedStock > 0 && currentBadge?.toLowerCase() === 'stock out') {
         updateData.badge = null;
-      } else if (newStock === 0) {
+      } else if (validatedStock === 0) {
         updateData.badge = 'Stock Out';
       }
       const { error } = await supabase.from('products').update(updateData).eq('id', productId);
       if (error) throw error;
-      toast.success(`Stock set to ${newStock}`);
+      toast.success(`Stock set to ${validatedStock}`);
       queryClient.invalidateQueries({ queryKey: ['admin-products'] });
       setQuickStockEdit(null);
     } catch (error: unknown) {
