@@ -28,6 +28,19 @@ const Navbar = memo(() => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const prefetchShop = usePrefetch('/shop');
+  const prefetchAcademy = usePrefetch('/academy');
+  const prefetchDashboard = usePrefetch('/dashboard');
+  const prefetchAdmin = usePrefetch('/admin');
+  const prefetchAuth = usePrefetch('/auth');
+  const prefetchByPath: Record<string, ReturnType<typeof usePrefetch>> = {
+    '/shop': prefetchShop,
+    '/academy': prefetchAcademy,
+    '/dashboard': prefetchDashboard,
+    '/admin': prefetchAdmin,
+    '/auth': prefetchAuth,
+  };
+
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + '/');
 
