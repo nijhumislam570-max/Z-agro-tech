@@ -1,52 +1,73 @@
 
-The user wants a longer, richer landing page with more sections and better design. Looking at the current `Index.tsx`, it has: Hero → 3 value props → Featured Products → Featured Courses → Trust Stats. That's thin for a modern agritech landing page.
+The user wants me to use the listed design vocabulary (shapes, components, visual elements) to elevate the landing page sections. The current landing page works but feels flat — most cards are plain rounded rectangles with gradient fills. I'll inject more shape variety, depth, and hierarchy.
 
-**Plan: Expand landing page with 5 new sections + redesign existing ones**
+## Design moves per section
 
-### New page flow (top → bottom)
-1. **Hero** (redesign — add real agriculture image backdrop + dual stat pills)
-2. **Trust logos / partners strip** (NEW — "Trusted by 5,000+ farmers across Bangladesh")
-3. **Value props bento** (redesign — 6 cards in asymmetric bento grid instead of 3 flat cards)
-4. **Featured Products** (keep, polish header)
-5. **Categories showcase** (NEW — 4 visual category cards: Crops · Livestock · Fertilizer · Equipment, linking to filtered shop)
-6. **Featured Courses** (keep, polish header)
-7. **How it works** (NEW — 3-step visual: Browse → Order/Enroll → Grow)
-8. **Testimonials** (NEW — 3 farmer testimonial cards with avatar, name, location, quote)
-9. **Stats strip** (keep, redesign with image backdrop)
-10. **Newsletter / CTA banner** (NEW — full-width gradient CTA: "Join the modern farming movement" with email capture → toast)
-11. **FAQ teaser** (NEW — 4 collapsible Q&As linking to /faq)
+**1. Hero**
+- Add floating decorative shapes (hexagon, circle, triangle) as soft background accents using CSS only (SVG or `clip-path`)
+- Add a thin animated divider line under the headline
+- Convert the badge above headline to a pill with a tiny pulsing status dot (circle)
+- Stat pills get subtle elevation (shadow-lg) + hover lift
 
-### Files to create
-1. `src/assets/hero-agriculture-field.jpg` — generated cinematic Bangladesh rice/crop field at golden hour
-2. `src/components/home/CategoriesShowcase.tsx` — 4 category cards with image+overlay, links to `/shop?category=<slug>`
-3. `src/components/home/HowItWorks.tsx` — 3-step horizontal timeline with icons (Search/ShoppingBag/Sprout)
-4. `src/components/home/Testimonials.tsx` — 3 testimonial cards (hardcoded realistic Bangladeshi farmer quotes)
-5. `src/components/home/NewsletterCTA.tsx` — gradient banner with email input + Subscribe button (toast on submit, no backend)
-6. `src/components/home/FAQTeaser.tsx` — 4 Accordion items + "View all FAQs" link to `/faq`
-7. `src/components/home/PartnersStrip.tsx` — horizontal strip of trust badges (Free shipping · COD · Verified experts · 24/7 support)
+**2. PartnersStrip**
+- Replace flat row with rounded-rectangle items that have hover elevation
+- Add a thin vertical divider (line) between items on desktop
+- Add a soft gradient top border (1px) to separate from hero
 
-### Files to modify
-1. `src/components/home/HeroSection.tsx` — add real ag image as background layer (with gradient overlay for text contrast), add inline mini stat pills below CTAs ("5,000+ farmers · 40+ courses · 98% satisfaction")
-2. `src/components/home/TrustStatsStrip.tsx` — redesign with image backdrop + larger numbers
-3. `src/pages/Index.tsx` — add new value-props bento layout (6 items, asymmetric); compose all new sections in order
+**3. Value Props Bento (in Index.tsx)**
+- Add a hexagonal icon container option (using clip-path) on the two large bento cards for visual variety vs square icon containers on small cards
+- Add a "NEW" / accent pill chip in the corner of the primary cards
+- Add subtle dotted-pattern texture overlay (CSS radial-gradient dots) on large cards for depth
+- Cards get a top-left corner accent shape (small triangle/circle) as decoration
 
-### Design rules I'll follow
-- All semantic tokens only (no raw `bg-green-500` etc.) — per Core memory
-- Mobile-first responsive: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-N`
-- 44px min touch targets
-- `animate-page-enter` / `animate-fade-in` with staggered delays
-- Reuse existing `Card`, `Button`, `Accordion`, `Input` from shadcn
-- Images via `OptimizedImage` where appropriate
-- One `<h1>` only (in HeroSection); all new sections use `<h2>` with proper `aria-labelledby`
+**4. CategoriesShowcase**
+- Add a number badge (circle) "01, 02, 03, 04" in top-right corner of each card
+- Add an arrow line that extends on hover (animated)
+- Add a thin progress bar at bottom of each card showing "popularity" (decorative)
 
-### Image generation (1 new image)
-- Cinematic wide shot of green Bangladesh rice paddies at golden hour with soft mist, warm tones — fits the warm beige theme. Generated via Nano banana 2 (`google/gemini-3.1-flash-image-preview`) for speed + quality. Saved to `src/assets/`.
+**5. HowItWorks**
+- Convert step numbers to large pentagon/hexagon shape badges instead of circles
+- Add a dashed connecting line between steps on desktop (instead of solid)
+- Add tooltip-style speech bubbles with mini-stats on each step
 
-### What I'm NOT doing
-- No backend for newsletter (toast-only — can wire to a `subscribers` table later if requested)
-- No new routes
-- No DB/migrations
-- Not touching admin, auth, or shop logic
-- Not adding the `@tailwindcss/container-queries` plugin
+**6. Testimonials**
+- Add a large decorative quotation mark (SVG) in the background of each card
+- Convert avatars to circles with a colored ring (border-4)
+- Add a 5-star rating row using filled star icons
+- Add a small "verified" badge chip next to name
+
+**7. TrustStatsStrip**
+- Add hexagonal stat containers instead of plain rounded rectangles
+- Add a thin animated progress bar under each stat (decorative)
+- Add corner triangles as decorative accents
+
+**8. NewsletterCTA**
+- Add floating geometric shapes (circles, triangles, hexagons) in background
+- Convert the email input to pill shape (rounded-full)
+- Add a small "100% free" badge chip under the form
+
+**9. FAQTeaser**
+- Add a large decorative "?" symbol in background
+- Add chevron arrows that rotate on expand
+- Add a numbered circle badge before each question
+
+## Files to modify (8)
+1. `src/components/home/HeroSection.tsx` — floating shapes, status dot, divider
+2. `src/components/home/PartnersStrip.tsx` — dividers, hover lift
+3. `src/pages/Index.tsx` — bento accents, hexagon icons on large cards, NEW pill
+4. `src/components/home/CategoriesShowcase.tsx` — number badges, hover arrow
+5. `src/components/home/HowItWorks.tsx` — hexagon step badges, dashed connector
+6. `src/components/home/Testimonials.tsx` — quote bg, avatar ring, stars, verified badge
+7. `src/components/home/TrustStatsStrip.tsx` — hex containers, corner accents
+8. `src/components/home/NewsletterCTA.tsx` — floating shapes, pill input, free badge
+9. `src/components/home/FAQTeaser.tsx` — bg "?", numbered badges
+
+## Constraints I'll follow
+- All semantic tokens only (no raw `bg-green-500` etc.)
+- All shapes via Tailwind + inline `clip-path` (no new deps)
+- Mobile-first; decorative shapes hidden on small screens where they'd crowd
+- 44px min touch targets preserved
+- All decorative elements `aria-hidden="true"`
+- No new files, no new images, no DB changes
 
 Reply **"approve"** and I'll execute.
