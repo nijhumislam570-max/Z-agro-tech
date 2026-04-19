@@ -7,10 +7,11 @@ export function useMyOrders() {
   return useQuery({
     queryKey: ['my-orders', user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('id,status,total_amount,created_at,items,tracking_id,payment_method,shipping_address,consignment_id,rejection_reason,payment_status')
         .eq('user_id', user!.id)
         .is('trashed_at', null)
         .order('created_at', { ascending: false });

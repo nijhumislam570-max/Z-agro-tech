@@ -27,10 +27,15 @@ export function useMyEnrollments() {
   return useQuery({
     queryKey: ['enrollments', user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('enrollments')
-        .select('*, course:courses(*), batch:course_batches(*)')
+        .select(
+          'id,user_id,course_id,enrolled_at,progress,batch_id,status,contact_phone,notes,' +
+            'course:courses(id,title,thumbnail_url,category,difficulty,duration_label,mode),' +
+            'batch:course_batches(id,name,start_date,end_date,status)',
+        )
         .eq('user_id', user!.id)
         .order('enrolled_at', { ascending: false });
       if (error) throw error;
