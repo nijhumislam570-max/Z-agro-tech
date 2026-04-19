@@ -1,7 +1,6 @@
 import { ReactNode, Suspense, useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 import { AdminPageSkeleton } from './AdminPageSkeleton';
@@ -137,19 +136,11 @@ export const AdminShell = ({ children }: AdminShellProps) => {
             unreadMessages={pendingCounts?.unreadMessages}
           />
           <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <Suspense fallback={<AdminPageSkeleton />}>
-                  {children ?? <Outlet />}
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
+            <div key={location.pathname} className="animate-page-enter">
+              <Suspense fallback={<AdminPageSkeleton />}>
+                {children ?? <Outlet />}
+              </Suspense>
+            </div>
           </main>
         </div>
       </div>
