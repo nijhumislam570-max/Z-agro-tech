@@ -1,113 +1,63 @@
 
 
-# Admin Navigation Speed & Polish Upgrade
+# Phase 1 — Codebase Audit Report (Read-Only)
 
-## Goal
-Make admin navigation feel instant and app-like across all 13 admin pages — without touching their business logic or data fetching.
+I traced the dependency tree from `main.tsx` → `App.tsx` → all 13 admin pages + 18 public/auth pages, then cross-referenced every file under `src/components`, `src/hooks`, `src/lib`, `src/contexts`, and `src/types` against actual import call sites. Findings below are grouped by **confidence level** so you can approve only what's safe.
 
-## Current state (verified)
+## Tier A — SAFE TO DELETE (zero references found)
 
-- **Routing:** `App.tsx` already uses `React.lazy` for every admin page and a single persistent `<AdminShell />` mounted under `/admin` (good — no shell remount).
-- **Suspense fallback:** Currently a thin progress bar at the top of the screen. Page area goes blank during chunk load → looks slow.
-- **Sidebar links:** `AdminSidebar.tsx` uses `<NavLink>` (good) but has **no hover prefetch** for either route chunks or query data.
-- **Page transitions:** `AdminShell` keys its `<main>` by pathname with `animate-page-enter` (CSS). No `AnimatePresence` exit animation, so leaving page = hard cut, entering page = fade.
-- **Query cache:** `QueryClient` already has `staleTime: 2min`, `gcTime: 10min` → stale-while-revalidate works. Just needs prefetch wiring.
-- **`framer-motion`:** Already in `package.json` (used elsewhere). No new dependency.
+| # | File | Why safe |
+|---|---|---|
+| A1 | `src/components/NavLink.tsx` | Re-export wrapper around `react-router-dom`'s NavLink. **Zero imports anywhere.** Sidebar uses `Link`/`NavLink` directly from react-router-dom. |
+| A2 | `src/components/shop/ProductCardSkeleton.tsx` | Skeleton component. **Zero imports.** `ShopPage` defines its own inline `ProductCardSkeleton` (memo); `FeaturedProductsGrid` uses `ProductSkeleton` instead. |
+| A3 | `src/hooks/useGeocode.ts` | Returns coords from `/geocode` edge function. **Only self-reference.** Checkout uses static `bangladeshRegions` map, not geocoding. |
+| A4 | `src/test/example.test.ts` | Vitest scaffold (`expect(true).toBe(true)`). No real assertions. |
+| A5 | `src/tailwind.config.lov.json` | Stale Lovable-config artifact. Real config is `tailwind.config.ts` at root. Zero references. |
 
-So the missing pieces are: (1) a real Suspense skeleton, (2) AnimatePresence wrapper, (3) hover prefetch for both route chunks AND query data.
+## Tier B — SAFE TO PRUNE (orphaned exports inside live files)
 
-## Plan
+| # | Symbol | File | Why |
+|---|---|---|---|
+| B1 | `notifyAdminsOfNewOrder` | `src/lib/notifications.ts` | No-op stub with **zero call sites** (only `createOrderNotification` is used). Keep the file, drop this function. |
+| B2 | `AdminMobileNav` props `incompleteOrders`, `unreadMessages` | `src/components/admin/AdminMobileNav.tsx` | Declared in props, **never read** in JSX (only `pendingOrders` is rendered into the badge). Safe to remove from interface + destructure. |
 
-### Step 1 — Suspense skeleton inside AdminShell
-Add a dedicated `<AdminPageSkeleton />` component (shadcn `Skeleton`) that mimics a typical admin page (header strip + stat row + table block).
+## Tier C — REVIEW (small refactor opportunities, NOT yet recommended for deletion)
 
-In `AdminShell`, wrap `<Outlet />` in its own `<Suspense fallback={<AdminPageSkeleton />}>` so route-chunk loads paint a layout-matched skeleton inside the shell instead of the global progress bar.
+These are not strict "dead code" but **redundancies** worth flagging. I'd prefer to leave these for a follow-up sprint rather than touch them now:
 
-### Step 2 — AnimatePresence page transitions
-Replace the current `key={pathname} className="animate-page-enter"` div in `AdminShell <main>` with:
+| # | Item | Observation | Recommendation |
+|---|---|---|---|
+| C1 | `src/components/admin/AdminStatCard.tsx` vs `src/components/admin/StatCard.tsx` | Two near-identical stat cards. `StatCard` (icon as ReactNode) used by `AcademyOverview` + `ECommerceOverview`. `AdminStatCard` (icon as component) used by `AdminEcommerceCustomers`. Both shipped, both maintained. | Defer — consolidating means rewriting prop signatures across 3 files. Worth a focused PR later. |
+| C2 | `ProductCardSkeleton` defined inline in `ShopPage.tsx` (line 74) | Duplicate of `src/components/shop/ProductCardSkeleton.tsx` (which IS being deleted in A2) | After A2, the inline version stays as the canonical one — no action needed. |
+| C3 | `src/components/ProductCard.tsx` (canonical) + `src/components/shop/ProductCard.tsx` (adapter) | The shop adapter exists to map `ShopProduct` shape → canonical props for Featured/Wishlist grids. Adapter is **actively used** by `FeaturedProductsGrid`, `WishlistTab`, `useWishlistProducts`. | Keep both — intentional pattern. |
 
-```tsx
-<AnimatePresence mode="wait" initial={false}>
-  <motion.div
-    key={location.pathname}
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    transition={{ duration: 0.2, ease: 'easeOut' }}
-  >
-    <Suspense fallback={<AdminPageSkeleton />}>
-      <Outlet />
-    </Suspense>
-  </motion.div>
-</AnimatePresence>
-```
+## What I deliberately INVESTIGATED and confirmed IS used
 
-Result: smooth fade+slide on every admin route change, no hard cuts, skeleton paints if chunk isn't ready.
+So you know the audit was thorough — these all looked suspect at first glance but have live call sites:
 
-### Step 3 — Hover prefetch (route chunks + query data)
-Create `src/lib/adminPrefetch.ts` exporting a single map keyed by admin path:
+- **All 35+ shadcn/ui primitives** (`accordion`, `alert-dialog`, `aspect-ratio`, `calendar`, `carousel`, `checkbox`, `collapsible`, `command`, `dialog`, `drawer`, `dropdown-menu`, `popover`, `progress`, `radio-group`, `scroll-area`, `select`, `sheet`, `switch`, etc.) — all referenced.
+- **All 24 hooks** including `useGeocode` (the only orphan), `useFeaturedAgri`, `useInfiniteScroll`, `usePagination` — used.
+- **All 5 dashboard tiles** (`FeaturedCarouselTile`, `LearningPathTile`, `MasterclassTile`, `QuickActionsTile`, `RecommendedInputsTile`) — used by `DashboardPage`.
+- **All 7 academy components** (`BatchPicker`, `CourseCard`, `CourseCategoryChips`, `CoursePlayer`, `CourseSkeleton`, `CurriculumList`, `EnrollDialog`) — used.
+- **All 4 home components** (`HeroSection`, `FeaturedProductsGrid`, `FeaturedCoursesGrid`, `TrustStatsStrip`) — used by `Index.tsx`.
+- **All admin dashboard subcomponents** (`AcademyOverview`, `ECommerceOverview`, `OrderStatusHelpers`, `PlatformHealthCard`, `QuickActionsCard`, `RecentOrdersList`, `RecentOrdersSkeleton`) — used.
+- **All admin lib files** (`fraudDetection`, `csvParser`, `bangladeshRegions`, `statusColors`, `dbJoins`, `whatsapp`, `videoEmbed`, `mediaCompression`, `notifications`, `supabaseService`, `imageUtils`, `agriImages`, `productCategories`) — used.
+- **`src/types/database.ts`** — used by `useAdmin`, `AdminOrders`, `ProductDetailPage`, `fraudDetection`.
+- **`AdminMobileNav`, `AdminSidebar`, `AdminHeader`** — all wired to `AdminLayout` / `AdminShell`.
+- **`createOrderNotification`** in `notifications.ts` — used by 4 admin order dialogs (no-op, but kept as a shim per the file's own comment).
 
-```ts
-{
-  '/admin':                  { chunk: () => import('@/pages/admin/AdminDashboard'),
-                               data:  (qc) => qc.prefetchQuery({ queryKey: ['admin-stats'], ... }) },
-  '/admin/orders':           { chunk: () => import('@/pages/admin/AdminOrders'),
-                               data:  (qc) => qc.prefetchQuery({ queryKey: ['admin-orders'], ... }) },
-  '/admin/products':         { chunk: () => import('@/pages/admin/AdminProducts'), data: ... },
-  '/admin/customers':        { chunk: () => import('@/pages/admin/AdminCustomers'), data: ... },
-  '/admin/ecommerce-customers': { ... },
-  '/admin/courses':          { ... },
-  '/admin/enrollments':      { ... },
-  '/admin/messages':         { ... },
-  '/admin/coupons':          { ... },
-  '/admin/delivery-zones':   { ... },
-  '/admin/incomplete-orders':{ ... },
-  '/admin/recovery-analytics': { ... },
-  '/admin/settings':         { ... },
-  '/admin/analytics':        { ... },
-}
-```
+## Phase 2 — Proposed cleanup plan (only after you approve)
 
-Each `data` prefetcher reuses the **exact same `queryKey` + `queryFn`** the destination page already uses (read from each page/hook so caches hit on arrival). `staleTime` matches the page's existing setting (so prefetch isn't wasted).
+1. Delete the 5 Tier A files.
+2. Remove the `notifyAdminsOfNewOrder` export from `notifications.ts`.
+3. Remove unused `incompleteOrders` + `unreadMessages` props from `AdminMobileNav` interface + the destructure (and the matching props passed by `AdminHeader`).
+4. Run `tsc --noEmit` — must be clean. If anything errors, immediately revert that specific change.
 
-In `AdminSidebar.tsx`, add to every `<NavLink>`:
-```tsx
-onMouseEnter={() => prefetchAdminRoute(item.url, queryClient)}
-onFocus={()      => prefetchAdminRoute(item.url, queryClient)}
-onTouchStart={() => prefetchAdminRoute(item.url, queryClient)}
-```
+**Touched files (Phase 2):** 5 deletes + 3 edits (`src/lib/notifications.ts`, `src/components/admin/AdminMobileNav.tsx`, `src/components/admin/AdminHeader.tsx`).
 
-Same handlers added to `AdminMobileNav.tsx` and the header's command palette items if present.
+**Not touched, per your constraints:** `vite.config.ts`, `tailwind.config.ts`, Supabase schema/RLS, `src/integrations/supabase/client.ts`, `src/integrations/supabase/types.ts`, `.env`, `supabase/config.toml`.
 
-The helper de-dupes calls (Set of already-prefetched paths) so repeated hovers are free.
+**Risk:** very low. Tier A items have **zero string references in the entire `src/` tree**. Tier B items are dead-export pruning that doesn't change runtime behaviour.
 
-### Step 4 — Verification
-- `tsc --noEmit` clean.
-- Hover any sidebar link → Network tab shows the chunk + a Supabase request fire **before** click.
-- Click → page paints from cache instantly; if not ready, skeleton shows for ~100ms then content fades in.
-- Re-visit a previously-opened page → loads from query cache (no spinner), background revalidates after `staleTime`.
-- No layout shift during fade (skeleton matches page chrome height).
-- Mobile: touch-start prefetch keeps perceived latency near zero.
-
-## Files
-
-**New**
-- `src/components/admin/AdminPageSkeleton.tsx`
-- `src/lib/adminPrefetch.ts`
-
-**Edited**
-- `src/components/admin/AdminLayout.tsx` (Suspense + AnimatePresence in `AdminShell`)
-- `src/components/admin/AdminSidebar.tsx` (hover/focus/touch prefetch on every NavLink)
-- `src/components/admin/AdminMobileNav.tsx` (same prefetch handlers)
-
-**Untouched**
-- All 13 admin pages — their queries, mutations, Supabase calls, Zod schemas, and UI remain exactly as-is.
-- `App.tsx` route table (already correctly lazy-loaded).
-- `QueryClient` defaults (already stale-while-revalidate).
-
-## Why this is the right scope
-- Solves the actual perceived-latency root causes: blank Suspense fallback, hard route cut, cold query cache on first visit.
-- Zero risk to business logic — purely additive (skeleton, motion wrapper, prefetch handlers).
-- No new deps; `framer-motion` and `@tanstack/react-query` already installed.
-- Composable with the per-page 9-pillar audits already in flight (each page's query keys feed straight into the prefetch map).
+Reply with **"approve cleanup"** (or list which tiers/items to skip) and I'll execute Phase 2.
 
