@@ -1,98 +1,113 @@
 
+# Admin Navigation Speed Fix Plan
 
-# Non-Admin Navigation Speed — Audit & Fix Plan
+## What’s actually still wrong
 
-## Audit (most of the spec is already done)
+The admin area is not slow because links are missing prefetch or because the sidebar still remounts by itself. The real bottlenecks are:
 
-| Spec step | Status | Notes |
-|---|---|---|
-| 2 Lazy load all routes | ✅ Done | All 17 non-admin pages already `lazy()` in `App.tsx` |
-| 3 Suspense fallback | ✅ Done | `PageLoader` top progress bar (no white flash) |
-| 5 Caching | ✅ Done | `staleTime: 2min`, `gcTime: 10min`, `refetchOnWindowFocus: false` |
-| 6 Page transitions | ✅ Done | Global 180ms `animate-page-enter` keyed on pathname |
-| 7 Prefetch likely next pages | ✅ Done | `usePrefetch` wired into Navbar, Footer, MobileNav |
-| 8 Image optimization | ✅ Done | `OptimizedImage` + Supabase transform params |
-| 9 Skeletons | ✅ Done | `ProductCardSkeleton`, `CourseSkeleton`, etc. |
+1. **`PageTransition` in `App.tsx` is keyed by `pathname` around the entire `<Routes />` tree**
+   - This quietly remounts the whole matched route subtree on every navigation.
+   - Result: the “persistent” admin shell is not truly persistent in practice.
 
-## Real bottlenecks found
+2. **Realtime subscriptions are duplicated across admin pages**
+   - `useAdminRealtimeDashboard(isAdmin)` is called inside many admin pages instead of once in the shared shell.
+   - Some pages also add extra table-specific realtime subscriptions on top of that.
+   - Result: unnecessary subscribe/unsubscribe churn, extra invalidations, and heavier route changes.
 
-1. **No persistent layout shell** — every public page renders its own `<Navbar />` + `<Footer />` (+ optional `<MobileNav />`). On route change, both remount from scratch, which:
-   - Re-runs `useUserRole` query check (cached, but the React component lifecycle still re-evaluates)
-   - Re-derives the cart badge / active-link calculations
-   - Causes a sub-perceptible "logo flash" on slower devices
-   - Reproduces exactly the same problem we just solved for `/admin`
+3. **A few admin pages are still heavier than they need to be**
+   - Analytics loads a large dataset and also has its own realtime invalidation.
+   - Orders / customers / enrollments do client-side filtering and joins after mount.
+   - This is okay for functionality, but route transitions feel worse because the app is remounting too much.
 
-2. **Prefetch map is incomplete for parametric routes** — `routePrefetchMap` keys `/product` and `/course` but a hover on `/product/abc123` correctly resolves; however `/cart` and `/checkout` are missing **prefetch on hover** in `MobileNav` because `prefetchRoute('/cart')` works but the Navbar's cart icon (`CartQuickPeek` trigger) never calls it. Minor.
+## Fix strategy
 
-3. **`Navbar` calls `usePrefetch` 5 times unconditionally** at the top level — fine, just inefficient code shape; not a perf hit.
+### 1) Make the admin shell truly persistent
+Move route animation so it does **not** wrap the entire `<Routes />` tree.
 
-4. **`ScrollToTop` runs `useFocusManagement()` on every route change** — already lightweight, no fix needed.
+- Remove the pathname-keyed transition wrapper from around all routes in `App.tsx`
+- Keep the admin shell mounted once under `/admin`
+- Apply the page-enter animation only to the **inner admin page content**, not the whole router tree
 
-5. **`/dashboard` and `/track-order`** — already optimized in prior sprints.
+This is the main fix.
 
-## Plan — Single focused fix (the only real win)
+### 2) Centralize admin realtime once
+Move `useAdminRealtimeDashboard(isAdmin)` into `AdminShell` only.
 
-### Fix A — Persistent Public Layout Shell *(parallels the `/admin` fix)*
+Then remove page-level calls from:
+- dashboard
+- analytics
+- orders
+- products
+- customers
+- courses
+- enrollments
+- messages
+- coupons
+- delivery zones
+- settings
+- ecommerce customers
 
-Create a `<PublicShell />` that mounts `<Navbar />` + `<Footer />` + (optional) `<MobileNav />` **once**, with an `<Outlet />` between them. Restructure `App.tsx` to nest all public routes under it. Each page then exports just its `<main>` content and stops rendering its own Navbar/Footer/MobileNav.
+Also remove duplicate page-specific subscriptions where the shared admin realtime already covers the same table.
 
-```text
-Before                          After
-<Index>                         <Route element={<PublicShell/>}>
-  <Navbar/>                       <Route path="/" element={<Index/>}/>
-  <main>...</main>                <Route path="/shop" element={<ShopPage/>}/>
-  <Footer/>                       ...
-</Index>                        </Route>
-```
+### 3) Reduce invalidation noise
+Tighten invalidation so admin navigation is not constantly triggering unnecessary work.
 
-**Result**: Navbar/Footer/MobileNav stay mounted across `/` → `/shop` → `/product/:id` → `/cart` → `/checkout`. No more remount flash, no re-evaluation of nav-internal state, instant perceived navigation.
+- Keep shared invalidations in one place
+- Avoid duplicate invalidations from both page logic and shared realtime
+- Keep badge counts/stats updates targeted
 
-The shell needs **two variants** based on the route:
-- `<PublicShell />` — Navbar + Footer (default)
-- `<PublicShellWithMobileNav />` — Navbar + content + MobileNav (for shop/cart/track-order/contact where mobile bottom nav is shown)
+### 4) Keep transitions app-like
+After the remount issue is fixed:
+- animate only `<Outlet />` content inside admin main area
+- keep motion subtle and fast
+- preserve sidebar/header visually with no flash
 
-Or simpler: one shell that **always** renders MobileNav (it's already `md:hidden`-gated and adds zero desktop cost) — that's actually the cleaner choice and is what most apps do. Confirm: every page currently *with* MobileNav already has `pb-20 md:pb-0` body padding; pages *without* (Index, Academy, About, FAQ, Privacy, Terms, Auth) don't have that padding but also don't currently show MobileNav. **Solution**: shell always renders MobileNav; we add `pb-20 md:pb-0` to the shell's wrapper div, neutral on desktop.
+### 5) Polish the heaviest pages
+Small targeted cleanup on the worst offenders:
+- **Analytics**: keep charts lazy, but avoid duplicate realtime subscriptions
+- **Delivery Zones**: remove duplicate realtime listener
+- **Orders / Customers / Enrollments**: keep current queries, but preserve mounted shell so filtering/render cost no longer feels like a full page swap
 
-### Fix B — Tiny prefetch polish *(1 file)*
+## Files to update
 
-Add `usePrefetch('/cart')` + `usePrefetch('/checkout')` handlers to the cart icon button in `Navbar.tsx` so hovering the cart starts loading those chunks before the user clicks through.
+Core:
+- `src/App.tsx`
+- `src/components/admin/AdminLayout.tsx`
+- `src/hooks/useAdminRealtimeDashboard.ts`
 
-## Out of scope (already good)
+Admin pages to clean up:
+- `src/pages/admin/AdminDashboard.tsx`
+- `src/pages/admin/AdminAnalytics.tsx`
+- `src/pages/admin/AdminOrders.tsx`
+- `src/pages/admin/AdminProducts.tsx`
+- `src/pages/admin/AdminCustomers.tsx`
+- `src/pages/admin/AdminCourses.tsx`
+- `src/pages/admin/AdminEnrollments.tsx`
+- `src/pages/admin/AdminContactMessages.tsx`
+- `src/pages/admin/AdminCoupons.tsx`
+- `src/pages/admin/AdminDeliveryZones.tsx`
+- `src/pages/admin/AdminSettings.tsx`
+- `src/pages/admin/AdminEcommerceCustomers.tsx`
 
-- Image optimization — already covered by `OptimizedImage` + Supabase transforms
-- Splitting heavy pages (`ShopPage`) — `useMemo` + `memo` already applied; not the bottleneck
-- Charts — non-admin doesn't render any
-- Adding new motion library — keep the 180ms CSS keyframe
+## Expected result
 
-## Files Touched (~20 small edits)
+After this pass:
+- admin route changes feel much faster
+- sidebar and header stay visually stable
+- no unnecessary full admin subtree remount on page change
+- fewer realtime subscriptions and less invalidation churn
+- transitions feel like a single app, not separate pages
+- dashboard, orders, products, customers, courses, enrollments, messages, coupons, delivery zones, incomplete orders, recovery analytics, settings, and analytics all feel more polished
 
-| File | Change |
-|---|---|
-| `src/components/PublicShell.tsx` | **NEW** — Navbar + `<Outlet/>` + Footer + MobileNav |
-| `src/App.tsx` | Wrap all non-admin routes (except `/auth`, `/forgot-password`, `/reset-password` which are full-bleed) under `<PublicShell/>` |
-| `src/components/Navbar.tsx` | Add `usePrefetch('/cart')` to cart icon |
-| `src/pages/Index.tsx` | Remove inline `<Navbar/>` + `<Footer/>` |
-| `src/pages/ShopPage.tsx` | Remove inline `<Navbar/>` + `<Footer/>` + `<MobileNav/>` |
-| `src/pages/ProductDetailPage.tsx` | Remove shell |
-| `src/pages/AcademyPage.tsx` | Remove shell |
-| `src/pages/CourseDetailPage.tsx` | Remove shell |
-| `src/pages/CartPage.tsx` | Remove shell |
-| `src/pages/CheckoutPage.tsx` | Remove shell |
-| `src/pages/TrackOrderPage.tsx` | Remove shell (keep two render branches) |
-| `src/pages/DashboardPage.tsx` | Remove shell |
-| `src/pages/AboutPage.tsx` | Remove shell |
-| `src/pages/ContactPage.tsx` | Remove shell |
-| `src/pages/FAQPage.tsx` | Remove shell |
-| `src/pages/PrivacyPolicyPage.tsx` | Remove shell |
-| `src/pages/TermsPage.tsx` | Remove shell |
-| `src/pages/NotFound.tsx` | Remove shell |
+## Validation after implementation
 
-**Auth pages stay standalone** — `/auth`, `/forgot-password`, `/reset-password` already use a different full-bleed branded layout with no Navbar; they remain outside `PublicShell`.
+I’ll verify:
+1. switching between all admin sidebar routes no longer flashes/remounts the shell
+2. page content swaps smoothly inside the same layout
+3. no duplicate realtime listeners remain
+4. analytics/orders/products still refresh correctly after data changes
+5. navigation feels fast on desktop and mobile widths
 
-## Decision
+## Note
 
-Reply with one of:
-- **"Execute the full plan"** — recommended, ~18 files, real perceived-speed win.
-- **"Just do Fix B (cart prefetch)"** — 1 file, tiny.
-- **"Skip — current speed is good enough"** — no changes; non-admin is already well-optimized aside from the remount.
-
+Your earlier admin-shell refactor was directionally correct, but the global pathname-keyed transition is currently undoing that benefit. Fixing that, then moving realtime to the shell, is the right root-cause solution.
