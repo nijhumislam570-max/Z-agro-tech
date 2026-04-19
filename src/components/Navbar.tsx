@@ -13,6 +13,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet';
 import { CartQuickPeek } from '@/components/cart/CartQuickPeek';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 const navLinks = [
   { path: '/shop', label: 'Shop', icon: Store },
