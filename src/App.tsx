@@ -76,10 +76,10 @@ const PageLoader = () => (
   </div>
 );
 
-const PageTransition = ({ children }: { children: React.ReactNode }) => {
-  const { pathname } = useLocation();
-  return <div key={pathname} className="animate-page-enter">{children}</div>;
-};
+// PageTransition removed: keying the entire <Routes /> tree by pathname was
+// remounting persistent shells (admin sidebar/header, public navbar/footer)
+// on every navigation. Animation is now applied per-shell to the inner content
+// only — see AdminShell <main> and PublicShell <Outlet/> wrappers.
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -92,8 +92,7 @@ const App = () => (
             <ScrollToTop />
             <ErrorBoundary>
               <Suspense fallback={<PageLoader />}>
-                <PageTransition>
-                  <Routes>
+                <Routes>
                     {/* Auth pages — full-bleed, no public shell */}
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -143,8 +142,7 @@ const App = () => (
                       <Route path="messages" element={<AdminContactMessages />} />
                       <Route path="settings" element={<AdminSettings />} />
                     </Route>
-                  </Routes>
-                </PageTransition>
+                </Routes>
               </Suspense>
             </ErrorBoundary>
           </BrowserRouter>
