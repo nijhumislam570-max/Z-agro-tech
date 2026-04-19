@@ -48,6 +48,7 @@ const routePrefetchMap: Record<string, () => Promise<unknown>> = {
   '/admin/analytics': () => import('@/pages/admin/AdminAnalytics'),
   '/admin/products': () => import('@/pages/admin/AdminProducts'),
   '/admin/courses': () => import('@/pages/admin/AdminCourses'),
+  '/admin/enrollments': () => import('@/pages/admin/AdminEnrollments'),
   '/admin/orders': () => import('@/pages/admin/AdminOrders'),
   '/admin/ecommerce-customers': () => import('@/pages/admin/AdminEcommerceCustomers'),
   '/admin/customers': () => import('@/pages/admin/AdminCustomers'),
