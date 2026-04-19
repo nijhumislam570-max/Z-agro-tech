@@ -50,6 +50,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { bulkPaymentUpdateSchema, paymentStatusSchema } from '@/lib/validations/customerActions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, isAfter } from 'date-fns';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -205,18 +206,20 @@ const AdminEcommerceCustomers = () => {
   const [bulkLoading, setBulkLoading] = useState(false);
 
 
-  // Fetch orders
-  const { data: orders, isLoading } = useQuery({
+  // Fetch orders — capped to 5000 most-recent rows to keep aggregation fast
+  const { data: orders, isLoading, error: ordersError, refetch: refetchOrders } = useQuery({
     queryKey: ['admin-ecommerce-customers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
         .select('user_id, total_amount, payment_status, payment_method, created_at, status')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(5000);
       if (error) throw error;
       return data || [];
     },
     enabled: isAdmin,
+    staleTime: 1000 * 60 * 2,
   });
 
   // Fetch profiles
@@ -353,20 +356,26 @@ const AdminEcommerceCustomers = () => {
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  // Update payment status
+  // Update payment status (single user)
   const updatePaymentStatus = useCallback(async (userId: string, newStatus: string) => {
+    // Validate status against enum
+    const parsed = paymentStatusSchema.safeParse(newStatus);
+    if (!parsed.success) {
+      toast.error(parsed.error.errors[0]?.message ?? 'Invalid status');
+      return;
+    }
     setUpdatingPayment(userId);
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ payment_status: newStatus })
+        .update({ payment_status: parsed.data })
         .eq('user_id', userId)
         .neq('status', 'cancelled');
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['admin-ecommerce-customers'] });
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      toast.success(`Payment status set to ${newStatus}`);
+      toast.success(`Payment status set to ${parsed.data}`);
     } catch {
       toast.error('Failed to update payment status');
     } finally {
@@ -374,24 +383,27 @@ const AdminEcommerceCustomers = () => {
     }
   }, [queryClient]);
 
-  // Bulk update
+  // Bulk update — collapsed from N round-trips into a single .in() update for O(1) queries
   const bulkUpdatePayment = useCallback(async (newStatus: string) => {
     if (!selectedIds.size) return;
+    const ids = Array.from(selectedIds);
+    const parsed = bulkPaymentUpdateSchema.safeParse({ userIds: ids, status: newStatus });
+    if (!parsed.success) {
+      toast.error(parsed.error.errors[0]?.message ?? 'Invalid bulk update');
+      return;
+    }
     setBulkLoading(true);
     try {
-      const ids = Array.from(selectedIds);
-      for (const uid of ids) {
-        const { error } = await supabase
-          .from('orders')
-          .update({ payment_status: newStatus })
-          .eq('user_id', uid)
-          .neq('status', 'cancelled');
-        if (error) throw error;
-      }
+      const { error } = await supabase
+        .from('orders')
+        .update({ payment_status: parsed.data.status })
+        .in('user_id', parsed.data.userIds)
+        .neq('status', 'cancelled');
+      if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['admin-ecommerce-customers'] });
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      toast.success(`${ids.length} customers updated to ${newStatus}`);
+      toast.success(`${parsed.data.userIds.length} customers updated to ${parsed.data.status}`);
       clearSelection();
     } catch {
       toast.error('Bulk update failed');
@@ -433,6 +445,22 @@ const AdminEcommerceCustomers = () => {
 
   return (
     <AdminLayout title="E-Commerce Customers" subtitle="Payments, buyers & revenue overview">
+      {/* Error state with retry — graceful fallback when orders query fails */}
+      {ordersError && !isLoading && (
+        <div className="mb-4 p-4 bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Couldn't load customers</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {ordersError instanceof Error ? ordersError.message : 'Unknown error'}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetchOrders()} className="rounded-xl text-xs h-8 flex-shrink-0">
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Time Filter */}
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <TimeFilterBar value={timeFilter} onChange={setTimeFilter} />

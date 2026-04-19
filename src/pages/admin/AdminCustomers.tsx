@@ -57,6 +57,7 @@ import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
+import { uuidSchema } from '@/lib/validations/customerActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -76,7 +77,7 @@ const AdminCustomers = () => {
   void isAdmin;
   const { user } = useAuth();
   const [adminUserPage, setAdminUserPage] = useState(0);
-  const { data: customersData, isLoading } = useAdminUsers(adminUserPage);
+  const { data: customersData, isLoading, error, refetch } = useAdminUsers(adminUserPage);
   const customers = customersData?.users ?? [];
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,10 +138,16 @@ const AdminCustomers = () => {
   }, []);
 
   const updateUserRole = useCallback(async (userId: string, role: 'admin' | 'user') => {
+    // Defense-in-depth: validate userId format before sending to DB
+    const uidCheck = uuidSchema.safeParse(userId);
+    if (!uidCheck.success) {
+      toast.error('Invalid user ID');
+      return;
+    }
     try {
       const { data: existingRole } = await supabase
         .from('user_roles')
-        .select('*')
+        .select('id')
         .eq('user_id', userId)
         .maybeSingle();
 
@@ -215,6 +222,22 @@ const AdminCustomers = () => {
 
   return (
     <AdminLayout title="User Management" subtitle="Manage platform users, roles & permissions">
+      {/* Error state with retry — graceful fallback when user query fails */}
+      {error && !isLoading && (
+        <div className="mb-4 p-4 bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Couldn't load users</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="rounded-xl text-xs h-8 flex-shrink-0">
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Stats Bar — clickable to filter */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
