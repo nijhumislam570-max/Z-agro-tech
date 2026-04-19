@@ -1,7 +1,7 @@
 import { ReactNode, Suspense, useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Outlet, useLocation, useOutlet } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 import { AdminPageSkeleton } from './AdminPageSkeleton';
@@ -146,29 +146,35 @@ export const AdminShell = ({ children }: AdminShellProps) => {
 };
 
 /**
- * Snapshots the matched Outlet element + location so AnimatePresence can
- * keep the *previous* page rendered during its exit animation, while the
- * incoming page renders inside the new motion.div. Without this snapshot,
- * <Outlet /> always returns the *current* match, causing both motion divs
- * to render the same (new) content during transition — the visible bug
- * was that clicks updated the URL but the page never visually swapped.
+ * Page transition wrapper.
+ *
+ * Why not `<AnimatePresence mode="wait">` + `useOutlet()`?
+ *   React Router's <Outlet /> internally subscribes to the current
+ *   route context, so even an "exiting" snapshot re-renders against
+ *   the *new* matched route. Combined with `mode="wait"`, the new
+ *   page never actually mounts because the old `motion.div`
+ *   instance is still considered the live child by AnimatePresence
+ *   — the URL changes but the page never visually swaps.
+ *
+ * Fix: skip AnimatePresence's exit-then-enter dance. Render a single
+ * keyed `<motion.div>` per pathname inside its own Suspense boundary.
+ * React swaps the child on key change; framer-motion plays the enter
+ * animation on the fresh node. Result: instant content swap with a
+ * smooth fade-and-slide-in, identical perceived polish, zero stuck
+ * routes.
  */
 const AdminAnimatedOutlet = ({ children }: { children?: ReactNode }) => {
   const location = useLocation();
-  const outlet = useOutlet();
-  const content = children ?? outlet;
+  const content = children ?? <Outlet />;
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-      >
-        <Suspense fallback={<AdminPageSkeleton />}>{content}</Suspense>
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+    >
+      <Suspense fallback={<AdminPageSkeleton />}>{content}</Suspense>
+    </motion.div>
   );
 };
