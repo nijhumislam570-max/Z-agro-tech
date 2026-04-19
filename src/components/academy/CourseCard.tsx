@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +8,7 @@ import { cn } from '@/lib/utils';
 import type { Course } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
 import { usePrefetch } from '@/hooks/usePrefetch';
-import OptimizedImage from '@/components/ui/OptimizedImage';
+import { getOptimizedUrl } from '@/lib/imageUtils';
 
 const difficultyStyles: Record<Course['difficulty'], string> = {
   beginner: 'bg-success/15 text-success border-success/30',
@@ -40,84 +41,108 @@ export const CourseCard = React.forwardRef<HTMLAnchorElement, CourseCardProps>(
     const nextBatch = batches?.find((b) => b.status === 'open' || b.status === 'filling') ?? null;
     const isFree = course.price <= 0;
     const prefetch = usePrefetch(`/course/${course.id}`);
+    const [imgError, setImgError] = useState(false);
+    const [imgLoaded, setImgLoaded] = useState(false);
+
+    const thumbSrc = course.thumbnail_url
+      ? getOptimizedUrl(course.thumbnail_url, 'medium')
+      : '';
+    const showImage = !!thumbSrc && !imgError;
 
     return (
       <Link
         ref={ref}
         to={`/course/${course.id}`}
         {...prefetch}
-        className={cn('group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl', className)}
+        className={cn(
+          'group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl',
+          className,
+        )}
         {...rest}
       >
         <Card className="h-full overflow-hidden border-border/60 hover:border-primary/40 hover:shadow-hover hover:-translate-y-1 transition-all duration-300">
           <div className="relative aspect-video bg-gradient-to-br from-primary/15 to-accent/15 overflow-hidden">
-            {course.thumbnail_url ? (
-              <OptimizedImage
-                src={course.thumbnail_url}
+            {/* Always-present branded fallback (under image) */}
+            <div className="absolute inset-0 flex items-center justify-center text-primary/40">
+              <GraduationCap className="h-10 w-10 sm:h-14 sm:w-14" />
+            </div>
+
+            {showImage && (
+              <img
+                src={thumbSrc}
                 alt={course.title}
-                preset="medium"
-                aspectRatio={16 / 9}
-                className="w-full h-full"
+                width={640}
+                height={360}
+                loading="lazy"
+                decoding="async"
+                onLoad={() => setImgLoaded(true)}
+                onError={() => setImgError(true)}
+                className={cn(
+                  'absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300',
+                  imgLoaded ? 'opacity-100' : 'opacity-0',
+                )}
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-primary/40">
-                <GraduationCap className="h-16 w-16" />
-              </div>
             )}
+
             <Badge
               variant="outline"
               className={cn(
-                'absolute top-2 left-2 capitalize backdrop-blur-md',
+                'absolute top-1.5 left-1.5 sm:top-2 sm:left-2 capitalize backdrop-blur-md text-[10px] sm:text-xs px-1.5 py-0',
                 difficultyStyles[course.difficulty],
               )}
             >
               {course.difficulty}
             </Badge>
             {isFree && (
-              <Badge className="absolute top-2 right-2 bg-success text-success-foreground border-transparent gap-1 backdrop-blur-md">
+              <Badge className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-success text-success-foreground border-transparent gap-1 backdrop-blur-md text-[10px] sm:text-xs px-1.5 py-0">
                 <Sparkles className="h-3 w-3" /> Free
               </Badge>
             )}
           </div>
-          <CardContent className="p-4 space-y-2.5">
-            <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+          <CardContent className="p-3 sm:p-4 space-y-2">
+            <h3 className="font-semibold text-sm sm:text-base text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
               {course.title}
             </h3>
             {course.audience && (
-              <p className="text-xs text-muted-foreground line-clamp-1">{course.audience}</p>
+              <p className="hidden sm:block text-xs text-muted-foreground line-clamp-1">
+                {course.audience}
+              </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-0.5">
               {course.duration_label && (
-                <Badge variant="outline" className="text-xs gap-1 font-normal">
+                <Badge variant="outline" className="text-[10px] sm:text-xs gap-1 font-normal px-1.5 py-0">
                   <Clock className="h-3 w-3" /> {course.duration_label}
                 </Badge>
               )}
-              <Badge variant="outline" className="text-xs gap-1 font-normal">
+              <Badge variant="outline" className="text-[10px] sm:text-xs gap-1 font-normal px-1.5 py-0">
                 <MapPin className="h-3 w-3" /> {modeLabel[course.mode]}
               </Badge>
               {course.provides_certificate && (
-                <Badge variant="outline" className="text-xs gap-1 font-normal">
+                <Badge
+                  variant="outline"
+                  className="hidden sm:inline-flex text-xs gap-1 font-normal px-1.5 py-0"
+                >
                   <Award className="h-3 w-3" /> Certificate
                 </Badge>
               )}
             </div>
 
             {nextBatch && (
-              <p className="text-xs text-primary font-medium inline-flex items-center gap-1 pt-1">
+              <p className="hidden sm:inline-flex text-xs text-primary font-medium items-center gap-1 pt-0.5">
                 <Calendar className="h-3 w-3" />
-                Next batch: {formatShort(nextBatch.start_date) ?? 'TBA'}
+                Next: {formatShort(nextBatch.start_date) ?? 'TBA'}
               </p>
             )}
 
-            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
               {isFree ? (
-                <p className="text-lg font-bold text-success">Free</p>
+                <p className="text-base sm:text-lg font-bold text-success">Free</p>
               ) : (
-                <p className="text-lg font-bold text-primary">৳{course.price}</p>
+                <p className="text-base sm:text-lg font-bold text-primary">৳{course.price}</p>
               )}
-              <span className="text-xs text-primary font-medium group-hover:underline">
-                View details →
+              <span className="text-[11px] sm:text-xs font-semibold text-primary-foreground bg-primary px-2.5 py-1 rounded-full group-hover:bg-primary/90 transition-colors whitespace-nowrap">
+                View
               </span>
             </div>
           </CardContent>

@@ -9,7 +9,7 @@ export const FeaturedCoursesGrid = () => {
   const { data: courses, isLoading } = useCourses({ limit: 6 });
 
   return (
-    <section className="@container py-14 sm:py-20 bg-gradient-to-b from-secondary/30 to-background" aria-labelledby="featured-courses">
+    <section className="py-14 sm:py-20 bg-gradient-to-b from-secondary/30 to-background" aria-labelledby="featured-courses">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>
@@ -27,7 +27,7 @@ export const FeaturedCoursesGrid = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 @md:grid-cols-2 @3xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {isLoading
             ? Array.from({ length: 3 }).map((_, i) => <CourseSkeleton key={i} />)
             : (courses || []).map((c) => <CourseCard key={c.id} course={c} />)}

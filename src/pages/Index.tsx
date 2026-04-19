@@ -32,16 +32,16 @@ const Index = () => {
           sameAs: [],
         }}
       />
-      <main id="main-content" className="flex-1 @container animate-page-enter">
+      <main id="main-content" className="flex-1 animate-page-enter">
         <HeroSection />
 
         {/* Value props bento */}
         <section
-          className="container mx-auto px-4 sm:px-6 py-10 sm:py-14 @container"
+          className="container mx-auto px-4 sm:px-6 py-10 sm:py-14"
           aria-labelledby="value-props-heading"
         >
           <h2 id="value-props-heading" className="sr-only">Why choose Z Agro Tech</h2>
-          <div className="grid grid-cols-1 @md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {valueProps.map((v) => (
               <Card key={v.title} className="border-border/60 hover:border-primary/30 hover:shadow-soft transition-all">
                 <CardContent className="p-6 flex items-start gap-4">
