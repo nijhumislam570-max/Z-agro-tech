@@ -35,7 +35,7 @@ interface AdminHeaderProps {
   unreadMessages?: number;
 }
 
-export const AdminHeader = ({
+const AdminHeaderInner = ({
   title,
   subtitle,
   onToggleSidebar,
@@ -50,10 +50,10 @@ export const AdminHeader = ({
 
   const totalPending = pendingOrders + incompleteOrders + unreadMessages;
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries();
     toast.success('Data refreshed');
-  };
+  }, [queryClient]);
 
   return (
     <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
@@ -244,3 +244,6 @@ export const AdminHeader = ({
     </header>
   );
 };
+
+export const AdminHeader = memo(AdminHeaderInner);
+
