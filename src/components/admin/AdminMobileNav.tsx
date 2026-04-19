@@ -83,14 +83,10 @@ const navSections: NavSection[] = [
 
 interface AdminMobileNavProps {
   pendingOrders?: number;
-  incompleteOrders?: number;
-  unreadMessages?: number;
 }
 
 export const AdminMobileNav = ({
   pendingOrders = 0,
-  incompleteOrders = 0,
-  unreadMessages = 0,
 }: AdminMobileNavProps) => {
   const location = useLocation();
   const queryClient = useQueryClient();
