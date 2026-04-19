@@ -38,7 +38,7 @@ export default function LearningPathTile() {
               No enrollments yet. Start your Smart Farming journey.
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/academy">Explore Masterclasses</Link>
+              <Link to="/academy" {...prefetchAcademy}>Explore Masterclasses</Link>
             </Button>
           </div>
         ) : (
