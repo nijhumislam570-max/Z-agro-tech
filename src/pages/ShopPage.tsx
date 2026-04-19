@@ -464,16 +464,6 @@ const ShopPage = () => {
                 </Button>
               </Link>
 
-              <Link to="/wishlist" className="relative">
-                <Button variant="outline" size="icon" className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl" aria-label={`Wishlist${wishlistIds.size > 0 ? ` (${wishlistIds.size} items)` : ''}`}>
-                  <Heart className={`h-4 w-4 ${wishlistIds.size > 0 ? 'fill-destructive text-destructive' : ''}`} aria-hidden="true" />
-                  {wishlistIds.size > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
-                      {wishlistIds.size}
-                    </span>
-                  )}
-                </Button>
-              </Link>
 
               {/* Mobile Filter Button */}
               <Sheet>

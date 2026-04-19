@@ -24,6 +24,7 @@ function readStoredCart(): CartItem[] {
     // One-time migration from the legacy Vetmedix-era storage key.
     // Any returning user with an old cart in localStorage will keep their
     // items on first load, then we delete the legacy entry.
+    // TODO: Remove after 2026-Q3
     const legacy = localStorage.getItem(LEGACY_CART_STORAGE_KEY);
     if (legacy) {
       const parsed = JSON.parse(legacy);

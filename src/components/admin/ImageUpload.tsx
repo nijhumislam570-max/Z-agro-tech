@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { compressImage, getCompressionMessage } from '@/lib/mediaCompression';
+import { logger } from '@/lib/logger';
 
 interface ImageUploadProps {
   value?: string;
@@ -72,7 +73,7 @@ export function ImageUpload({
       onChange(publicUrl);
       toast.success('Image uploaded successfully');
     } catch (error: unknown) {
-      console.error('Upload error:', error);
+      logger.error('Upload error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload image';
       toast.error(errorMessage);
     } finally {

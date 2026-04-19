@@ -181,7 +181,7 @@ export function initWebVitals(): void {
 export function trackError(error: Error, context?: Record<string, unknown>): void {
   // Log to console in development
   if (import.meta.env.DEV) {
-    console.error('[Error Tracking]', error, context);
+    logger.error('[Error Tracking]', error, context);
     return;
   }
 

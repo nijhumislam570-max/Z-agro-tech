@@ -59,6 +59,8 @@ export default defineConfig(({ mode }) => ({
           ],
           "vendor-date": ["date-fns"],
           "vendor-supabase": ["@supabase/supabase-js"],
+          "vendor-charts": ["recharts"],
+          "vendor-zod": ["zod"],
         },
       },
     },

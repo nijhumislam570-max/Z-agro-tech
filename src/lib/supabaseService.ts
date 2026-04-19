@@ -4,6 +4,7 @@
  * Automatically surfaces user-friendly toast messages on failure.
  */
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 type ServiceResult<T> = {
   data: T | null;
@@ -47,7 +48,7 @@ export async function safeQuery<T>(
     if (error) {
       const message = getErrorMessage(error.code ?? error.status, userMsg);
       toast.error(message);
-      console.error('[supabaseService]', error);
+      logger.error('[supabaseService]', error);
       return { data: null, error: message };
     }
 
@@ -56,7 +57,7 @@ export async function safeQuery<T>(
     const raw = err instanceof Error ? err.message : String(err);
     const message = getErrorMessage(raw, userMsg);
     toast.error(message);
-    console.error('[supabaseService] Unexpected error:', err);
+    logger.error('[supabaseService] Unexpected error:', err);
     return { data: null, error: message };
   }
 }
@@ -75,7 +76,7 @@ export async function safeMutation<T>(
     if (error) {
       const message = getErrorMessage(error.code ?? error.status, errorMsg);
       toast.error(message);
-      console.error('[supabaseService]', error);
+      logger.error('[supabaseService]', error);
       return { data: null, error: message };
     }
 
@@ -85,7 +86,7 @@ export async function safeMutation<T>(
     const raw = err instanceof Error ? err.message : String(err);
     const message = getErrorMessage(raw, errorMsg);
     toast.error(message);
-    console.error('[supabaseService] Unexpected error:', err);
+    logger.error('[supabaseService] Unexpected error:', err);
     return { data: null, error: message };
   }
 }
