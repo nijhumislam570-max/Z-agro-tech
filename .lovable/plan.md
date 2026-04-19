@@ -1,69 +1,106 @@
 
 
-# Admin Panel Navigation Speed Plan
+# Customer `/dashboard` — Functionality, Performance & UX Refresh
 
-After auditing the admin layer against the 10-step spec, **most of the work is already done** from the prior nav-speed sprint. Let me lay out what's already shipped vs. what's actually missing.
+## What I found (audit)
 
-## Audit Results
+The dashboard isn't broken — it's a working bento grid — but **it doesn't match the spec**, has **fixable performance and clarity problems**, and the spec's "stats / orders / quick actions / alerts" framing is a much better mental model for a customer hub than the current "7-tile collage."
 
-**Already shipped (no changes needed):**
-- ✅ **Step 2 Code-split**: every admin page in `App.tsx` is `lazy()`-loaded behind Suspense
-- ✅ **Step 3 Transitions**: `PageTransition` keyed on pathname runs the global 180ms `animate-page-enter` fade
-- ✅ **Step 4 Caching**: `QueryClient` defaults are `staleTime: 2min`, `gcTime: 10min`, `refetchOnWindowFocus: false`
-- ✅ **Step 8 Loading bar**: `PageLoader` top progress bar already shown during chunk fetch
-- ✅ **Step 9 Layout shell**: `AdminLayout` is rendered *inside* each page (not above), but sidebar collapsed-state persists in localStorage so it appears stable
-- ✅ **Step 10 Skeletons**: `OrdersSkeleton`, `ProductsSkeleton`, `EnrollmentsSkeleton`, `AnalyticsSkeleton`, `TableSkeleton` all exist
+### Functionality issues
+1. **`useMyOrders` selects `*`** — pulls heavy columns (`items` JSONB, `shipping_address`, `rejection_reason`, etc.) for every tile that just needs `id, status, total_amount, created_at, items.length`.
+2. **`useMyEnrollments` selects `*, course:courses(*), batch:course_batches(*)`** — fetches every column of every related row when only `title, thumbnail_url, status, progress, batch.name` is rendered.
+3. **No `staleTime` on `useMyOrders` / `useMyEnrollments`** — every tab change to dashboard refetches; `useDashboardKPIs` triggers both queries again.
+4. **Duplicate fetches**: `useDashboardKPIs` + `RecentOrderTile` + `LearningPathTile` + `OrdersTab` + `CoursesTab` all read the same data via the same hooks. Cache makes that free, but only after staleTime is set.
+5. **`KPIMarqueeTile` "Recent Orders" stat = `data.length`** — that's just total orders, not "recent" — misleading label.
+6. **Greeting** uses `email.split('@')[0]` — ugly fallback like "nijhumislam570". Profile has `full_name` already loaded by `ProfileTab` but not shared.
+7. **No alerts / notifications section** at all (spec STEP 3 bottom).
+8. **Tabs default to `orders` but never deep-link** — refresh always lands on Orders even if user came from Wishlist.
 
-**Actual bottlenecks found:**
-1. `AdminSidebar` links use raw `<NavLink>` → no chunk prefetch on hover (public nav already has this via `usePrefetch`)
-2. `prefetchRoute` map in `src/lib/imageUtils.ts` covers public routes but is **missing every `/admin/*` route** — hover prefetch silently no-ops
-3. `AdminLayout` is **re-mounted on every admin route change** (each page wraps its own `<AdminLayout>`), causing the sidebar's `useQuery(['admin-pending-counts'])` to re-run and the collapse animation to flash. This is the biggest perceived-lag source.
-4. `useAdminStats` on dashboard refetches on every visit (no `staleTime` override) — fine but means dashboard feels heavy when bouncing back to it
+### Performance issues
+9. The page renders **all 7 hero tiles + a 4-tab Tabs control** on first paint — every dashboard hook (`useMyOrders`, `useMyEnrollments`, `useDashboardKPIs`, `useFeaturedAgri`, `useFeaturedMasterclass`, `useRecommendedProducts`, `useWishlistProducts` lazily) fires in parallel on mount. ~5 round-trips before first interaction.
+10. `Carousel` from embla is loaded eagerly even though most users never scroll it.
+11. No memoization on tile children — every router push re-renders the bento.
 
-## Plan (3 focused fixes, ~5 files)
+### UX / layout issues
+12. The **agri-gradient hero with 7 glass tiles** is *visually heavy* and mixes hierarchy: KPIs, Quick Actions, Featured Carousel, Learning Path, Recommended Inputs, Recent Order, Masterclass — none feels primary.
+13. **Recent orders "card" only shows the *latest one*** — spec asks for a list (~3) with View All.
+14. Quick Actions sit in the hero but are also duplicated as full pages via tabs.
+15. **Mobile (<640px)**: hero is fine but the 4-column Tabs row with text + icons cramps.
+16. No empty state for "all caught up" — if you have no orders/enrollments/wishlist the page shows 4 tiles all saying "no data."
 
-### Fix A — Add admin routes to prefetch map *(1 file)*
-Append all 14 `/admin/*` paths to the `routeMap` in `src/lib/imageUtils.ts` so hover-prefetch works.
+## Plan
 
-### Fix B — Wire `usePrefetch` into AdminSidebar *(1 file)*
-Spread `usePrefetch(item.href)` onto each sidebar `<NavLink>` so hovering an admin link starts loading its chunk before the click.
+### Fix A — Slim the data layer (perf, ~3 files)
+- `useMyOrders`: select only `id,status,total_amount,created_at,items,tracking_id,payment_method`; add `staleTime: 60_000`.
+- `useMyEnrollments`: project a narrow shape `course:courses(id,title,thumbnail_url,category,difficulty,duration_label), batch:course_batches(id,name)`; add `staleTime: 60_000`.
+- Add a tiny `useDashboardSummary()` hook that derives **all** stats from the two cached queries (no extra fetch): `totalOrders`, `lifetimeSpend`, `activeCourses`, `completedCourses`, `wishlistCount`, `lowStockAlerts`, `pendingOrders`. Replaces `useDashboardKPIs`.
 
-### Fix C — Stop AdminLayout from remounting *(2 files + route refactor)*
-Convert `/admin/*` routes in `App.tsx` to a **nested route** with `AdminLayout` as the parent element using React Router's `<Outlet />`. Each admin page then exports just its inner content, and the sidebar/header/pending-count query stay mounted across navigations.
+### Fix B — Restructure the page per spec (UX, 1 page + 1 new section component)
+Replace the 7-tile bento collage with the spec's 3-section structure, **keeping the agri-gradient hero** (it's brand-correct) but tightening it:
 
-```text
-Before:                          After:
-<AdminDashboard>                 <Route path="/admin" element={<RequireAdmin><AdminLayout/></RequireAdmin>}>
-  <AdminLayout>                    <Route index element={<AdminDashboard/>}/>
-    ...page...                     <Route path="orders" element={<AdminOrders/>}/>
-  </AdminLayout>                   ...
-</AdminDashboard>                </Route>
+```
+─── HERO (agri-gradient) ────────────────────────────────────────
+   Greeting + small "Your farm hub today, <date>"        [Edit profile →]
+   ── 4-up StatGrid ─────────────────────────────────────────────
+      Total Orders | Lifetime Spend | Active Courses | Wishlist
+      (each clickable → /dashboard?tab=orders etc.)
+─── BODY ─────────────────────────────────────────────────────────
+   ┌── Recent Orders (lg:col-8) ────────┐  ┌── Quick Actions (lg:col-4) ─┐
+   │ list of latest 3 orders as cards  │  │ Shop · Academy · Cart · Track│
+   │ + "View all" → orders tab         │  │                              │
+   └────────────────────────────────────┘  ├── Alerts ────────────────────┤
+                                           │ • N pending orders          │
+                                           │ • Low stock on N saved items│
+                                           │ • New masterclass available │
+                                           └──────────────────────────────┘
+   ┌── Continue Learning (lg:col-6) ────┐  ┌── Recommended Inputs (lg:col-6)┐
+   │ latest enrollment + progress      │  │ 3 product cards               │
+   └────────────────────────────────────┘  └────────────────────────────────┘
+   ┌── Featured this week (full width, carousel kept) ───────────────────┐
+   └─────────────────────────────────────────────────────────────────────┘
+─── DETAIL TABS (unchanged) ─────────────────────────────────────
+   Orders · Courses · Wishlist · Profile  (deep-linkable via ?tab=)
 ```
 
-This single change eliminates: sidebar remount flash, pending-count re-fetch on every nav, and AdminHeader prop re-derivation — the actual reasons admin nav feels heavy.
+### Fix C — Implementation details
+- New `src/components/dashboard/DashboardStatGrid.tsx` — 4 clickable stat cards, mobile = 2col, desktop = 4col, semantic colors only.
+- New `src/components/dashboard/RecentOrdersList.tsx` — 3 latest orders, card layout, empty state ("No orders yet → Browse shop").
+- New `src/components/dashboard/AlertsTile.tsx` — pulls from already-cached queries (no new fetch); shows `pendingOrders > 0`, `wishlist items with stock<5`, `latest masterclass available` — falls back to "All caught up ✨" tile.
+- Remove `KPIMarqueeTile`, `FeaturedCarouselTile` (kept), and consolidate `RecentOrderTile` (single) into the new `RecentOrdersList`.
+- Greeting reads `profile.full_name` via existing `useProfile` (already cached), falls back to email handle only if profile empty.
+- Tabs gain `?tab=orders|courses|wishlist|profile` deep linking.
+- Memoize the heavy tiles (`React.memo` + stable props).
 
-### Fix D — Tighten dashboard stats stale time *(1 file)*
-Add `staleTime: 60_000` to `useAdminStats` so jumping back to `/admin` from `/admin/orders` shows cached numbers instantly while a background refresh runs.
+### Fix D — Mobile polish
+- Stat grid: `grid-cols-2 lg:grid-cols-4` with bigger numbers.
+- Tabs row: keep icons, hide labels <sm (already done).
+- Remove `bg-[radial-gradient]` overlay — purely decorative cost.
+- Reduce hero padding on mobile (`py-6 md:py-10` instead of `py-8 md:py-10`).
 
-## Out of Scope (already good or not the bottleneck)
-
-- Virtualization — current pages paginate (50/page in Orders, infinite scroll in Products); no admin list ships >100 rows at once
-- Splitting tables further — `OrderStatsBar`, `ProductStatsBar` etc. are already memoized
-- Adding a new motion library — keep the 180ms CSS keyframe, it's free and meets the <200ms bar
-- Sidebar redesign — Phase 7 already polished it
+## Out of scope
+- Charts (spec says "lightweight or summaries" — the StatGrid + Alerts replace this; recharts is heavy and unnecessary for a customer hub).
+- Adding new data points (revenue trends, conversion etc.) — not relevant for a buyer.
+- Touching tab content (`OrdersTab`, `CoursesTab`, `WishlistTab`, `ProfileTab` already work).
 
 ## Files Touched
+| File | Change |
+|---|---|
+| `src/hooks/useMyOrders.ts` | Narrow select + staleTime |
+| `src/hooks/useEnrollments.ts` | Narrow joined select + staleTime on `useMyEnrollments` |
+| `src/hooks/useDashboardData.ts` | Add `useDashboardSummary()`, deprecate `useDashboardKPIs` |
+| `src/components/dashboard/DashboardStatGrid.tsx` | **NEW** — 4 clickable stat cards |
+| `src/components/dashboard/RecentOrdersList.tsx` | **NEW** — top-3 order cards + view all |
+| `src/components/dashboard/AlertsTile.tsx` | **NEW** — derived alerts, empty-state fallback |
+| `src/pages/DashboardPage.tsx` | Restructured per spec; tabs deep-linkable; memoized tiles |
+| `src/components/dashboard/tiles/KPIMarqueeTile.tsx` | **DELETED** (replaced by hero greeting + StatGrid) |
+| `src/components/dashboard/tiles/RecentOrderTile.tsx` | **DELETED** (replaced by RecentOrdersList) |
 
-1. `src/lib/imageUtils.ts` — add 14 admin routes to `routeMap`
-2. `src/components/admin/AdminSidebar.tsx` — spread `usePrefetch(href)` on each link
-3. `src/App.tsx` — restructure `/admin/*` as nested routes around shared `AdminLayout`
-4. `src/components/admin/AdminLayout.tsx` — render `<Outlet/>` instead of `children`, drop `title`/`subtitle` props (each page sets its own header via a tiny `useAdminPageMeta` or just renders its own page header — simpler: keep `<AdminLayout>` content-only, move title/subtitle into each page's first child)
-5. All 14 admin page files — unwrap the outer `<AdminLayout>...</AdminLayout>` and render their content directly with a small page header block
+Tiles **kept as-is**: `FeaturedCarouselTile`, `LearningPathTile`, `MasterclassTile`, `RecommendedInputsTile`, `QuickActionsTile`. They already work; spec doesn't require touching them.
 
 ## Decision
 
 Reply with one of:
-- **"Execute all of this plan"** — full ~17 files (5 core + 12 admin page unwraps), recommended.
-- **"Skip the layout-remount refactor"** — only Fixes A, B, D (3 files). Quicker, keeps minor remount flash.
-- **"Just prefetch (Fix A + B)"** — 2 files, smallest delta.
+- **"Execute the full plan"** — recommended, ~9 files, full restructure.
+- **"Just do Fix A + Alerts"** — keep current bento, only slim queries and add the alerts tile.
+- **"Skip the page restructure, only fix data layer"** — Fix A only, 3 files.
 
