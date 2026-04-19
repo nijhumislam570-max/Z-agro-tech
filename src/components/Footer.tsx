@@ -2,6 +2,12 @@ import { forwardRef } from 'react';
 import { Phone, Mail, MapPin, Facebook, Instagram, Youtube, Leaf } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '@/components/Logo';
+import { prefetchRoute } from '@/lib/imageUtils';
+
+const prefetchHandlers = (path: string) => ({
+  onMouseEnter: () => prefetchRoute(path),
+  onTouchStart: () => prefetchRoute(path),
+});
 
 const quickLinks = [
   { label: 'Shop', path: '/shop' },
