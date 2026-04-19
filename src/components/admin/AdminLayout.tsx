@@ -78,6 +78,12 @@ export const AdminShell = ({ children }: AdminShellProps) => {
   // Page-level useAdminRealtimeDashboard() calls have been removed.
   useAdminRealtimeDashboard(isAdmin);
 
+  // Eagerly warm every admin chunk during browser idle once we know the
+  // user is an admin. Makes every sidebar click an instant cache hit.
+  useEffect(() => {
+    if (isAdmin) warmAllAdminChunks();
+  }, [isAdmin]);
+
   useEffect(() => {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
   }, [collapsed]);
