@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+import { warmAllAdminChunks } from '@/lib/adminPrefetch';
 
 const SIDEBAR_COLLAPSED_KEY = 'admin-sidebar-collapsed';
 
@@ -76,6 +77,12 @@ export const AdminShell = ({ children }: AdminShellProps) => {
   // Centralized admin realtime — mounted once for the whole /admin tree.
   // Page-level useAdminRealtimeDashboard() calls have been removed.
   useAdminRealtimeDashboard(isAdmin);
+
+  // Eagerly warm every admin chunk during browser idle once we know the
+  // user is an admin. Makes every sidebar click an instant cache hit.
+  useEffect(() => {
+    if (isAdmin) warmAllAdminChunks();
+  }, [isAdmin]);
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
