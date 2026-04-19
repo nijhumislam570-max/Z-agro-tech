@@ -101,11 +101,11 @@ const AdminHeaderInner = ({
 
           <Link to="/admin" className="md:hidden flex items-center gap-2 group">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <img
                 src={logo}
                 alt="Z Agro Tech Admin"
-                className="relative h-9 w-9 rounded-xl object-contain bg-white shadow-md border-2 border-primary/20 group-hover:border-primary/50 transition-all"
+                className="relative h-9 w-9 rounded-full object-cover bg-white shadow-md border-2 border-primary/20 group-hover:border-primary/50 transition-all"
                 loading="eager"
                 decoding="async"
                 width={36}
