@@ -1,106 +1,98 @@
 
 
-# Customer `/dashboard` — Functionality, Performance & UX Refresh
+# Non-Admin Navigation Speed — Audit & Fix Plan
 
-## What I found (audit)
+## Audit (most of the spec is already done)
 
-The dashboard isn't broken — it's a working bento grid — but **it doesn't match the spec**, has **fixable performance and clarity problems**, and the spec's "stats / orders / quick actions / alerts" framing is a much better mental model for a customer hub than the current "7-tile collage."
+| Spec step | Status | Notes |
+|---|---|---|
+| 2 Lazy load all routes | ✅ Done | All 17 non-admin pages already `lazy()` in `App.tsx` |
+| 3 Suspense fallback | ✅ Done | `PageLoader` top progress bar (no white flash) |
+| 5 Caching | ✅ Done | `staleTime: 2min`, `gcTime: 10min`, `refetchOnWindowFocus: false` |
+| 6 Page transitions | ✅ Done | Global 180ms `animate-page-enter` keyed on pathname |
+| 7 Prefetch likely next pages | ✅ Done | `usePrefetch` wired into Navbar, Footer, MobileNav |
+| 8 Image optimization | ✅ Done | `OptimizedImage` + Supabase transform params |
+| 9 Skeletons | ✅ Done | `ProductCardSkeleton`, `CourseSkeleton`, etc. |
 
-### Functionality issues
-1. **`useMyOrders` selects `*`** — pulls heavy columns (`items` JSONB, `shipping_address`, `rejection_reason`, etc.) for every tile that just needs `id, status, total_amount, created_at, items.length`.
-2. **`useMyEnrollments` selects `*, course:courses(*), batch:course_batches(*)`** — fetches every column of every related row when only `title, thumbnail_url, status, progress, batch.name` is rendered.
-3. **No `staleTime` on `useMyOrders` / `useMyEnrollments`** — every tab change to dashboard refetches; `useDashboardKPIs` triggers both queries again.
-4. **Duplicate fetches**: `useDashboardKPIs` + `RecentOrderTile` + `LearningPathTile` + `OrdersTab` + `CoursesTab` all read the same data via the same hooks. Cache makes that free, but only after staleTime is set.
-5. **`KPIMarqueeTile` "Recent Orders" stat = `data.length`** — that's just total orders, not "recent" — misleading label.
-6. **Greeting** uses `email.split('@')[0]` — ugly fallback like "nijhumislam570". Profile has `full_name` already loaded by `ProfileTab` but not shared.
-7. **No alerts / notifications section** at all (spec STEP 3 bottom).
-8. **Tabs default to `orders` but never deep-link** — refresh always lands on Orders even if user came from Wishlist.
+## Real bottlenecks found
 
-### Performance issues
-9. The page renders **all 7 hero tiles + a 4-tab Tabs control** on first paint — every dashboard hook (`useMyOrders`, `useMyEnrollments`, `useDashboardKPIs`, `useFeaturedAgri`, `useFeaturedMasterclass`, `useRecommendedProducts`, `useWishlistProducts` lazily) fires in parallel on mount. ~5 round-trips before first interaction.
-10. `Carousel` from embla is loaded eagerly even though most users never scroll it.
-11. No memoization on tile children — every router push re-renders the bento.
+1. **No persistent layout shell** — every public page renders its own `<Navbar />` + `<Footer />` (+ optional `<MobileNav />`). On route change, both remount from scratch, which:
+   - Re-runs `useUserRole` query check (cached, but the React component lifecycle still re-evaluates)
+   - Re-derives the cart badge / active-link calculations
+   - Causes a sub-perceptible "logo flash" on slower devices
+   - Reproduces exactly the same problem we just solved for `/admin`
 
-### UX / layout issues
-12. The **agri-gradient hero with 7 glass tiles** is *visually heavy* and mixes hierarchy: KPIs, Quick Actions, Featured Carousel, Learning Path, Recommended Inputs, Recent Order, Masterclass — none feels primary.
-13. **Recent orders "card" only shows the *latest one*** — spec asks for a list (~3) with View All.
-14. Quick Actions sit in the hero but are also duplicated as full pages via tabs.
-15. **Mobile (<640px)**: hero is fine but the 4-column Tabs row with text + icons cramps.
-16. No empty state for "all caught up" — if you have no orders/enrollments/wishlist the page shows 4 tiles all saying "no data."
+2. **Prefetch map is incomplete for parametric routes** — `routePrefetchMap` keys `/product` and `/course` but a hover on `/product/abc123` correctly resolves; however `/cart` and `/checkout` are missing **prefetch on hover** in `MobileNav` because `prefetchRoute('/cart')` works but the Navbar's cart icon (`CartQuickPeek` trigger) never calls it. Minor.
 
-## Plan
+3. **`Navbar` calls `usePrefetch` 5 times unconditionally** at the top level — fine, just inefficient code shape; not a perf hit.
 
-### Fix A — Slim the data layer (perf, ~3 files)
-- `useMyOrders`: select only `id,status,total_amount,created_at,items,tracking_id,payment_method`; add `staleTime: 60_000`.
-- `useMyEnrollments`: project a narrow shape `course:courses(id,title,thumbnail_url,category,difficulty,duration_label), batch:course_batches(id,name)`; add `staleTime: 60_000`.
-- Add a tiny `useDashboardSummary()` hook that derives **all** stats from the two cached queries (no extra fetch): `totalOrders`, `lifetimeSpend`, `activeCourses`, `completedCourses`, `wishlistCount`, `lowStockAlerts`, `pendingOrders`. Replaces `useDashboardKPIs`.
+4. **`ScrollToTop` runs `useFocusManagement()` on every route change** — already lightweight, no fix needed.
 
-### Fix B — Restructure the page per spec (UX, 1 page + 1 new section component)
-Replace the 7-tile bento collage with the spec's 3-section structure, **keeping the agri-gradient hero** (it's brand-correct) but tightening it:
+5. **`/dashboard` and `/track-order`** — already optimized in prior sprints.
 
-```
-─── HERO (agri-gradient) ────────────────────────────────────────
-   Greeting + small "Your farm hub today, <date>"        [Edit profile →]
-   ── 4-up StatGrid ─────────────────────────────────────────────
-      Total Orders | Lifetime Spend | Active Courses | Wishlist
-      (each clickable → /dashboard?tab=orders etc.)
-─── BODY ─────────────────────────────────────────────────────────
-   ┌── Recent Orders (lg:col-8) ────────┐  ┌── Quick Actions (lg:col-4) ─┐
-   │ list of latest 3 orders as cards  │  │ Shop · Academy · Cart · Track│
-   │ + "View all" → orders tab         │  │                              │
-   └────────────────────────────────────┘  ├── Alerts ────────────────────┤
-                                           │ • N pending orders          │
-                                           │ • Low stock on N saved items│
-                                           │ • New masterclass available │
-                                           └──────────────────────────────┘
-   ┌── Continue Learning (lg:col-6) ────┐  ┌── Recommended Inputs (lg:col-6)┐
-   │ latest enrollment + progress      │  │ 3 product cards               │
-   └────────────────────────────────────┘  └────────────────────────────────┘
-   ┌── Featured this week (full width, carousel kept) ───────────────────┐
-   └─────────────────────────────────────────────────────────────────────┘
-─── DETAIL TABS (unchanged) ─────────────────────────────────────
-   Orders · Courses · Wishlist · Profile  (deep-linkable via ?tab=)
+## Plan — Single focused fix (the only real win)
+
+### Fix A — Persistent Public Layout Shell *(parallels the `/admin` fix)*
+
+Create a `<PublicShell />` that mounts `<Navbar />` + `<Footer />` + (optional) `<MobileNav />` **once**, with an `<Outlet />` between them. Restructure `App.tsx` to nest all public routes under it. Each page then exports just its `<main>` content and stops rendering its own Navbar/Footer/MobileNav.
+
+```text
+Before                          After
+<Index>                         <Route element={<PublicShell/>}>
+  <Navbar/>                       <Route path="/" element={<Index/>}/>
+  <main>...</main>                <Route path="/shop" element={<ShopPage/>}/>
+  <Footer/>                       ...
+</Index>                        </Route>
 ```
 
-### Fix C — Implementation details
-- New `src/components/dashboard/DashboardStatGrid.tsx` — 4 clickable stat cards, mobile = 2col, desktop = 4col, semantic colors only.
-- New `src/components/dashboard/RecentOrdersList.tsx` — 3 latest orders, card layout, empty state ("No orders yet → Browse shop").
-- New `src/components/dashboard/AlertsTile.tsx` — pulls from already-cached queries (no new fetch); shows `pendingOrders > 0`, `wishlist items with stock<5`, `latest masterclass available` — falls back to "All caught up ✨" tile.
-- Remove `KPIMarqueeTile`, `FeaturedCarouselTile` (kept), and consolidate `RecentOrderTile` (single) into the new `RecentOrdersList`.
-- Greeting reads `profile.full_name` via existing `useProfile` (already cached), falls back to email handle only if profile empty.
-- Tabs gain `?tab=orders|courses|wishlist|profile` deep linking.
-- Memoize the heavy tiles (`React.memo` + stable props).
+**Result**: Navbar/Footer/MobileNav stay mounted across `/` → `/shop` → `/product/:id` → `/cart` → `/checkout`. No more remount flash, no re-evaluation of nav-internal state, instant perceived navigation.
 
-### Fix D — Mobile polish
-- Stat grid: `grid-cols-2 lg:grid-cols-4` with bigger numbers.
-- Tabs row: keep icons, hide labels <sm (already done).
-- Remove `bg-[radial-gradient]` overlay — purely decorative cost.
-- Reduce hero padding on mobile (`py-6 md:py-10` instead of `py-8 md:py-10`).
+The shell needs **two variants** based on the route:
+- `<PublicShell />` — Navbar + Footer (default)
+- `<PublicShellWithMobileNav />` — Navbar + content + MobileNav (for shop/cart/track-order/contact where mobile bottom nav is shown)
 
-## Out of scope
-- Charts (spec says "lightweight or summaries" — the StatGrid + Alerts replace this; recharts is heavy and unnecessary for a customer hub).
-- Adding new data points (revenue trends, conversion etc.) — not relevant for a buyer.
-- Touching tab content (`OrdersTab`, `CoursesTab`, `WishlistTab`, `ProfileTab` already work).
+Or simpler: one shell that **always** renders MobileNav (it's already `md:hidden`-gated and adds zero desktop cost) — that's actually the cleaner choice and is what most apps do. Confirm: every page currently *with* MobileNav already has `pb-20 md:pb-0` body padding; pages *without* (Index, Academy, About, FAQ, Privacy, Terms, Auth) don't have that padding but also don't currently show MobileNav. **Solution**: shell always renders MobileNav; we add `pb-20 md:pb-0` to the shell's wrapper div, neutral on desktop.
 
-## Files Touched
+### Fix B — Tiny prefetch polish *(1 file)*
+
+Add `usePrefetch('/cart')` + `usePrefetch('/checkout')` handlers to the cart icon button in `Navbar.tsx` so hovering the cart starts loading those chunks before the user clicks through.
+
+## Out of scope (already good)
+
+- Image optimization — already covered by `OptimizedImage` + Supabase transforms
+- Splitting heavy pages (`ShopPage`) — `useMemo` + `memo` already applied; not the bottleneck
+- Charts — non-admin doesn't render any
+- Adding new motion library — keep the 180ms CSS keyframe
+
+## Files Touched (~20 small edits)
+
 | File | Change |
 |---|---|
-| `src/hooks/useMyOrders.ts` | Narrow select + staleTime |
-| `src/hooks/useEnrollments.ts` | Narrow joined select + staleTime on `useMyEnrollments` |
-| `src/hooks/useDashboardData.ts` | Add `useDashboardSummary()`, deprecate `useDashboardKPIs` |
-| `src/components/dashboard/DashboardStatGrid.tsx` | **NEW** — 4 clickable stat cards |
-| `src/components/dashboard/RecentOrdersList.tsx` | **NEW** — top-3 order cards + view all |
-| `src/components/dashboard/AlertsTile.tsx` | **NEW** — derived alerts, empty-state fallback |
-| `src/pages/DashboardPage.tsx` | Restructured per spec; tabs deep-linkable; memoized tiles |
-| `src/components/dashboard/tiles/KPIMarqueeTile.tsx` | **DELETED** (replaced by hero greeting + StatGrid) |
-| `src/components/dashboard/tiles/RecentOrderTile.tsx` | **DELETED** (replaced by RecentOrdersList) |
+| `src/components/PublicShell.tsx` | **NEW** — Navbar + `<Outlet/>` + Footer + MobileNav |
+| `src/App.tsx` | Wrap all non-admin routes (except `/auth`, `/forgot-password`, `/reset-password` which are full-bleed) under `<PublicShell/>` |
+| `src/components/Navbar.tsx` | Add `usePrefetch('/cart')` to cart icon |
+| `src/pages/Index.tsx` | Remove inline `<Navbar/>` + `<Footer/>` |
+| `src/pages/ShopPage.tsx` | Remove inline `<Navbar/>` + `<Footer/>` + `<MobileNav/>` |
+| `src/pages/ProductDetailPage.tsx` | Remove shell |
+| `src/pages/AcademyPage.tsx` | Remove shell |
+| `src/pages/CourseDetailPage.tsx` | Remove shell |
+| `src/pages/CartPage.tsx` | Remove shell |
+| `src/pages/CheckoutPage.tsx` | Remove shell |
+| `src/pages/TrackOrderPage.tsx` | Remove shell (keep two render branches) |
+| `src/pages/DashboardPage.tsx` | Remove shell |
+| `src/pages/AboutPage.tsx` | Remove shell |
+| `src/pages/ContactPage.tsx` | Remove shell |
+| `src/pages/FAQPage.tsx` | Remove shell |
+| `src/pages/PrivacyPolicyPage.tsx` | Remove shell |
+| `src/pages/TermsPage.tsx` | Remove shell |
+| `src/pages/NotFound.tsx` | Remove shell |
 
-Tiles **kept as-is**: `FeaturedCarouselTile`, `LearningPathTile`, `MasterclassTile`, `RecommendedInputsTile`, `QuickActionsTile`. They already work; spec doesn't require touching them.
+**Auth pages stay standalone** — `/auth`, `/forgot-password`, `/reset-password` already use a different full-bleed branded layout with no Navbar; they remain outside `PublicShell`.
 
 ## Decision
 
 Reply with one of:
-- **"Execute the full plan"** — recommended, ~9 files, full restructure.
-- **"Just do Fix A + Alerts"** — keep current bento, only slim queries and add the alerts tile.
-- **"Skip the page restructure, only fix data layer"** — Fix A only, 3 files.
+- **"Execute the full plan"** — recommended, ~18 files, real perceived-speed win.
+- **"Just do Fix B (cart prefetch)"** — 1 file, tiny.
+- **"Skip — current speed is good enough"** — no changes; non-admin is already well-optimized aside from the remount.
 
