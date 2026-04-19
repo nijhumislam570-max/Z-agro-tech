@@ -19,7 +19,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useCourses, type CourseCategory, type CourseRow } from '@/hooks/useCourses';
+import { useCourses, type CourseCategory, type Course } from '@/hooks/useCourses';
 import { CourseCard } from '@/components/academy/CourseCard';
 import { CourseSkeleton } from '@/components/academy/CourseSkeleton';
 import {
@@ -53,7 +53,7 @@ const priceFilters = [
 ];
 
 // ── Hero carousel showing 1 featured course at a time ─────────────────────────
-const CourseHeroCarousel = memo(({ courses }: { courses: CourseRow[] }) => {
+const CourseHeroCarousel = memo(({ courses }: { courses: Course[] }) => {
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
