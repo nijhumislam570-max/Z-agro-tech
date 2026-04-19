@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
@@ -12,14 +12,20 @@ import MobileNav from '@/components/MobileNav';
  * (logo flicker, cart-badge re-derivation, useUserRole re-evaluation)
  * that happened when every page rendered its own shell.
  *
+ * The pathname-keyed wrapper around <Outlet/> applies the page-enter
+ * animation to inner content only — without remounting Navbar/Footer.
+ *
  * `pb-20 md:pb-0` on the outer wrapper reserves space for the bottom
  * MobileNav on mobile and is a no-op on desktop.
  */
 const PublicShell = memo(() => {
+  const location = useLocation();
   return (
     <div className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
       <Navbar />
-      <Outlet />
+      <div key={location.pathname} className="animate-page-enter flex-1 flex flex-col">
+        <Outlet />
+      </div>
       <Footer />
       <MobileNav />
     </div>
