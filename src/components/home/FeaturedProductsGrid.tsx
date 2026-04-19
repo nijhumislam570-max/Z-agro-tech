@@ -23,7 +23,7 @@ export const FeaturedProductsGrid = () => {
   });
 
   return (
-    <section className="@container py-14 sm:py-20" aria-labelledby="featured-products">
+    <section className="py-14 sm:py-20" aria-labelledby="featured-products">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>
