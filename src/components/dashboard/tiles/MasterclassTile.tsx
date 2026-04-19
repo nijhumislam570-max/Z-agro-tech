@@ -39,7 +39,7 @@ export default function MasterclassTile() {
               New masterclasses are coming soon.
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/academy">Browse Academy</Link>
+              <Link to="/academy" {...prefetchAcademy}>Browse Academy</Link>
             </Button>
           </div>
         ) : (
@@ -74,7 +74,7 @@ export default function MasterclassTile() {
               )}
             </div>
             <Button asChild variant="secondary" className="w-full">
-              <Link to={`/course/${data.id}`}>
+              <Link to={`/course/${data.id}`} {...prefetchCourse}>
                 Enroll Now <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
