@@ -77,7 +77,7 @@ export default function LearningPathTile() {
               <Progress value={latest.progress ?? 0} className="h-2 bg-white/15" />
             </div>
             <Button asChild className="w-full" variant="secondary">
-              <Link to={`/course/${latest.course_id}`}>
+              <Link to={`/course/${latest.course_id}`} {...prefetchCourse}>
                 Continue Learning <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
