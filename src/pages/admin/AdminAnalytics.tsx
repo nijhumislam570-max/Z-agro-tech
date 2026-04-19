@@ -21,7 +21,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { useAdminAnalytics, type DateRangePreset } from '@/hooks/useAdminAnalytics';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { format } from 'date-fns';
 
@@ -49,7 +49,7 @@ const ChartsFallback = () => (
 const AdminAnalytics = () => {
   useDocumentTitle('Analytics - Admin');
   const { isAdmin } = useAdmin();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
   const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState<DateRangePreset>('all');
   const { data: analytics, isLoading: analyticsLoading, dataUpdatedAt } = useAdminAnalytics(dateRange);

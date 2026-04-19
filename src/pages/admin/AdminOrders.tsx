@@ -59,7 +59,7 @@ import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { format, isAfter } from 'date-fns';
 import { createOrderNotification } from '@/lib/notifications';
 import { SendToCourierDialog } from '@/components/admin/SendToCourierDialog';
@@ -87,7 +87,7 @@ const AdminOrders = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
   const [adminOrderPage, setAdminOrderPage] = useState(0);
   const { data: ordersData, isLoading } = useAdminOrders(adminOrderPage);
   const orders = ordersData?.orders ?? [];

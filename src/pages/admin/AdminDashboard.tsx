@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useAdmin, useAdminStats } from '@/hooks/useAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { ECommerceOverview } from '@/components/admin/dashboard/ECommerceOverview';
 import { AcademyOverview } from '@/components/admin/dashboard/AcademyOverview';
 import { RecentOrdersList } from '@/components/admin/dashboard/RecentOrdersList';
@@ -13,8 +13,8 @@ const AdminDashboard = () => {
   useDocumentTitle('Dashboard - Admin');
   const { isAdmin } = useAdmin();
   const { data: stats, isLoading: statsLoading } = useAdminStats();
+  void isAdmin;
 
-  useAdminRealtimeDashboard(isAdmin);
 
   // Memoize recent orders to prevent re-renders from sidebar toggle or quick actions
   const recentOrdersMemo = useMemo(

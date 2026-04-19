@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -54,7 +54,7 @@ const AdminDeliveryZones = () => {
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
   const isMobile = useIsMobile();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
 
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [formData, setFormData] = useState(emptyForm);
