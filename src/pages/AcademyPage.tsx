@@ -321,7 +321,7 @@ const AcademyPage = () => {
         </section>
 
         {/* GRID */}
-        <section className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <section id="course-grid" className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 scroll-mt-24">
           {!isLoading && (
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <p className="text-sm text-muted-foreground">
