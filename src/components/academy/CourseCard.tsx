@@ -6,6 +6,8 @@ import { GraduationCap, Clock, MapPin, Calendar, Award, Sparkles } from 'lucide-
 import { cn } from '@/lib/utils';
 import type { Course } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
+import { usePrefetch } from '@/hooks/usePrefetch';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 const difficultyStyles: Record<Course['difficulty'], string> = {
   beginner: 'bg-success/15 text-success border-success/30',
