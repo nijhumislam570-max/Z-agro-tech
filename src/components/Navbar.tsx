@@ -150,6 +150,7 @@ const Navbar = memo(() => {
                       key={path}
                       to={path}
                       onClick={() => setOpen(false)}
+                      {...prefetchByPath[path]}
                       className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
                         isActive(path) ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'
                       }`}
@@ -162,6 +163,7 @@ const Navbar = memo(() => {
                     <Link
                       to="/dashboard"
                       onClick={() => setOpen(false)}
+                      {...prefetchDashboard}
                       className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all min-h-[44px] ${
                         isActive('/dashboard') ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted/50'
                       }`}
@@ -174,6 +176,7 @@ const Navbar = memo(() => {
                     <Link
                       to="/admin"
                       onClick={() => setOpen(false)}
+                      {...prefetchAdmin}
                       className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-primary hover:bg-primary/10 min-h-[44px]"
                     >
                       <Shield className="h-5 w-5" />
@@ -193,6 +196,7 @@ const Navbar = memo(() => {
                     <Link
                       to="/auth"
                       onClick={() => setOpen(false)}
+                      {...prefetchAuth}
                       className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium bg-primary text-primary-foreground min-h-[44px]"
                     >
                       <User className="h-5 w-5" />
