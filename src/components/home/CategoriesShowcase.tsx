@@ -77,7 +77,7 @@ export const CategoriesShowcase = () => (
       {categories.map((cat) => (
         <Link
           key={cat.slug}
-          to={`/shop?category=${encodeURIComponent(cat.slug)}`}
+          to={`/shop?type=${encodeURIComponent(cat.slug)}`}
           className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br ${cat.gradient} p-4 sm:p-6 hover:shadow-soft hover:-translate-y-1 transition-all duration-300 min-h-[160px] sm:min-h-[200px] flex flex-col justify-between`}
           aria-label={`Browse ${cat.name}`}
         >
