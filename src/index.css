@@ -568,7 +568,7 @@
     }
   }
   .animate-page-enter {
-    animation: page-enter 0.25s ease-out both;
+    animation: page-enter 0.15s ease-out both;
   }
 
   /* Stagger helper — pair with inline `animation-delay` on each child */
