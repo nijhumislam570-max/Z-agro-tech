@@ -1,73 +1,56 @@
 
-The user wants me to use the listed design vocabulary (shapes, components, visual elements) to elevate the landing page sections. The current landing page works but feels flat — most cards are plain rounded rectangles with gradient fills. I'll inject more shape variety, depth, and hierarchy.
 
-## Design moves per section
+## Plan: Connect everything end-to-end + fix the polish gaps
 
-**1. Hero**
-- Add floating decorative shapes (hexagon, circle, triangle) as soft background accents using CSS only (SVG or `clip-path`)
-- Add a thin animated divider line under the headline
-- Convert the badge above headline to a pill with a tiny pulsing status dot (circle)
-- Stat pills get subtle elevation (shadow-lg) + hover lift
+I audited all 26 routes, the navbar/footer/admin sidebar, RLS-backed data hooks, and the dashboard tiles. The wiring is mostly there. What's **broken / disconnected / rough**:
 
-**2. PartnersStrip**
-- Replace flat row with rounded-rectangle items that have hover elevation
-- Add a thin vertical divider (line) between items on desktop
-- Add a soft gradient top border (1px) to separate from hero
+### Bugs & disconnects to fix
 
-**3. Value Props Bento (in Index.tsx)**
-- Add a hexagonal icon container option (using clip-path) on the two large bento cards for visual variety vs square icon containers on small cards
-- Add a "NEW" / accent pill chip in the corner of the primary cards
-- Add subtle dotted-pattern texture overlay (CSS radial-gradient dots) on large cards for depth
-- Cards get a top-left corner accent shape (small triangle/circle) as decoration
+1. **Multiple `<h1>` on every page (a11y + Core memory violation).** `Logo.tsx` renders the brand name as `<h1>` — so every page that mounts the Navbar gets ≥2 H1s (Navbar logo + page H1 + Footer logo). Fix: change Logo to a `<span>` with same styling.
 
-**4. CategoriesShowcase**
-- Add a number badge (circle) "01, 02, 03, 04" in top-right corner of each card
-- Add an arrow line that extends on hover (animated)
-- Add a thin progress bar at bottom of each card showing "popularity" (decorative)
+2. **Stale runtime crash trail** ("Component is not a function" in old console) was from a previous edit cycle — the current TS compiles clean and components are wired correctly. Verifying with a hard reload after fix #1.
 
-**5. HowItWorks**
-- Convert step numbers to large pentagon/hexagon shape badges instead of circles
-- Add a dashed connecting line between steps on desktop (instead of solid)
-- Add tooltip-style speech bubbles with mini-stats on each step
+3. **Admin Quick Actions → Orders filter is a dead link.** `QuickActionsCard` navigates to `/admin/orders?status=pending`, but `AdminOrders` never reads the `status` URL param — the filter stays on "all". Fix: read `useSearchParams()` and seed `statusFilter`.
 
-**6. Testimonials**
-- Add a large decorative quotation mark (SVG) in the background of each card
-- Convert avatars to circles with a colored ring (border-4)
-- Add a 5-star rating row using filled star icons
-- Add a small "verified" badge chip next to name
+4. **Newsletter `<Button variant="accent">` does work**, but the placeholder text class on dark gradient is hard to read. Tightening contrast.
 
-**7. TrustStatsStrip**
-- Add hexagonal stat containers instead of plain rounded rectangles
-- Add a thin animated progress bar under each stat (decorative)
-- Add corner triangles as decorative accents
+5. **Cart "Have a coupon?" hint** is text-only — wire it to actually focus the coupon input on `/checkout` via `#coupon` hash anchor for a real connection.
 
-**8. NewsletterCTA**
-- Add floating geometric shapes (circles, triangles, hexagons) in background
-- Convert the email input to pill shape (rounded-full)
-- Add a small "100% free" badge chip under the form
+6. **Track Order page** can be reached from MobileNav profile slot indirectly but not from the Navbar — we'll keep current design (it's accessible via dashboard / footer); no change.
 
-**9. FAQTeaser**
-- Add a large decorative "?" symbol in background
-- Add chevron arrows that rotate on expand
-- Add a numbered circle badge before each question
+7. **Logo `<h1>` removal** — also fixes the third decorative H1 in the footer.
 
-## Files to modify (8)
-1. `src/components/home/HeroSection.tsx` — floating shapes, status dot, divider
-2. `src/components/home/PartnersStrip.tsx` — dividers, hover lift
-3. `src/pages/Index.tsx` — bento accents, hexagon icons on large cards, NEW pill
-4. `src/components/home/CategoriesShowcase.tsx` — number badges, hover arrow
-5. `src/components/home/HowItWorks.tsx` — hexagon step badges, dashed connector
-6. `src/components/home/Testimonials.tsx` — quote bg, avatar ring, stars, verified badge
-7. `src/components/home/TrustStatsStrip.tsx` — hex containers, corner accents
-8. `src/components/home/NewsletterCTA.tsx` — floating shapes, pill input, free badge
-9. `src/components/home/FAQTeaser.tsx` — bg "?", numbered badges
+### Files to modify (4)
 
-## Constraints I'll follow
-- All semantic tokens only (no raw `bg-green-500` etc.)
-- All shapes via Tailwind + inline `clip-path` (no new deps)
-- Mobile-first; decorative shapes hidden on small screens where they'd crowd
-- 44px min touch targets preserved
-- All decorative elements `aria-hidden="true"`
-- No new files, no new images, no DB changes
+1. **`src/components/Logo.tsx`** — Change brand `<h1>` → `<span>` (semantic fix; visual unchanged). This is the single biggest win: removes the duplicate-H1 problem across **every page in scope** in one shot.
+
+2. **`src/pages/admin/AdminOrders.tsx`** — Read `?status=` query param and seed `statusFilter` initial state; sync via `useEffect` so cross-page links from `QuickActionsCard` actually filter.
+
+3. **`src/components/home/NewsletterCTA.tsx`** — Improve input contrast on dark gradient (`bg-background` not `bg-background/95`, stronger placeholder color).
+
+4. **`src/pages/CartPage.tsx`** — Change "Apply it at checkout" to a `<Link to="/checkout#coupon">` and add `id="coupon"` on the coupon input in `CheckoutPage.tsx` (so users land focused on the coupon field).
+
+### Files to verify (no changes — already wired correctly)
+
+- All 14 admin pages registered in `App.tsx` ✓
+- `AdminSidebar` + `AdminMobileNav` cover every admin route ✓
+- Public navbar/mobile-nav cover all public routes ✓
+- `RequireAuth` guards `/cart`, `/checkout`, `/dashboard` ✓
+- `RequireAdmin` guards all `/admin/*` ✓
+- `/profile` redirects to `/dashboard` ✓
+- `NotFound` is the catch-all for unknown public routes ✓
+- Auth redirect-after-login honors `?redirect=` and admin-vs-user routing ✓
+- Cart→Checkout→Order→TrackOrder→Dashboard flow uses RLS-backed hooks and `create_order_with_stock` RPC ✓
+- Dashboard `QuickActionsTile` links to `/shop`, `/academy`, `/cart`, `/track-order` ✓
+- Categories on home → `/shop?type=` and footer categories use the same param ✓
+- All UI components used (`Sheet`, `Accordion`, `Card`, `Button` variants incl. `accent`, `Avatar`) exist and export correctly ✓
+
+### Constraints honored
+
+- Semantic tokens only — no raw Tailwind palette
+- 44px touch targets preserved
+- One `<h1>` per page rule restored
+- No DB migrations, no RLS changes, no new routes, no edge functions, no new dependencies
 
 Reply **"approve"** and I'll execute.
+
