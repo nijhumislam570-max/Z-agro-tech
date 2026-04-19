@@ -1,61 +1,64 @@
 
 
-# Phase 9 — Final QA & Launch Check Plan
+# Navigation Speed & App-Like Experience Plan
 
-This is the final pre-publish gate. Phase 9 is a **verification sweep**, not a build phase — the goal is to walk every flow, confirm guards/states/responsiveness/data-exposure, and produce a launch-readiness verdict. Any bugs found get logged; only blocker-class issues are fixed inline.
+After auditing the 10 steps against the current codebase, the foundations from Phase 7 have already covered most of the heavy lifting: every route is `lazy()`-loaded with a Suspense fallback, `prefetchRoute` exists with a 21-route map, `OptimizedImage` enforces IO + Supabase resize transforms, the page transition is a 250 ms fade-and-slide, no `<a href>` full-reloads exist on internal routes, React Query has `staleTime: 2min` + `gcTime: 10min` + no refetch-on-focus, image cache is capped at 80 entries, `usePrefetch` hook exists, and `Navbar` / `ProductCard` are `memo()`-wrapped. The remaining gaps are real but narrow.
 
-## Approach
+## Findings (priority-ordered)
 
-Three parallel verification tracks, then a synthesized report.
+### HIGH — measurable wins
+- **N1 — Prefetch hook is unused.** `usePrefetch` and `prefetchRoute` exist but **only `ProductCard` (shop→product) and `AdminSidebar`** call them. Navbar links, FeaturedProductsGrid, FeaturedCoursesGrid, CourseCard, Footer quick-links, dashboard tiles, and admin header dropdown all skip prefetch. Wire `usePrefetch` into:
+  - `Navbar` desktop + mobile links (Shop / Academy / Dashboard / Admin / Auth) — biggest win, every page-to-page hop becomes instant.
+  - `CourseCard` → `/course/:id` (academy → detail).
+  - Dashboard tiles' "Browse Academy" / "Explore Masterclasses" / "Recent order" CTAs.
+- **N2 — `PageLoader` reserves `min-h-[60vh]` of empty space.** When a chunk loads in <100 ms (cached / prefetched) the user still sees a 60vh blank gap before content appears, defeating the prefetch work. Fix: drop the spacer, keep only the top progress bar — Suspense will swap content in instantly when the chunk is ready, and `animate-page-enter` already prevents flash.
+- **N3 — Page transition runs on every navigation, even back-button.** The `<div key={pathname}>` re-mounts the entire tree, which discards React Query data (no, query cache is global — fine) but does kill scroll restoration and forces `animate-page-enter` to replay. Fix: keep the animation but shorten to **150 ms** (current 250 ms feels noticeable on fast hops). Already in spec ("under 200 ms").
+- **N4 — `CourseCard` uses raw `<img>` (not `OptimizedImage`).** No IO lazy-load, no Supabase transform, no skeleton. Swap to `OptimizedImage` with `preset="medium"` + `aspectRatio={16/9}` to cut payload + prevent CLS on `/academy`.
 
-### Track A — Static / Backend audit (no browser)
-1. **Security scan** — `security--run_security_scan` for RLS, exposed PII, unsafe edge functions.
-2. **Database linter** — `supabase--linter` for schema-level warnings.
-3. **Sitemap / SEO** — `curl` the `sitemap` edge function, confirm it returns valid XML with active products + courses.
-4. **Edge function smoke** — confirm `geocode`, `steadfast`, `parse-product-pdf`, `delete-user`, `upload-image-url`, `sitemap` all respond (no 5xx).
-5. **Route map** — diff `App.tsx` routes against page exports + nav links to find any dead/orphan routes.
+### MEDIUM — perceived-speed polish
+- **N5 — Mobile Sheet nav doesn't prefetch.** When user opens the menu on mobile, we have a 200-300 ms window before they tap a link — perfect prefetch opportunity. Wire `onMouseEnter`/`onTouchStart` on each Sheet `<Link>`.
+- **N6 — No prefetch on Admin Header user dropdown** (My Dashboard / Site links). Low-cost win.
+- **N7 — `prefetchRoute` map missing entries** for `/auth`, `/forgot-password`, `/track-order`, `/privacy`, `/terms`, `/product/:id`, `/course/:id` (the dynamic ones can prefetch the page chunk via a `/product/` key prefix — already supported by the `startsWith` matcher, but the map needs the keys). Add the keys.
 
-### Track B — Browser walkthrough (live preview)
-Walk every flow at desktop (1280×720) + mobile (390×844). For each: confirm route loads, no console errors, loading state renders, empty/error path exists, primary action works.
+### LOW — already correct, no action
+- All routes lazy-loaded ✓
+- Suspense fallback present ✓
+- React Query caching tuned ✓
+- No `<a href>` for internal routes (all use `<Link>` / `navigate()`) ✓
+- `OptimizedImage` with IO + Supabase transforms ✓
+- Service worker LRU image cache ✓
+- 44px touch targets globally ✓
+- `Navbar`, `ProductCard`, page tiles already `memo()`-wrapped ✓
+- `OfflineIndicator`, ErrorBoundary, scroll-to-top already global ✓
+- BrowserRouter (correct for Lovable hosting) ✓
+- No layout shift — `AspectRatio` + `aspect-ratio` CSS used everywhere ✓
+- Skeletons used for all loading (no spinners on routes) ✓
+
+## Execution scope (~7 files, no new deps, no DB changes)
 
 ```
-Public:        / → /shop → /product/:id → /academy → /course/:id
-               /about /contact /faq /privacy /terms /track-order
-               /not-a-real-page (404)
-Auth:          /auth (sign-in + sign-up tabs) → /forgot-password
-Shop:          add to cart → /cart → /checkout (form validation)
-Academy:       open course → "Enroll" dialog → submit
-User:          /dashboard (Overview / Orders / Wishlist / Profile tabs)
-Admin (as nijhumislam570@gmail.com):
-               /admin /admin/products /admin/orders /admin/customers
-               /admin/coupons /admin/courses /admin/enrollments
-               /admin/messages /admin/analytics /admin/recovery-analytics
-               /admin/incomplete-orders /admin/delivery-zones
-               /admin/ecommerce-customers /admin/settings
-Guard tests:   visit /admin as unauth → must redirect to /auth
-               visit /dashboard as unauth → must redirect to /auth
+src/lib/imageUtils.ts           (N7 — add /auth, /track-order, /product, /course, /privacy, /terms keys)
+src/components/Navbar.tsx       (N1, N5 — wire usePrefetch on every desktop + mobile Sheet link)
+src/components/Footer.tsx       (N1 — wire usePrefetch on quickLinks + categories)
+src/components/academy/CourseCard.tsx   (N1, N4 — usePrefetch + swap <img> to OptimizedImage)
+src/components/admin/AdminHeader.tsx    (N6 — usePrefetch on Site / Dashboard dropdown)
+src/components/dashboard/tiles/LearningPathTile.tsx     (N1 — prefetch /academy)
+src/components/dashboard/tiles/MasterclassTile.tsx      (N1 — prefetch /academy)
+src/components/dashboard/tiles/RecentOrderTile.tsx      (N1 — prefetch /dashboard order link if any)
+src/App.tsx                     (N2, N3 — drop 60vh spacer, shorten page-enter to 150 ms via class)
+src/index.css                   (N3 — shorten page-enter animation duration to 0.15s)
 ```
 
-### Track C — Synthesis
-For every flow, record: ✅ pass / ⚠️ minor (non-blocking) / ❌ blocker. Then output:
-
-1. **Final Status Report** — flow-by-flow table with status + notes.
-2. **Remaining Risks** — non-blocking items deferred to post-launch (with severity).
-3. **Production Readiness Verdict** — one of:
-   - 🟢 **Ready to publish** — no blockers, only minor polish items
-   - 🟡 **Ready with caveats** — publishable but list X items to monitor
-   - 🔴 **Not ready** — list blockers that must be fixed first
-
-## Inline-fix policy
-Only fix blockers found during the sweep (e.g. broken route, crash, unauth data leak). Anything cosmetic / non-blocking goes into the "Remaining Risks" section for a future sprint — Phase 9 is not a re-polish pass.
-
-## Out of scope
-- No new features, no Lighthouse re-runs (Phase 7 already addressed perf), no DB migrations unless a security finding demands one, no test-suite expansion.
+## Out of scope (intentionally)
+- **No webp conversion** (Step 6.1) — `OptimizedImage` already uses Supabase's transform endpoint which serves modern formats; bulk re-encoding source assets is a content task, not code.
+- **No optimistic UI on cart/wishlist** beyond what's there (Step 8.2) — both contexts already update local state synchronously before any server round-trip.
+- **No new transition library** (framer-motion etc.) — existing CSS keyframes are 0 KB and meet "<200 ms" requirement.
+- **No skeleton-layout overhaul** — every list page already has a `*Skeleton` component.
 
 ## Decision
 
 Reply with one of:
-- **"Execute Phase 9 — full sweep"** — recommended, runs all three tracks and produces the final report.
-- **"Skip Track B browser walkthrough"** — security + sitemap + route audit only (faster, but no live UI verification).
-- **"Just give me the verdict"** — quick scan: security tool + linter + a 5-route smoke test, then verdict.
+- **"Execute all of this plan"** — full ~10 files, recommended.
+- **"Execute N1–N3 only"** — wire prefetch + drop loader spacer + shorten transition, skip CourseCard image swap. ~6 files.
+- **"Skip the page-enter shortening"** — keep 250 ms, only do prefetch wiring.
 
