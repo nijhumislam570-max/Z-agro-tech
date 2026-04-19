@@ -21,6 +21,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { prefetchAdminRoute } from '@/lib/adminPrefetch';
+import { startRouteProgress } from '@/components/RouteProgress';
 import Logo from '@/components/Logo';
 import { Badge } from '@/components/ui/badge';
 import { SheetClose } from '@/components/ui/sheet';
@@ -168,6 +169,7 @@ export const AdminMobileNav = ({
                       onTouchStart={() => prefetch(item.path)}
                       onMouseEnter={() => prefetch(item.path)}
                       onFocus={() => prefetch(item.path)}
+                      onPointerDown={isActive ? undefined : startRouteProgress}
                       className={cn(
                         'relative flex items-center gap-3 px-3 py-3.5 rounded-xl transition-all duration-200 active:scale-[0.98]',
                         isActive

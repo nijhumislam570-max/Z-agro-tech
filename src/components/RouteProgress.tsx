@@ -1,14 +1,38 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
 /**
- * Top-of-viewport progress bar that paints the moment the route changes,
- * giving users an instant "the click registered" signal — even before the
- * lazy chunk and Suspense skeleton mount.
- *
- * Works for both admin and public routes. Driven purely by `useLocation()`
- * so we don't need to wire callbacks into every <Link>.
+ * Top-of-viewport progress bar. Two triggers:
+ *  1) Imperative `startRouteProgress()` — fired on sidebar/mobile-nav click for
+ *     INSTANT visual feedback before React Router commits the route.
+ *  2) Reactive — `useLocation()` change still completes the bar after commit.
  */
+
+type Listener = () => void;
+let activeStartedAt = 0;
+const listeners = new Set<Listener>();
+
+const subscribe = (l: Listener) => {
+  listeners.add(l);
+  return () => {
+    listeners.delete(l);
+  };
+};
+const getSnapshot = () => activeStartedAt;
+const getServerSnapshot = () => 0;
+
+/**
+ * Call this the moment the user expresses navigation intent (mousedown / click
+ * on a router Link). Cheap, idempotent — collapses rapid clicks.
+ */
+export function startRouteProgress() {
+  const now = Date.now();
+  // Throttle to at most once per 250ms
+  if (now - activeStartedAt < 250) return;
+  activeStartedAt = now;
+  listeners.forEach((l) => l());
+}
+
 export const RouteProgress = () => {
   const { pathname } = useLocation();
   const navType = useNavigationType();
@@ -17,35 +41,56 @@ export const RouteProgress = () => {
   const firstRenderRef = useRef(true);
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
+  // Subscribe to imperative starts
+  const intentTick = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const clearTimers = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  };
+
+  const begin = () => {
+    clearTimers();
+    setVisible(true);
+    setProgress(20);
+    timersRef.current.push(setTimeout(() => setProgress(55), 80));
+    timersRef.current.push(setTimeout(() => setProgress(80), 260));
+    timersRef.current.push(setTimeout(() => setProgress(92), 600));
+  };
+
+  const finish = () => {
+    clearTimers();
+    setProgress(100);
+    timersRef.current.push(
+      setTimeout(() => {
+        setVisible(false);
+        setProgress(0);
+      }, 180),
+    );
+  };
+
+  // Imperative trigger — paint immediately on click
   useEffect(() => {
-    // Skip the very first render (initial page load already has its own loader)
+    if (intentTick === 0) return;
+    begin();
+    // Safety auto-finish if no route commit comes through (e.g. same-route click)
+    const safety = setTimeout(() => finish(), 1400);
+    return () => clearTimeout(safety);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intentTick]);
+
+  // Reactive completion on actual route change
+  useEffect(() => {
     if (firstRenderRef.current) {
       firstRenderRef.current = false;
       return;
     }
-    // Skip POP (back/forward) — usually instant from cache
     if (navType === 'POP') return;
-
-    timersRef.current.forEach(clearTimeout);
-    timersRef.current = [];
-
-    setVisible(true);
-    setProgress(15);
-    timersRef.current.push(setTimeout(() => setProgress(45), 60));
-    timersRef.current.push(setTimeout(() => setProgress(75), 220));
-    timersRef.current.push(setTimeout(() => setProgress(92), 500));
-    timersRef.current.push(setTimeout(() => {
-      setProgress(100);
-      timersRef.current.push(setTimeout(() => {
-        setVisible(false);
-        setProgress(0);
-      }, 180));
-    }, 800));
-
-    return () => {
-      timersRef.current.forEach(clearTimeout);
-      timersRef.current = [];
-    };
+    // If imperative didn't fire (e.g. programmatic navigate), still show feedback
+    if (!visible) begin();
+    finish();
+    return clearTimers;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, navType]);
 
   if (!visible) return null;
