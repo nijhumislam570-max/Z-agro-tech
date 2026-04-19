@@ -69,12 +69,9 @@ const ScrollToTop = () => {
 };
 
 const PageLoader = () => (
-  <>
-    <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-primary/20">
-      <div className="h-full bg-primary rounded-r-full animate-progress-bar" />
-    </div>
-    <div className="min-h-[60vh]" />
-  </>
+  <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-primary/20">
+    <div className="h-full bg-primary rounded-r-full animate-progress-bar" />
+  </div>
 );
 
 const PageTransition = ({ children }: { children: React.ReactNode }) => {
