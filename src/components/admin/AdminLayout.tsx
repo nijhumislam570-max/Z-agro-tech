@@ -1,6 +1,6 @@
 import { ReactNode, Suspense, useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useOutlet } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
@@ -137,22 +137,38 @@ export const AdminShell = ({ children }: AdminShellProps) => {
             unreadMessages={pendingCounts?.unreadMessages}
           />
           <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-              >
-                <Suspense fallback={<AdminPageSkeleton />}>
-                  {children ?? <Outlet />}
-                </Suspense>
-              </motion.div>
-            </AnimatePresence>
+            <AdminAnimatedOutlet>{children}</AdminAnimatedOutlet>
           </main>
         </div>
       </div>
     </AdminPageMetaContext.Provider>
+  );
+};
+
+/**
+ * Snapshots the matched Outlet element + location so AnimatePresence can
+ * keep the *previous* page rendered during its exit animation, while the
+ * incoming page renders inside the new motion.div. Without this snapshot,
+ * <Outlet /> always returns the *current* match, causing both motion divs
+ * to render the same (new) content during transition — the visible bug
+ * was that clicks updated the URL but the page never visually swapped.
+ */
+const AdminAnimatedOutlet = ({ children }: { children?: ReactNode }) => {
+  const location = useLocation();
+  const outlet = useOutlet();
+  const content = children ?? outlet;
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+      >
+        <Suspense fallback={<AdminPageSkeleton />}>{content}</Suspense>
+      </motion.div>
+    </AnimatePresence>
   );
 };
