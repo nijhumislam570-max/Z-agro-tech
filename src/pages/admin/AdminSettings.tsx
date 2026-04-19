@@ -353,7 +353,7 @@ const AdminSettingsContent = () => {
   return (
     <AdminLayout title="Settings" subtitle="Configure your platform settings">
       <Tabs defaultValue="general" className="space-y-4 sm:space-y-6">
-        <div className="-mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-none">
+        <div className="-mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <TabsList className="inline-flex w-max sm:w-auto h-auto gap-1 p-1">
             <TabsTrigger value="general" className="gap-1.5 min-h-[44px] sm:min-h-0 text-xs sm:text-sm whitespace-nowrap">
               <Store className="h-3.5 w-3.5" />
