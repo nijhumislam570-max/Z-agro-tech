@@ -7,7 +7,7 @@ import { useCourses, type CourseCategory } from '@/hooks/useCourses';
 import { CourseCard } from '@/components/academy/CourseCard';
 import { CourseSkeleton } from '@/components/academy/CourseSkeleton';
 import { CourseCategoryChips } from '@/components/academy/CourseCategoryChips';
-import { GraduationCap, Search, X, BookOpen, Award, Languages } from 'lucide-react';
+import { GraduationCap, Search, X, BookOpen, Award, Languages, Sparkles, Users, PlayCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
 const AcademyPage = () => {
