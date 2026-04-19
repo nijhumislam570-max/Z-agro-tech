@@ -12,6 +12,7 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AdminShell } from "@/components/admin/AdminLayout";
+import PublicShell from "@/components/PublicShell";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -93,31 +94,37 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <PageTransition>
                   <Routes>
-                    {/* Public */}
-                    <Route path="/" element={<Index />} />
+                    {/* Auth pages — full-bleed, no public shell */}
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/faq" element={<FAQPage />} />
-                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                    <Route path="/terms" element={<TermsPage />} />
 
-                    {/* Shop */}
-                    <Route path="/shop" element={<ShopPage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
-                    <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
-                    <Route path="/track-order" element={<TrackOrderPage />} />
+                    {/* Public — persistent shell (Navbar + Footer + MobileNav stay mounted) */}
+                    <Route element={<PublicShell />}>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/faq" element={<FAQPage />} />
+                      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                      <Route path="/terms" element={<TermsPage />} />
 
-                    {/* Academy */}
-                    <Route path="/academy" element={<AcademyPage />} />
-                    <Route path="/course/:id" element={<CourseDetailPage />} />
+                      {/* Shop */}
+                      <Route path="/shop" element={<ShopPage />} />
+                      <Route path="/product/:id" element={<ProductDetailPage />} />
+                      <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
+                      <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
+                      <Route path="/track-order" element={<TrackOrderPage />} />
 
-                    {/* User dashboard */}
-                    <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
-                    <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+                      {/* Academy */}
+                      <Route path="/academy" element={<AcademyPage />} />
+                      <Route path="/course/:id" element={<CourseDetailPage />} />
+
+                      {/* User dashboard */}
+                      <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+                      <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+
+                      <Route path="*" element={<NotFound />} />
+                    </Route>
 
                     {/* Admin — single persistent shell, child pages render via <Outlet /> */}
                     <Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>
@@ -136,8 +143,6 @@ const App = () => (
                       <Route path="messages" element={<AdminContactMessages />} />
                       <Route path="settings" element={<AdminSettings />} />
                     </Route>
-
-                    <Route path="*" element={<NotFound />} />
                   </Routes>
                 </PageTransition>
               </Suspense>
