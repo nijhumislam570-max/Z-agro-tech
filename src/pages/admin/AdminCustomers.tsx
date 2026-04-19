@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+// Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -73,7 +73,7 @@ const AdminCustomers = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
-  useAdminRealtimeDashboard(isAdmin);
+  void isAdmin;
   const { user } = useAuth();
   const [adminUserPage, setAdminUserPage] = useState(0);
   const { data: customersData, isLoading } = useAdminUsers(adminUserPage);
