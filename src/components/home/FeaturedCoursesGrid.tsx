@@ -9,7 +9,7 @@ export const FeaturedCoursesGrid = () => {
   const { data: courses, isLoading } = useCourses({ limit: 6 });
 
   return (
-    <section className="@container py-14 sm:py-20 bg-gradient-to-b from-secondary/30 to-background" aria-labelledby="featured-courses">
+    <section className="py-14 sm:py-20 bg-gradient-to-b from-secondary/30 to-background" aria-labelledby="featured-courses">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-end justify-between mb-8 gap-4">
           <div>
