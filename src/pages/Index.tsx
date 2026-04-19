@@ -1,5 +1,3 @@
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import HeroSection from '@/components/home/HeroSection';
@@ -19,7 +17,7 @@ const Index = () => {
   useDocumentTitle('Home');
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEO
         title="Z Agro Tech — Premium Agriculture Supplies & Expert Courses"
         description="Shop premium agriculture products and learn from expert-led farming courses on Z Agro Tech — Bangladesh's trusted agritech platform."
@@ -34,7 +32,6 @@ const Index = () => {
           sameAs: [],
         }}
       />
-      <Navbar />
       <main id="main-content" className="flex-1 @container animate-page-enter">
         <HeroSection />
 
@@ -65,8 +62,7 @@ const Index = () => {
         <FeaturedCoursesGrid />
         <TrustStatsStrip />
       </main>
-      <Footer />
-    </div>
+    </>
   );
 };
 

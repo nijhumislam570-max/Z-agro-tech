@@ -1,7 +1,5 @@
 import { memo } from 'react';
 import { Shield } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 
 const sections = [
@@ -99,13 +97,12 @@ You can control cookie settings through your browser preferences. Note that disa
 
 const PrivacyPolicyPage = memo(() => {
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <SEO
         title="Privacy Policy"
         description="Learn how Z Agro Tech collects, uses, and protects your personal information. Read our full privacy policy."
         canonicalUrl="https://zagrotech.lovable.app/privacy"
       />
-      <Navbar />
 
       <main id="main-content" className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter font-nunito" role="main" aria-label="Privacy Policy">
         {/* Hero */}
@@ -151,9 +148,7 @@ const PrivacyPolicyPage = memo(() => {
           ))}
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </>
   );
 });
 

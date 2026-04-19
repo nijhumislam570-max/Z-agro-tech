@@ -5,9 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Navbar from '@/components/Navbar';
-import MobileNav from '@/components/MobileNav';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { supabase } from '@/integrations/supabase/client';
 import { contactSchema, type ContactFormData } from '@/lib/validations';
@@ -90,14 +87,13 @@ const ContactPage = () => {
   }, [cooldown, form]);
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <>
       <SEO
         title="Contact Us"
         description="Have questions about Z Agro Tech? Get in touch with our team for support, product inquiries, or partnership opportunities."
         canonicalUrl="https://zagrotech.lovable.app/contact"
       />
-      <Navbar />
-      
+
       <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
@@ -315,10 +311,7 @@ const ContactPage = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
-      <MobileNav />
-    </div>
+    </>
   );
 };
 

@@ -1,7 +1,5 @@
 import { useState, memo, useMemo } from 'react';
 import { HelpCircle, Search } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import { Input } from '@/components/ui/input';
 import SEO from '@/components/SEO';
 import {
@@ -72,13 +70,12 @@ const FAQPage = memo(() => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
+    <div className="min-h-full bg-gradient-to-b from-primary/5 via-background to-background flex-1">
       <SEO
         title="FAQs"
         description="Find answers to common questions about Z Agro Tech — products, orders, courses, delivery and account security."
         canonicalUrl="https://zagrotech.lovable.app/faq"
       />
-      <Navbar />
 
       <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter" role="main" aria-label="Frequently Asked Questions">
         {/* Hero */}
@@ -159,8 +156,6 @@ const FAQPage = memo(() => {
           </a>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 });

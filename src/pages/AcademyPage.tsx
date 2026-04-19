@@ -1,6 +1,4 @@
 import { useState, useMemo } from 'react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -59,7 +57,7 @@ const AcademyPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEO
         title="Academy — Z Agro Tech"
         description="Expert-led agriculture and farming training cohorts."
@@ -78,7 +76,6 @@ const AcademyPage = () => {
             : undefined
         }
       />
-      <Navbar />
       <main id="main-content" className="flex-1 @container animate-page-enter">
         {/* HERO */}
         <section className="bg-gradient-to-b from-secondary/40 to-background py-12 sm:py-16">
@@ -227,8 +224,7 @@ const AcademyPage = () => {
           )}
         </section>
       </main>
-      <Footer />
-    </div>
+    </>
   );
 };
 

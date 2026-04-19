@@ -1,7 +1,5 @@
 import { memo } from 'react';
 import { FileText } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 
 const sections = [
@@ -150,13 +148,12 @@ Our total liability shall not exceed the amount you paid us in the past 12 month
 
 const TermsPage = memo(() => {
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <SEO
         title="Terms of Service"
         description="Review the Terms of Service for using the Z Agro Tech platform — products, courses, payments, delivery, and liability."
         canonicalUrl="https://zagrotech.lovable.app/terms"
       />
-      <Navbar />
 
       <main id="main-content" className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter font-nunito" role="main" aria-label="Terms of Service">
         {/* Hero */}
@@ -201,9 +198,7 @@ const TermsPage = memo(() => {
           ))}
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </>
   );
 });
 

@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { Sprout, ShieldCheck, GraduationCap, ShoppingBag, Truck, Leaf, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 
 const features = [
@@ -39,13 +37,12 @@ const stats = [
 
 const AboutPage = memo(() => {
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <SEO
         title="About Us"
         description="Z Agro Tech is Bangladesh's trusted hub for premium agriculture supplies and expert-led farming courses, built for modern farmers."
         canonicalUrl="https://zagrotech.lovable.app/about"
       />
-      <Navbar />
 
       <main id="main-content" className="animate-page-enter">
         {/* Hero */}
@@ -141,9 +138,7 @@ const AboutPage = memo(() => {
           </div>
         </section>
       </main>
-
-      <Footer />
-    </div>
+    </>
   );
 });
 
