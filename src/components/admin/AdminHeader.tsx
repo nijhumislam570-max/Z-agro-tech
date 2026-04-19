@@ -201,7 +201,7 @@ export const AdminHeader = ({
           </DropdownMenu>
 
           <Button variant="ghost" size="sm" className="hidden 2xl:flex gap-2 text-muted-foreground hover:text-foreground" asChild>
-            <Link to="/">
+            <Link to="/" {...prefetch('/')}>
               <Home className="h-4 w-4" />
               <span>Site</span>
             </Link>
