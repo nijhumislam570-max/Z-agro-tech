@@ -206,7 +206,7 @@ const AdminOrders = () => {
 
     for (const order of selectedPendingOrders) {
       try {
-        const parsed = order.shipping_address ? parseShippingAddress(order.shipping_address) : null;
+        const parsed = parsedByOrder.get(order.id) ?? null;
         const customerName = order.profile?.full_name || parsed?.name || 'Unknown';
         const customerPhone = order.profile?.phone || parsed?.phone || '';
         const customerAddress = parsed?.addressParts?.join(', ') || order.shipping_address || '';
@@ -432,6 +432,24 @@ const AdminOrders = () => {
     downloadCSV(csvContent, `orders-${format(new Date(), 'yyyy-MM-dd')}.csv`);
     toast.success('Orders exported to CSV');
   };
+
+  if (isError) {
+    return (
+      <AdminLayout title="Orders" subtitle="Manage customer orders">
+        <div className="rounded-2xl border border-danger-border bg-danger-soft/30 p-6 sm:p-8 text-center">
+          <AlertCircle className="h-10 w-10 mx-auto mb-3 text-danger" aria-hidden="true" />
+          <h2 className="text-base sm:text-lg font-semibold mb-1">Couldn't load orders</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {ordersError instanceof Error ? ordersError.message : 'Something went wrong fetching orders.'}
+          </p>
+          <Button onClick={() => refetch()} className="gap-2">
+            <Loader2 className="h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout title="Orders" subtitle="Manage customer orders">
