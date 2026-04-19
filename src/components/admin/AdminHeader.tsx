@@ -75,11 +75,7 @@ export const AdminHeader = ({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[88vw] max-w-[340px] h-[100dvh] max-h-[100dvh] overflow-hidden border-r-0 shadow-2xl">
-              <AdminMobileNav
-                pendingOrders={pendingOrders}
-                incompleteOrders={incompleteOrders}
-                unreadMessages={unreadMessages}
-              />
+              <AdminMobileNav pendingOrders={pendingOrders} />
             </SheetContent>
           </Sheet>
 
