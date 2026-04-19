@@ -27,7 +27,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from '@/components/ui/sheet';
-import { Plus, Trash2, Pencil, GraduationCap, CalendarDays } from 'lucide-react';
+import { Plus, Trash2, Pencil, GraduationCap, CalendarDays, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   type Course, COURSE_CATEGORIES, COURSE_MODES,
@@ -72,13 +72,15 @@ const AdminCourses = () => {
     defaultValues,
   });
 
-  const { data: courses, isLoading } = useQuery({
+  const { data: courses, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin-courses'],
+    staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('courses')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500);
       if (error) throw error;
       return (data || []).map((row) => ({
         ...row,
@@ -464,6 +466,16 @@ const AdminCourses = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
           </div>
+        ) : isError ? (
+          <Card className="border-destructive/40 bg-destructive/5">
+            <CardContent className="py-10 text-center">
+              <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-3" />
+              <p className="text-sm text-destructive font-medium mb-3">
+                Failed to load courses. Please check your connection.
+              </p>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+            </CardContent>
+          </Card>
         ) : !courses || courses.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-16 text-center text-muted-foreground">

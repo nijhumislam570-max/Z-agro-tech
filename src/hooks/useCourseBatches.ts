@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { batchUpsertSchema, type BatchUpsertInput } from '@/lib/validations/courseActions';
 
 export type BatchStatus = 'open' | 'filling' | 'closed' | 'completed';
 
@@ -21,6 +22,7 @@ export function useCourseBatches(courseId: string | undefined) {
   return useQuery({
     queryKey: ['course-batches', courseId],
     enabled: !!courseId,
+    staleTime: 30_000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('course_batches')
@@ -36,10 +38,21 @@ export function useCourseBatches(courseId: string | undefined) {
 export function useUpsertBatch() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Partial<CourseBatch> & { course_id: string; name: string }) => {
-      if (payload.id) {
-        const { id, ...rest } = payload;
-        const { error } = await supabase.from('course_batches').update(rest).eq('id', id);
+    mutationFn: async (raw: BatchUpsertInput) => {
+      const parsed = batchUpsertSchema.parse(raw);
+      const payload = {
+        course_id: parsed.course_id,
+        name: parsed.name,
+        start_date: parsed.start_date || null,
+        end_date: parsed.end_date || null,
+        total_seats: parsed.total_seats,
+        status: parsed.status,
+      };
+      if (parsed.id) {
+        const { error } = await supabase
+          .from('course_batches')
+          .update(payload)
+          .eq('id', parsed.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('course_batches').insert(payload);
@@ -50,7 +63,7 @@ export function useUpsertBatch() {
       toast.success('Batch saved');
       qc.invalidateQueries({ queryKey: ['course-batches', vars.course_id] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message || 'Failed to save batch'),
   });
 }
 
@@ -65,6 +78,6 @@ export function useDeleteBatch() {
       toast.success('Batch deleted');
       qc.invalidateQueries({ queryKey: ['course-batches', vars.course_id] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message || 'Failed to delete batch'),
   });
 }
