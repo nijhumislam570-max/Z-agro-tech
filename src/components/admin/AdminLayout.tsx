@@ -1,4 +1,4 @@
-import { ReactNode, Suspense, useState, useEffect, createContext, useContext, useMemo } from 'react';
+import { ReactNode, Suspense, useState, useEffect, createContext, useContext, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
@@ -104,7 +104,7 @@ export const AdminShell = ({ children }: AdminShellProps) => {
     enabled: isAdmin,
   });
 
-  const toggleSidebar = () => setCollapsed(prev => !prev);
+  const toggleSidebar = useCallback(() => setCollapsed(prev => !prev), []);
 
   const ctxValue = useMemo<AdminPageMetaContextValue>(
     () => ({ meta, setMeta }),

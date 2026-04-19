@@ -1,3 +1,4 @@
+import { memo, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -19,7 +20,7 @@ import {
   AlertCircle,
   Leaf,
 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { prefetchAdminRoute } from '@/lib/adminPrefetch';
 import Logo from '@/components/Logo';
@@ -90,7 +91,102 @@ interface AdminSidebarProps {
   unreadMessages?: number;
 }
 
-export const AdminSidebar = ({
+// Stable per-path prefetch handler cache so each <Link> gets the same
+// function reference across renders — eliminates `diffProperties` churn
+// (the #1 CPU hotspot during admin navigation).
+const prefetchHandlerCache = new WeakMap<QueryClient, Map<string, () => void>>();
+const getPrefetchHandler = (qc: QueryClient, path: string) => {
+  let pathMap = prefetchHandlerCache.get(qc);
+  if (!pathMap) {
+    pathMap = new Map();
+    prefetchHandlerCache.set(qc, pathMap);
+  }
+  let handler = pathMap.get(path);
+  if (!handler) {
+    handler = () => prefetchAdminRoute(path, qc);
+    pathMap.set(path, handler);
+  }
+  return handler;
+};
+
+interface NavLinkItemProps {
+  item: NavItem;
+  isActive: boolean;
+  collapsed: boolean;
+  prefetchHandler: () => void;
+}
+
+const NavLinkItem = memo(({ item, isActive, collapsed, prefetchHandler }: NavLinkItemProps) => {
+  const Icon = item.icon;
+  const link = (
+    <Link
+      to={item.path}
+      onMouseEnter={prefetchHandler}
+      onFocus={prefetchHandler}
+      onTouchStart={prefetchHandler}
+      className={cn(
+        'relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200',
+        collapsed ? 'px-3 py-2.5 justify-center mx-auto' : 'px-3 py-2.5',
+        isActive
+          ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
+          : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+        isActive &&
+          "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-6 before:rounded-full before:bg-primary-foreground/30",
+      )}
+    >
+      <Icon
+        className={cn(
+          'flex-shrink-0 transition-transform duration-200',
+          collapsed ? 'h-5 w-5' : 'h-4 w-4',
+        )}
+      />
+      {!collapsed && (
+        <>
+          <span className="flex-1 whitespace-nowrap">{item.label}</span>
+          {item.badge && item.badge > 0 && (
+            <Badge
+              variant={item.badgeVariant || 'default'}
+              className={cn(
+                'h-5 min-w-5 px-1.5 text-[10px] font-bold animate-pulse',
+                isActive && 'bg-white/20 text-white border-white/30',
+              )}
+            >
+              {item.badge}
+            </Badge>
+          )}
+        </>
+      )}
+      {collapsed && item.badge && item.badge > 0 && (
+        <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center shadow-lg animate-pulse">
+          {item.badge > 9 ? '9+' : item.badge}
+        </span>
+      )}
+    </Link>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent
+          side="right"
+          className="flex items-center gap-2 font-medium bg-popover/95 backdrop-blur-sm"
+        >
+          {item.label}
+          {item.badge && item.badge > 0 && (
+            <Badge variant={item.badgeVariant || 'default'} className="h-5 text-[10px]">
+              {item.badge}
+            </Badge>
+          )}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+  return link;
+});
+NavLinkItem.displayName = 'NavLinkItem';
+
+const AdminSidebarInner = ({
   collapsed,
   onToggle,
   pendingOrders = 0,
@@ -99,25 +195,18 @@ export const AdminSidebar = ({
 }: AdminSidebarProps) => {
   const location = useLocation();
   const queryClient = useQueryClient();
-  const prefetch = (path: string) => prefetchAdminRoute(path, queryClient);
 
-  const sectionsWithBadges = navSections.map((section) => ({
-    ...section,
-    items: section.items.map((item) => {
-      if (item.path === '/admin/orders' && pendingOrders > 0) {
-        return { ...item, badge: pendingOrders, badgeVariant: 'destructive' as const };
-      }
-      if (item.path === '/admin/incomplete-orders' && incompleteOrders > 0) {
-        return { ...item, badge: incompleteOrders, badgeVariant: 'outline' as const };
-      }
-      if (item.path === '/admin/messages' && unreadMessages > 0) {
-        return { ...item, badge: unreadMessages, badgeVariant: 'default' as const };
-      }
-      return item;
-    }),
-  }));
+  // Compute badges as a flat lookup — avoids reallocating the entire navSections tree.
+  const badges = useMemo<Record<string, { badge: number; badgeVariant: 'default' | 'destructive' | 'outline' }>>(() => {
+    const out: Record<string, { badge: number; badgeVariant: 'default' | 'destructive' | 'outline' }> = {};
+    if (pendingOrders > 0) out['/admin/orders'] = { badge: pendingOrders, badgeVariant: 'destructive' };
+    if (incompleteOrders > 0) out['/admin/incomplete-orders'] = { badge: incompleteOrders, badgeVariant: 'outline' };
+    if (unreadMessages > 0) out['/admin/messages'] = { badge: unreadMessages, badgeVariant: 'default' };
+    return out;
+  }, [pendingOrders, incompleteOrders, unreadMessages]);
 
   const totalPending = pendingOrders + incompleteOrders + unreadMessages;
+  const currentPath = location.pathname;
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -176,7 +265,7 @@ export const AdminSidebar = ({
 
         <nav className={cn('flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}>
           <div className="space-y-6">
-            {sectionsWithBadges.map((section, sectionIdx) => (
+            {navSections.map((section, sectionIdx) => (
               <div key={section.title}>
                 {!collapsed && (
                   <div className="flex items-center gap-2 px-3 mb-2">
@@ -194,76 +283,21 @@ export const AdminSidebar = ({
                 <div className="space-y-1">
                   {section.items.map((item) => {
                     const isActive =
-                      location.pathname === item.path ||
-                      (item.path !== '/admin' && location.pathname.startsWith(item.path));
-
-                    const navLink = (
-                      <Link
+                      currentPath === item.path ||
+                      (item.path !== '/admin' && currentPath.startsWith(item.path));
+                    const badgeInfo = badges[item.path];
+                    const itemWithBadge = badgeInfo
+                      ? { ...item, badge: badgeInfo.badge, badgeVariant: badgeInfo.badgeVariant }
+                      : item;
+                    return (
+                      <NavLinkItem
                         key={item.path}
-                        to={item.path}
-                        onMouseEnter={() => prefetch(item.path)}
-                        onFocus={() => prefetch(item.path)}
-                        onTouchStart={() => prefetch(item.path)}
-                        className={cn(
-                          'relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200',
-                          collapsed ? 'px-3 py-2.5 justify-center mx-auto' : 'px-3 py-2.5',
-                          isActive
-                            ? 'bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25'
-                            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                          isActive &&
-                            "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-1 before:h-6 before:rounded-full before:bg-primary-foreground/30",
-                        )}
-                      >
-                        <item.icon
-                          className={cn(
-                            'flex-shrink-0 transition-transform duration-200',
-                            collapsed ? 'h-5 w-5' : 'h-4 w-4',
-                          )}
-                        />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 whitespace-nowrap">{item.label}</span>
-                            {item.badge && item.badge > 0 && (
-                              <Badge
-                                variant={item.badgeVariant || 'default'}
-                                className={cn(
-                                  'h-5 min-w-5 px-1.5 text-[10px] font-bold animate-pulse',
-                                  isActive && 'bg-white/20 text-white border-white/30',
-                                )}
-                              >
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </>
-                        )}
-                        {collapsed && item.badge && item.badge > 0 && (
-                          <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center shadow-lg animate-pulse">
-                            {item.badge > 9 ? '9+' : item.badge}
-                          </span>
-                        )}
-                      </Link>
+                        item={itemWithBadge}
+                        isActive={isActive}
+                        collapsed={collapsed}
+                        prefetchHandler={getPrefetchHandler(queryClient, item.path)}
+                      />
                     );
-
-                    if (collapsed) {
-                      return (
-                        <Tooltip key={item.path}>
-                          <TooltipTrigger asChild>{navLink}</TooltipTrigger>
-                          <TooltipContent
-                            side="right"
-                            className="flex items-center gap-2 font-medium bg-popover/95 backdrop-blur-sm"
-                          >
-                            {item.label}
-                            {item.badge && item.badge > 0 && (
-                              <Badge variant={item.badgeVariant || 'default'} className="h-5 text-[10px]">
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      );
-                    }
-
-                    return navLink;
                   })}
                 </div>
               </div>
@@ -323,3 +357,5 @@ export const AdminSidebar = ({
     </TooltipProvider>
   );
 };
+
+export const AdminSidebar = memo(AdminSidebarInner);
