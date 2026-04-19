@@ -19,6 +19,8 @@ function difficultyClass(level: string) {
 
 export default function MasterclassTile() {
   const { data, isLoading } = useFeaturedMasterclass();
+  const prefetchAcademy = usePrefetch('/academy');
+  const prefetchCourse = usePrefetch(data?.id ? `/course/${data.id}` : '/academy');
 
   return (
     <GlassCard className="col-span-1 lg:col-span-4 overflow-hidden">
