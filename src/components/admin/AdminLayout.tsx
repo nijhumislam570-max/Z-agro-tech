@@ -1,11 +1,12 @@
 import { ReactNode, useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
 
 const SIDEBAR_COLLAPSED_KEY = 'admin-sidebar-collapsed';
 
@@ -69,6 +70,11 @@ export const AdminShell = ({ children }: AdminShellProps) => {
   });
   const [meta, setMeta] = useState<AdminPageMeta>({ title: 'Admin' });
   const { isAdmin } = useAdmin();
+  const location = useLocation();
+
+  // Centralized admin realtime — mounted once for the whole /admin tree.
+  // Page-level useAdminRealtimeDashboard() calls have been removed.
+  useAdminRealtimeDashboard(isAdmin);
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
@@ -129,7 +135,9 @@ export const AdminShell = ({ children }: AdminShellProps) => {
             unreadMessages={pendingCounts?.unreadMessages}
           />
           <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
-            {children ?? <Outlet />}
+            <div key={location.pathname} className="animate-page-enter">
+              {children ?? <Outlet />}
+            </div>
           </main>
         </div>
       </div>
