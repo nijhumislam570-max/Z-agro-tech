@@ -224,13 +224,13 @@ export const AdminHeader = ({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="py-2.5">
-                <Link to="/dashboard">
+                <Link to="/dashboard" {...prefetch('/dashboard')}>
                   <User className="mr-2 h-4 w-4" />
                   My Dashboard
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="py-2.5">
-                <Link to="/">
+                <Link to="/" {...prefetch('/')}>
                   <Home className="mr-2 h-4 w-4" />
                   Back to Site
                 </Link>
