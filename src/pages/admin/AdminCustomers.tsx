@@ -222,6 +222,22 @@ const AdminCustomers = () => {
 
   return (
     <AdminLayout title="User Management" subtitle="Manage platform users, roles & permissions">
+      {/* Error state with retry — graceful fallback when user query fails */}
+      {error && !isLoading && (
+        <div className="mb-4 p-4 bg-destructive/5 border border-destructive/20 rounded-xl flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground">Couldn't load users</p>
+            <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="rounded-xl text-xs h-8 flex-shrink-0">
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Stats Bar — clickable to filter */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
         {[
