@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAdminRealtimeDashboard } from '@/hooks/useAdminRealtimeDashboard';
+import { warmAllAdminChunks } from '@/lib/adminPrefetch';
 
 const SIDEBAR_COLLAPSED_KEY = 'admin-sidebar-collapsed';
 
