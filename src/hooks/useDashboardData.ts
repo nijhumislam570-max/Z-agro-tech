@@ -60,7 +60,7 @@ export function useFeaturedMasterclass() {
   });
 }
 
-/** Aggregated KPIs for the marquee. */
+/** Aggregated KPIs for the marquee. (kept for backward compat) */
 export function useDashboardKPIs() {
   const orders = useMyOrders();
   const enrollments = useMyEnrollments();
@@ -80,5 +80,39 @@ export function useDashboardKPIs() {
     recentOrdersCount,
     latestOrder: orders.data?.[0] ?? null,
     latestEnrollment: enrollments.data?.[0] ?? null,
+  };
+}
+
+/**
+ * Derived dashboard summary — pulls everything from already-cached
+ * `useMyOrders` + `useMyEnrollments` queries, no extra round-trips.
+ */
+export function useDashboardSummary() {
+  const orders = useMyOrders();
+  const enrollments = useMyEnrollments();
+
+  const orderRows = orders.data || [];
+  const enrollmentRows = enrollments.data || [];
+
+  const totalOrders = orderRows.length;
+  const lifetimeSpend = orderRows
+    .filter((o) => o.status !== 'cancelled' && o.status !== 'rejected')
+    .reduce((sum, o) => sum + Number(o.total_amount ?? 0), 0);
+  const pendingOrders = orderRows.filter((o) => o.status === 'pending').length;
+  const activeCourses = enrollmentRows.filter(
+    (e) => e.status === 'confirmed' || e.status === 'pending',
+  ).length;
+  const completedCourses = enrollmentRows.filter((e) => e.status === 'completed').length;
+
+  return {
+    isLoading: orders.isLoading || enrollments.isLoading,
+    totalOrders,
+    lifetimeSpend,
+    pendingOrders,
+    activeCourses,
+    completedCourses,
+    latestOrder: orderRows[0] ?? null,
+    latestEnrollment: enrollmentRows[0] ?? null,
+    recentOrders: orderRows.slice(0, 3),
   };
 }

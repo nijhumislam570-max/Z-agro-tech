@@ -1,27 +1,83 @@
+import { memo, useMemo } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Package, GraduationCap, Heart, User } from 'lucide-react';
+import { Package, GraduationCap, Heart, User, Sparkles, Pencil, AlertTriangle } from 'lucide-react';
 import OrdersTab from '@/components/dashboard/OrdersTab';
 import CoursesTab from '@/components/dashboard/CoursesTab';
 import WishlistTab from '@/components/dashboard/WishlistTab';
 import ProfileTab from '@/components/dashboard/ProfileTab';
 import { BentoGrid } from '@/components/dashboard/BentoGrid';
-import KPIMarqueeTile from '@/components/dashboard/tiles/KPIMarqueeTile';
+import { DashboardStatGrid } from '@/components/dashboard/DashboardStatGrid';
+import { RecentOrdersList } from '@/components/dashboard/RecentOrdersList';
+import { AlertsTile } from '@/components/dashboard/AlertsTile';
 import QuickActionsTile from '@/components/dashboard/tiles/QuickActionsTile';
 import LearningPathTile from '@/components/dashboard/tiles/LearningPathTile';
 import RecommendedInputsTile from '@/components/dashboard/tiles/RecommendedInputsTile';
-import RecentOrderTile from '@/components/dashboard/tiles/RecentOrderTile';
 import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
 import FeaturedCarouselTile from '@/components/dashboard/tiles/FeaturedCarouselTile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+
+const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
+type TabValue = typeof VALID_TABS[number];
+
+const Hero = memo(function Hero() {
+  const { user } = useAuth();
+  const { profile } = useProfile();
+
+  const greetingName = useMemo(() => {
+    const fullName = profile?.full_name?.trim();
+    if (fullName) return fullName.split(' ')[0];
+    return user?.email?.split('@')[0] ?? 'Farmer';
+  }, [profile?.full_name, user?.email]);
+
+  const today = useMemo(
+    () => new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }),
+    [],
+  );
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 sm:mb-6">
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 text-white/80 text-[11px] font-semibold uppercase tracking-wider">
+          <Sparkles className="h-3.5 w-3.5" />
+          Your Farm Hub
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white">
+          Welcome back, {greetingName}
+        </h2>
+        <p className="text-sm text-white/80">{today}</p>
+      </div>
+      <Link
+        to="/dashboard?tab=profile"
+        className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg px-3 py-2 transition-all min-h-[44px]"
+      >
+        <Pencil className="h-3.5 w-3.5" />
+        Edit profile
+      </Link>
+    </div>
+  );
+});
 
 const DashboardPageInner = () => {
   useDocumentTitle('Dashboard');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const activeTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam ?? '')
+    ? (tabParam as TabValue)
+    : 'orders';
+
+  const handleTabChange = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', value);
+    setSearchParams(next, { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -34,24 +90,34 @@ const DashboardPageInner = () => {
       <Navbar />
       <main id="main-content" className="flex-1 animate-page-enter">
         <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
-        {/* Hero with bento grid over agri gradient */}
-        <section className="bg-agri-gradient relative" aria-labelledby="dashboard-hero-heading">
+
+        {/* HERO + Stat Grid */}
+        <section className="bg-agri-gradient" aria-labelledby="dashboard-hero-heading">
           <h2 id="dashboard-hero-heading" className="sr-only">At-a-glance overview</h2>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(0_0%_100%/0.1),_transparent_60%)] pointer-events-none" />
-          <div className="relative container mx-auto px-4 sm:px-6 py-8 md:py-10">
+          <div className="container mx-auto px-4 sm:px-6 py-6 md:py-10">
+            <Hero />
+            <DashboardStatGrid />
+          </div>
+        </section>
+
+        {/* BODY — Recent orders + Quick Actions/Alerts + Learning + Recommended + Featured */}
+        <section className="bg-agri-gradient pb-8 md:pb-10" aria-label="Dashboard overview">
+          <div className="container mx-auto px-4 sm:px-6">
             <BentoGrid>
-              <KPIMarqueeTile />
-              <QuickActionsTile />
-              <FeaturedCarouselTile />
+              <RecentOrdersList />
+              <div className="col-span-1 lg:col-span-4 grid grid-cols-1 gap-4 md:gap-5">
+                <QuickActionsTile />
+                <AlertsTile />
+              </div>
               <LearningPathTile />
               <RecommendedInputsTile />
-              <RecentOrderTile />
               <MasterclassTile />
+              <FeaturedCarouselTile />
             </BentoGrid>
           </div>
         </section>
 
-        {/* Detailed tabs below */}
+        {/* DETAIL TABS */}
         <section className="container mx-auto px-4 sm:px-6 py-8 md:py-10">
           <header className="mb-5">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
@@ -61,39 +127,29 @@ const DashboardPageInner = () => {
               Full history of your AgroShop orders and Academy enrollments.
             </p>
           </header>
-          <Tabs defaultValue="orders" className="space-y-6">
-            <TabsList className="grid w-full max-w-2xl grid-cols-2 sm:grid-cols-4 h-auto">
-              <TabsTrigger value="orders" className="gap-2">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4 h-auto">
+              <TabsTrigger value="orders" className="gap-2 min-h-[44px]">
                 <Package className="h-4 w-4" />
                 <span className="hidden sm:inline">Orders</span>
-                <span className="sm:hidden">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="courses" className="gap-2">
+              <TabsTrigger value="courses" className="gap-2 min-h-[44px]">
                 <GraduationCap className="h-4 w-4" />
                 <span className="hidden sm:inline">Courses</span>
-                <span className="sm:hidden">Courses</span>
               </TabsTrigger>
-              <TabsTrigger value="wishlist" className="gap-2">
+              <TabsTrigger value="wishlist" className="gap-2 min-h-[44px]">
                 <Heart className="h-4 w-4" />
-                Wishlist
+                <span className="hidden sm:inline">Wishlist</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2">
+              <TabsTrigger value="profile" className="gap-2 min-h-[44px]">
                 <User className="h-4 w-4" />
-                Profile
+                <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="orders">
-              <OrdersTab />
-            </TabsContent>
-            <TabsContent value="courses">
-              <CoursesTab />
-            </TabsContent>
-            <TabsContent value="wishlist">
-              <WishlistTab />
-            </TabsContent>
-            <TabsContent value="profile">
-              <ProfileTab />
-            </TabsContent>
+            <TabsContent value="orders"><OrdersTab /></TabsContent>
+            <TabsContent value="courses"><CoursesTab /></TabsContent>
+            <TabsContent value="wishlist"><WishlistTab /></TabsContent>
+            <TabsContent value="profile"><ProfileTab /></TabsContent>
           </Tabs>
         </section>
       </main>
@@ -102,10 +158,6 @@ const DashboardPageInner = () => {
   );
 };
 
-/**
- * Dashboard-scoped error boundary — keeps the user on the page if any tile
- * or tab throws, so they can retry without bouncing to the home fallback.
- */
 const DashboardErrorFallback = () => (
   <div className="min-h-screen bg-background flex flex-col">
     <Navbar />
@@ -124,7 +176,7 @@ const DashboardErrorFallback = () => (
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 min-h-[44px]"
           >
             Reload Dashboard
           </button>
