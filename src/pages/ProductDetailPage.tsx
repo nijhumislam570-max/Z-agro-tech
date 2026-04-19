@@ -7,8 +7,6 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import Navbar from '@/components/Navbar';
-import MobileNav from '@/components/MobileNav';
 const ProductCard = lazy(() => import('@/components/ProductCard'));
 import ProductReviewForm from '@/components/ProductReviewForm';
 import { 
@@ -139,8 +137,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted/30">
-        <Navbar />
+      <div className="bg-muted/30">
         <div className="container mx-auto px-4 py-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Image Skeleton */}
@@ -170,8 +167,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
   // Friendly error state — product not found or network failure
   if (fetchError || !product) {
     return (
-      <div className="min-h-screen bg-muted/30">
-        <Navbar />
+      <div className="bg-muted/30">
         <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center gap-6">
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
             <Package className="h-8 w-8 text-destructive" />
@@ -185,7 +181,6 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
             Back to Shop
           </Button>
         </div>
-        <MobileNav />
       </div>
     );
   }
@@ -235,7 +230,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
+    <div className="bg-muted/30">
       <SEO 
         title={product.name}
         description={product.description || `Buy ${product.name} at Z Agro Tech. Premium ${product.category} for modern farmers in Bangladesh.`}
@@ -245,7 +240,6 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
         schema={[productSchema, breadcrumbSchema]}
         canonicalUrl={`https://zagrotech.lovable.app/product/${product.id}`}
       />
-      <Navbar />
       
       {/* Breadcrumb */}
       <div className="bg-background border-b border-border">
@@ -784,7 +778,6 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
           </div>
         )}
       </main>
-      <MobileNav />
     </div>
   );
 };
