@@ -14,6 +14,8 @@ import { usePrefetch } from '@/hooks/usePrefetch';
 export default function LearningPathTile() {
   const { data, isLoading } = useMyEnrollments();
   const latest = data?.[0];
+  const prefetchAcademy = usePrefetch('/academy');
+  const prefetchCourse = usePrefetch(latest?.course_id ? `/course/${latest.course_id}` : '/academy');
 
   return (
     <GlassCard className="col-span-1 lg:col-span-5">
