@@ -3,7 +3,11 @@
  * render identically to the Shop grid (wishlist heart, ratings, discount UI,
  * memoization). The legacy `ShopProduct` shape is mapped to the canonical
  * props to avoid breaking existing call sites.
+ *
+ * Wrapped in forwardRef so parents (and React DevTools) can attach refs
+ * without triggering "Function components cannot be given refs" warnings.
  */
+import { forwardRef } from 'react';
 import CanonicalProductCard from '@/components/ProductCard';
 
 export interface ShopProduct {
@@ -17,28 +21,30 @@ export interface ShopProduct {
   description?: string | null;
 }
 
-export const ProductCard = ({ product }: { product: ShopProduct }) => {
-  // Derive a percentage discount from compare_price when present.
-  const discount =
-    product.compare_price && product.compare_price > product.price
-      ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
-      : null;
+export const ProductCard = forwardRef<HTMLDivElement, { product: ShopProduct }>(
+  ({ product }, ref) => {
+    const discount =
+      product.compare_price && product.compare_price > product.price
+        ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
+        : null;
 
-  // Use the original (compare) price as the canonical "price" when discount
-  // exists, so the canonical card can re-derive a final price internally.
-  const displayPrice = discount ? (product.compare_price as number) : product.price;
+    const displayPrice = discount ? (product.compare_price as number) : product.price;
 
-  return (
-    <CanonicalProductCard
-      id={product.id}
-      name={product.name}
-      price={displayPrice}
-      category={product.category}
-      image={product.image_url || ''}
-      stock={product.stock ?? undefined}
-      discount={discount}
-    />
-  );
-};
+    return (
+      <CanonicalProductCard
+        ref={ref}
+        id={product.id}
+        name={product.name}
+        price={displayPrice}
+        category={product.category}
+        image={product.image_url || ''}
+        stock={product.stock ?? undefined}
+        discount={discount}
+      />
+    );
+  },
+);
+
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;
