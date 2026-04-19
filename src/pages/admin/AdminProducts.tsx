@@ -53,6 +53,7 @@ import { useAdmin, useAdminProducts } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { toast } from 'sonner';
 import { useDebounce } from '@/hooks/useDebounce';
+import { quickStockSchema } from '@/lib/validations/productActions';
 // Admin realtime is centralized in AdminShell — no per-page subscription needed.
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
