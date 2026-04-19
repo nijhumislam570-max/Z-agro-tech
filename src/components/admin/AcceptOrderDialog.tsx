@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { createOrderNotification } from '@/lib/notifications';
+import { acceptOrderSchema } from '@/lib/validations/orderActions';
 
 interface AcceptOrderDialogProps {
   isOpen: boolean;
@@ -35,8 +36,9 @@ export const AcceptOrderDialog = ({ isOpen, onClose, order }: AcceptOrderDialogP
   const handleAccept = async () => {
     if (!order) return;
 
-    if (!trackingId.trim()) {
-      toast.error('Please enter the Steadfast tracking ID');
+    const parsed = acceptOrderSchema.safeParse({ trackingId, consignmentId });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? 'Invalid input');
       return;
     }
 
@@ -47,8 +49,8 @@ export const AcceptOrderDialog = ({ isOpen, onClose, order }: AcceptOrderDialogP
         .from('orders')
         .update({
           status: 'processing',
-          tracking_id: trackingId.trim(),
-          consignment_id: consignmentId.trim() || null,
+          tracking_id: parsed.data.trackingId,
+          consignment_id: parsed.data.consignmentId || null,
         })
         .eq('id', order.id);
 
@@ -99,8 +101,9 @@ export const AcceptOrderDialog = ({ isOpen, onClose, order }: AcceptOrderDialogP
               id="trackingId"
               placeholder="e.g., 15BAEB8A"
               value={trackingId}
-              onChange={(e) => setTrackingId(e.target.value)}
+              onChange={(e) => setTrackingId(e.target.value.slice(0, 64))}
               disabled={isSubmitting}
+              maxLength={64}
             />
           </div>
 
@@ -110,8 +113,9 @@ export const AcceptOrderDialog = ({ isOpen, onClose, order }: AcceptOrderDialogP
               id="consignmentId"
               placeholder="e.g., 1424107"
               value={consignmentId}
-              onChange={(e) => setConsignmentId(e.target.value)}
+              onChange={(e) => setConsignmentId(e.target.value.slice(0, 64))}
               disabled={isSubmitting}
+              maxLength={64}
             />
           </div>
         </div>

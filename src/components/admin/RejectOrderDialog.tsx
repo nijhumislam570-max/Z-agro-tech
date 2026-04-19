@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { createOrderNotification } from '@/lib/notifications';
+import { rejectOrderSchema } from '@/lib/validations/orderActions';
 
 interface RejectOrderDialogProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ interface RejectOrderDialogProps {
   } | null;
 }
 
+const MAX_REASON = 500;
+
 export const RejectOrderDialog = ({ isOpen, onClose, order }: RejectOrderDialogProps) => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,8 +37,9 @@ export const RejectOrderDialog = ({ isOpen, onClose, order }: RejectOrderDialogP
   const handleReject = async () => {
     if (!order) return;
 
-    if (!reason.trim()) {
-      toast.error('Please provide a reason for rejection');
+    const parsed = rejectOrderSchema.safeParse({ reason });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? 'Invalid reason');
       return;
     }
 
@@ -46,7 +50,7 @@ export const RejectOrderDialog = ({ isOpen, onClose, order }: RejectOrderDialogP
         .from('orders')
         .update({
           status: 'cancelled',
-          rejection_reason: reason.trim(),
+          rejection_reason: parsed.data.reason,
         })
         .eq('id', order.id);
 
@@ -96,10 +100,15 @@ export const RejectOrderDialog = ({ isOpen, onClose, order }: RejectOrderDialogP
               id="reason"
               placeholder="e.g., Out of stock, Invalid address, etc."
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(e) => setReason(e.target.value.slice(0, MAX_REASON))}
               disabled={isSubmitting}
               rows={4}
+              maxLength={MAX_REASON}
+              aria-describedby="reason-counter"
             />
+            <p id="reason-counter" className="text-[11px] text-muted-foreground text-right">
+              {reason.length}/{MAX_REASON}
+            </p>
           </div>
         </div>
 
