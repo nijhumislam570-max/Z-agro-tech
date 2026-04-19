@@ -66,7 +66,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
               <ul className="space-y-2.5">
                 {quickLinks.map((l) => (
                   <li key={l.label}>
-                    <Link to={l.path} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
+                    <Link to={l.path} {...prefetchHandlers(l.path)} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
                       {l.label}
                     </Link>
                   </li>
@@ -79,7 +79,7 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
               <ul className="space-y-2.5">
                 {categories.map((l) => (
                   <li key={l.label}>
-                    <Link to={l.path} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
+                    <Link to={l.path} {...prefetchHandlers(l.path)} className="text-sm text-[hsl(60,10%,70%)] hover:text-primary transition-colors">
                       {l.label}
                     </Link>
                   </li>
