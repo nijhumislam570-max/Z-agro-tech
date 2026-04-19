@@ -207,7 +207,7 @@ const AdminEcommerceCustomers = () => {
   const [bulkLoading, setBulkLoading] = useState(false);
 
 
-  // Fetch orders — capped to 5000 most-recent rows to keep aggregation fast
+  // Fetch orders — capped to 2000 most-recent rows to keep aggregation fast
   const { data: orders, isLoading, error: ordersError, refetch: refetchOrders } = useQuery({
     queryKey: ['admin-ecommerce-customers'],
     queryFn: async () => {
@@ -215,7 +215,7 @@ const AdminEcommerceCustomers = () => {
         .from('orders')
         .select('user_id, total_amount, payment_status, payment_method, created_at, status')
         .order('created_at', { ascending: false })
-        .limit(5000);
+        .limit(2000);
       if (error) throw error;
       return data || [];
     },
@@ -234,6 +234,7 @@ const AdminEcommerceCustomers = () => {
       return data || [];
     },
     enabled: isAdmin,
+    staleTime: 1000 * 60 * 2,
   });
 
   // Fetch user roles
@@ -247,6 +248,7 @@ const AdminEcommerceCustomers = () => {
       return data || [];
     },
     enabled: isAdmin,
+    staleTime: 1000 * 60 * 2,
   });
 
   // Removed duplicate realtime channel — useAdminRealtimeDashboard already handles orders & incomplete_orders
