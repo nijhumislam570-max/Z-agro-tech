@@ -13,7 +13,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { AdminMobileNav } from './AdminMobileNav';
-import logo from '@/assets/logo.jpeg';
+import logo from '@/assets/zagrotech-logo.jpeg';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
