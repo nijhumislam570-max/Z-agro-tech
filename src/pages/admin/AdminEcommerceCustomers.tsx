@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -625,7 +626,7 @@ const AdminEcommerceCustomers = () => {
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden sm:block overflow-x-auto">
+            <ScrollArea className="hidden sm:block w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -692,7 +693,8 @@ const AdminEcommerceCustomers = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </>
         )}
       </div>

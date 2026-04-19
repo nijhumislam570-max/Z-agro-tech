@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useAdmin } from '@/hooks/useAdmin';
 import { RequireAdmin } from '@/components/admin/RequireAdmin';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -370,10 +371,10 @@ const AdminDeliveryZones = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center gap-1 justify-end">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(zone)}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-8 sm:w-8" onClick={() => openEdit(zone)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => { if (confirm('Delete this zone?')) deleteMutation.mutate(zone.id); }}>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-8 sm:w-8 text-destructive hover:text-destructive" onClick={() => { if (confirm('Delete this zone?')) deleteMutation.mutate(zone.id); }}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

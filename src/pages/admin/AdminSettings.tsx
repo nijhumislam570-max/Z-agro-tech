@@ -353,28 +353,30 @@ const AdminSettingsContent = () => {
   return (
     <AdminLayout title="Settings" subtitle="Configure your platform settings">
       <Tabs defaultValue="general" className="space-y-4 sm:space-y-6">
-        <TabsList className="w-full flex-wrap h-auto gap-1 p-1 sm:w-auto sm:inline-flex">
-          <TabsTrigger value="general" className="gap-1.5 flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 text-xs sm:text-sm">
-            <Store className="h-3.5 w-3.5" />
-            <span>General</span>
-          </TabsTrigger>
-          <TabsTrigger value="shipping" className="gap-1.5 flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 text-xs sm:text-sm">
-            <Truck className="h-3.5 w-3.5" />
-            <span>Shipping</span>
-          </TabsTrigger>
-          <TabsTrigger value="orders" className="gap-1.5 flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 text-xs sm:text-sm">
-            <Package className="h-3.5 w-3.5" />
-            <span>Orders</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-1.5 flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 text-xs sm:text-sm">
-            <Bell className="h-3.5 w-3.5" />
-            <span>Alerts</span>
-          </TabsTrigger>
-          <TabsTrigger value="platform" className="gap-1.5 flex-1 sm:flex-initial min-h-[44px] sm:min-h-0 text-xs sm:text-sm">
-            <Settings2 className="h-3.5 w-3.5" />
-            <span>Platform</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-none">
+          <TabsList className="inline-flex w-max sm:w-auto h-auto gap-1 p-1">
+            <TabsTrigger value="general" className="gap-1.5 min-h-[44px] sm:min-h-0 text-xs sm:text-sm whitespace-nowrap">
+              <Store className="h-3.5 w-3.5" />
+              <span>General</span>
+            </TabsTrigger>
+            <TabsTrigger value="shipping" className="gap-1.5 min-h-[44px] sm:min-h-0 text-xs sm:text-sm whitespace-nowrap">
+              <Truck className="h-3.5 w-3.5" />
+              <span>Shipping</span>
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-1.5 min-h-[44px] sm:min-h-0 text-xs sm:text-sm whitespace-nowrap">
+              <Package className="h-3.5 w-3.5" />
+              <span>Orders</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-1.5 min-h-[44px] sm:min-h-0 text-xs sm:text-sm whitespace-nowrap">
+              <Bell className="h-3.5 w-3.5" />
+              <span>Alerts</span>
+            </TabsTrigger>
+            <TabsTrigger value="platform" className="gap-1.5 min-h-[44px] sm:min-h-0 text-xs sm:text-sm whitespace-nowrap">
+              <Settings2 className="h-3.5 w-3.5" />
+              <span>Platform</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ── General Tab ── */}
         <TabsContent value="general">

@@ -35,6 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -615,7 +616,7 @@ const AdminProducts = () => {
               </div>
 
               {/* Desktop Table View */}
-              <div className="hidden sm:block overflow-x-auto">
+              <ScrollArea className="hidden sm:block w-full">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -706,7 +707,7 @@ const AdminProducts = () => {
                           <TableCell>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-8 sm:w-8" onClick={(e) => e.stopPropagation()}>
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -729,7 +730,8 @@ const AdminProducts = () => {
                     })}
                   </TableBody>
                 </Table>
-              </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
 
               <div className="p-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2">
                 <p className="text-xs text-muted-foreground">
@@ -881,7 +883,7 @@ const AdminProducts = () => {
                       <Switch checked={cat.is_active}
                         onCheckedChange={(v) => updateCategory.mutate({ id: cat.id, updates: { is_active: v } })} />
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
+                    <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
                       onClick={() => {
                         if (cat.product_count > 0) {
                           toast.error(`Cannot delete: ${cat.product_count} products use this category. Reassign them first.`);

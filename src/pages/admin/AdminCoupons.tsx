@@ -232,7 +232,7 @@ const AdminCoupons = () => {
               <DialogTitle>{editingCoupon ? 'Edit Coupon' : 'Create Coupon'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-sm">Coupon Code</Label>
                   <Input value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })} placeholder="e.g. SAVE20" className="h-11 font-mono uppercase" maxLength={20} />
@@ -251,7 +251,7 @@ const AdminCoupons = () => {
               </div>
 
               {formData.discount_type !== 'free_delivery' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-sm">Discount Value {formData.discount_type === 'percentage' ? '(%)' : '(৳)'}</Label>
                     <Input type="number" value={formData.discount_value} onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) || 0 })} className="h-11" min={0} max={formData.discount_type === 'percentage' ? 100 : 999999} />
@@ -272,7 +272,7 @@ const AdminCoupons = () => {
 
               <Separator />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-sm">Min Order Amount (৳)</Label>
                   <Input type="number" value={formData.min_order_amount} onChange={(e) => setFormData({ ...formData, min_order_amount: parseFloat(e.target.value) || 0 })} className="h-11" />
@@ -329,34 +329,36 @@ const AdminCoupons = () => {
             return (
               <Card key={coupon.id} className={`transition-all hover:shadow-md ${inactive ? 'opacity-60' : ''}`}>
                 <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${inactive ? 'bg-muted' : 'bg-primary/10'}`}>
-                      {getTypeIcon(coupon.discount_type)}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                          onClick={() => copyCode(coupon.code, coupon.id)}
-                          className="font-mono font-bold text-sm sm:text-base flex items-center gap-1.5 hover:text-primary transition-colors"
-                        >
-                          {coupon.code}
-                          {copiedId === coupon.id ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
-                        </button>
-                        <Badge variant={inactive ? 'outline' : 'default'} className="text-[10px]">
-                          {getDiscountLabel(coupon)}
-                        </Badge>
-                        {expired && <Badge variant="destructive" className="text-[10px]">Expired</Badge>}
-                        {usedUp && <Badge variant="destructive" className="text-[10px]">Used Up</Badge>}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${inactive ? 'bg-muted' : 'bg-primary/10'}`}>
+                        {getTypeIcon(coupon.discount_type)}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {coupon.description || 'No description'}
-                        {coupon.min_order_amount ? ` • Min ৳${coupon.min_order_amount}` : ''}
-                        {coupon.usage_limit ? ` • ${coupon.used_count}/${coupon.usage_limit} used` : ` • ${coupon.used_count} used`}
-                      </p>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            onClick={() => copyCode(coupon.code, coupon.id)}
+                            className="font-mono font-bold text-sm sm:text-base flex items-center gap-1.5 hover:text-primary transition-colors"
+                          >
+                            {coupon.code}
+                            {copiedId === coupon.id ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
+                          </button>
+                          <Badge variant={inactive ? 'outline' : 'default'} className="text-[10px]">
+                            {getDiscountLabel(coupon)}
+                          </Badge>
+                          {expired && <Badge variant="destructive" className="text-[10px]">Expired</Badge>}
+                          {usedUp && <Badge variant="destructive" className="text-[10px]">Used Up</Badge>}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 break-words">
+                          {coupon.description || 'No description'}
+                          {coupon.min_order_amount ? ` • Min ৳${coupon.min_order_amount}` : ''}
+                          {coupon.usage_limit ? ` • ${coupon.used_count}/${coupon.usage_limit} used` : ` • ${coupon.used_count} used`}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 justify-end border-t sm:border-t-0 border-border/50 pt-2 sm:pt-0">
                       <Switch
                         checked={coupon.is_active}
                         onCheckedChange={(c) => toggleMutation.mutate({ id: coupon.id, active: c })}

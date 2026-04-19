@@ -719,7 +719,7 @@ const AdminOrders = () => {
             </div>
 
             {/* ========== DESKTOP TABLE VIEW ========== */}
-            <div className="hidden sm:block overflow-x-auto">
+            <ScrollArea className="hidden sm:block w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -881,7 +881,8 @@ const AdminOrders = () => {
                   })}
                 </TableBody>
               </Table>
-            </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </>
         )}
       </div>
