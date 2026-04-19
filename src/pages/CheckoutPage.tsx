@@ -790,8 +790,6 @@ const CheckoutPageInner = () => {
           {isSubmitting ? 'Placing Order...' : 'Place Order'}
         </Button>
       </div>
-      
-      <MobileNav />
     </div>
   );
 };
