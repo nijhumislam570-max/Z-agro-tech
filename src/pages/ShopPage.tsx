@@ -8,9 +8,6 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useProductRatings } from '@/hooks/useProductRatings';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import MobileNav from '@/components/MobileNav';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -363,7 +360,7 @@ const ShopPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
+    <div className="bg-muted/30">
       <SEO
         title="Shop — Premium Agriculture Supplies"
         description="Shop premium seeds, fertilizers, crop-protection, tools and farm equipment from trusted suppliers. Fast nationwide delivery across Bangladesh."
@@ -382,7 +379,6 @@ const ShopPage = () => {
             : undefined
         }
       />
-      <Navbar />
       
       {/* Hero Banner */}
       <header className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
@@ -810,8 +806,6 @@ const ShopPage = () => {
           </section>
         )}
       </main>
-      <Footer />
-      <MobileNav />
     </div>
   );
 };

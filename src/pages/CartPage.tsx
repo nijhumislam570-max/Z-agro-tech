@@ -15,9 +15,7 @@ import {
   ChevronRight,
   Package
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
 import { Separator } from '@/components/ui/separator';
-import MobileNav from '@/components/MobileNav';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useDeliveryCharge } from '@/hooks/useDeliveryCharge';
 import type { CartItem as CartItemType } from '@/contexts/CartContext';
@@ -157,8 +155,7 @@ const CartPage = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
-        <Navbar />
+      <div className="bg-muted/30">
         <main id="main-content" className="container mx-auto px-4 py-12 sm:py-16 lg:py-24 animate-page-enter" role="main" aria-label="Empty shopping cart">
           <div className="max-w-md mx-auto text-center">
             <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-muted flex items-center justify-center mx-auto mb-6" aria-hidden="true">
@@ -174,15 +171,13 @@ const CartPage = () => {
             </Button>
           </div>
         </main>
-        <MobileNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-36 md:pb-8">
+    <div className="bg-muted/30 pb-36 md:pb-8">
       <SEO title="Shopping Cart" description="Review items in your Z Agro Tech cart." noIndex />
-      <Navbar />
       
       {/* Breadcrumb */}
       <nav className="bg-background border-b border-border" aria-label="Breadcrumb">
@@ -325,8 +320,6 @@ const CartPage = () => {
           Proceed to Checkout
         </Button>
       </div>
-      
-      <MobileNav />
     </div>
   );
 };

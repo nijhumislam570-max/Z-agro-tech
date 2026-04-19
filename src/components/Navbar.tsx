@@ -33,12 +33,25 @@ const Navbar = memo(() => {
   const prefetchDashboard = usePrefetch('/dashboard');
   const prefetchAdmin = usePrefetch('/admin');
   const prefetchAuth = usePrefetch('/auth');
+  const prefetchCart = usePrefetch('/cart');
+  const prefetchCheckout = usePrefetch('/checkout');
   const prefetchByPath: Record<string, ReturnType<typeof usePrefetch>> = {
     '/shop': prefetchShop,
     '/academy': prefetchAcademy,
     '/dashboard': prefetchDashboard,
     '/admin': prefetchAdmin,
     '/auth': prefetchAuth,
+  };
+  // Hover on cart icon warms both /cart and /checkout chunks
+  const cartHoverPrefetch = {
+    onMouseEnter: () => {
+      prefetchCart.onMouseEnter();
+      prefetchCheckout.onMouseEnter();
+    },
+    onTouchStart: () => {
+      prefetchCart.onTouchStart();
+      prefetchCheckout.onTouchStart();
+    },
   };
 
   const isActive = (path: string) =>
@@ -99,7 +112,7 @@ const Navbar = memo(() => {
 
           <div className="flex items-center gap-1">
             <CartQuickPeek>
-              <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label={`Cart with ${totalItems} items`}>
+              <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label={`Cart with ${totalItems} items`} {...cartHoverPrefetch}>
                 <ShoppingCart className="h-4 w-4" />
                 {totalItems > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] bg-accent text-accent-foreground">

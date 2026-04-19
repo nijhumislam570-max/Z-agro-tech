@@ -1,7 +1,5 @@
 import { memo, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -80,14 +78,13 @@ const DashboardPageInner = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEO
         title="Dashboard — Z Agro Tech"
         description="Your personalized farm hub: orders, courses, and recommended agri-inputs."
         url="/dashboard"
         noIndex
       />
-      <Navbar />
       <main id="main-content" className="flex-1 animate-page-enter">
         <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
 
@@ -153,38 +150,33 @@ const DashboardPageInner = () => {
           </Tabs>
         </section>
       </main>
-      <Footer />
-    </div>
+    </>
   );
 };
 
 const DashboardErrorFallback = () => (
-  <div className="min-h-screen bg-background flex flex-col">
-    <Navbar />
-    <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
-      <Card className="max-w-md mx-auto border-destructive/30">
-        <CardContent className="p-6 text-center space-y-4">
-          <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Dashboard couldn't load</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              One of your tiles failed to render. Reload to try again.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 min-h-[44px]"
-          >
-            Reload Dashboard
-          </button>
-        </CardContent>
-      </Card>
-    </main>
-    <Footer />
-  </div>
+  <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
+    <Card className="max-w-md mx-auto border-destructive/30">
+      <CardContent className="p-6 text-center space-y-4">
+        <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertTriangle className="h-6 w-6 text-destructive" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Dashboard couldn't load</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            One of your tiles failed to render. Reload to try again.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 min-h-[44px]"
+        >
+          Reload Dashboard
+        </button>
+      </CardContent>
+    </Card>
+  </main>
 );
 
 const DashboardPage = () => (

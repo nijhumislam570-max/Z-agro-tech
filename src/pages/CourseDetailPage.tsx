@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCourse, COURSE_CATEGORIES, COURSE_MODES } from '@/hooks/useCourses';
@@ -43,7 +41,7 @@ const CourseDetailPage = () => {
   const hasOpenBatch = batches?.some((b) => b.status === 'open' || b.status === 'filling') ?? false;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       <SEO
         title={course?.title ?? 'Course'}
         description={course?.description ?? 'Expert-led farming course on Z Agro Tech Academy.'}
@@ -73,7 +71,6 @@ const CourseDetailPage = () => {
           },
         ] : undefined}
       />
-      <Navbar />
       <main id="main-content" className="flex-1 container mx-auto px-4 sm:px-6 py-8 pb-24 md:pb-8 animate-page-enter">
         <Link to="/academy" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
           <ArrowLeft className="h-4 w-4" /> Back to Academy
@@ -230,8 +227,7 @@ const CourseDetailPage = () => {
           </div>
         )}
       </main>
-      <Footer />
-    </div>
+    </>
   );
 };
 
