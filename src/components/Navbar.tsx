@@ -58,7 +58,7 @@ const Navbar = memo(() => {
 
           <div className="hidden md:flex items-center gap-1 ml-4">
             {navLinks.map(({ path, label, icon: Icon }) => (
-              <Link key={path} to={path}>
+              <Link key={path} to={path} {...prefetchByPath[path]}>
                 <Button
                   variant={isActive(path) ? 'secondary' : 'ghost'}
                   size="sm"
@@ -70,7 +70,7 @@ const Navbar = memo(() => {
               </Link>
             ))}
             {user && (
-              <Link to="/dashboard">
+              <Link to="/dashboard" {...prefetchDashboard}>
                 <Button
                   variant={isActive('/dashboard') ? 'secondary' : 'ghost'}
                   size="sm"
@@ -82,7 +82,7 @@ const Navbar = memo(() => {
               </Link>
             )}
             {isAdmin && (
-              <Link to="/admin">
+              <Link to="/admin" {...prefetchAdmin}>
                 <Button
                   variant={isActive('/admin') ? 'secondary' : 'outline'}
                   size="sm"
