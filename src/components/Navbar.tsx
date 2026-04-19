@@ -111,7 +111,7 @@ const Navbar = memo(() => {
 
             {user ? (
               <div className="hidden md:flex items-center gap-1">
-                <Link to="/dashboard">
+                <Link to="/dashboard" {...prefetchDashboard}>
                   <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Account">
                     <User className="h-4 w-4" />
                   </Button>
@@ -127,7 +127,7 @@ const Navbar = memo(() => {
                 </Button>
               </div>
             ) : (
-              <Link to="/auth" className="hidden md:inline-flex">
+              <Link to="/auth" className="hidden md:inline-flex" {...prefetchAuth}>
                 <Button size="sm" className="h-9 px-4">Sign In</Button>
               </Link>
             )}
