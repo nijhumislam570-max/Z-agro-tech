@@ -41,7 +41,7 @@ export const FeaturedProductsGrid = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 @md:grid-cols-2 @3xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)
             : (products || []).map((p) => <ProductCard key={p.id} product={p} />)}
