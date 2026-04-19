@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { useFeaturedMasterclass } from '@/hooks/useDashboardData';
 import { getCourseImage } from '@/lib/agriImages';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 function difficultyClass(level: string) {
   const l = level.toLowerCase();
