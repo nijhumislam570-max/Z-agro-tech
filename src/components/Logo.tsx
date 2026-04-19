@@ -55,15 +55,15 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
       </div>
       {showText && (
         <div className={cn(variant === 'footer' && 'text-card')}>
-          <h1 className={cn(
-            'font-display font-bold leading-tight tracking-tight',
+          <span className={cn(
+            'block font-display font-bold leading-tight tracking-tight',
             textSizeClasses[size],
             variant === 'default' && 'text-foreground',
             variant === 'footer' && 'text-card',
             variant === 'admin' && 'bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent',
           )}>
             Z Agro Tech
-          </h1>
+          </span>
           {showSubtitle && (
             <p className={cn(
               'text-xs',

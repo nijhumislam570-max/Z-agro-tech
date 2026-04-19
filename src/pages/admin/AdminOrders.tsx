@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Search, 
   MoreHorizontal,
@@ -92,9 +92,32 @@ const AdminOrders = () => {
   const { data: ordersData, isLoading, isError, error: ordersError, refetch } = useAdminOrders(adminOrderPage);
   const orders = ordersData?.orders ?? [];
   
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialStatus = searchParams.get('status') || 'all';
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+
+  // Sync URL ?status= → filter (for cross-page deep links from QuickActions)
+  useEffect(() => {
+    const urlStatus = searchParams.get('status');
+    if (urlStatus && urlStatus !== statusFilter) {
+      setStatusFilter(urlStatus);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Keep URL in sync when filter changes (so back-button works)
+  useEffect(() => {
+    const urlStatus = searchParams.get('status') || 'all';
+    if (statusFilter !== urlStatus) {
+      const next = new URLSearchParams(searchParams);
+      if (statusFilter === 'all') next.delete('status');
+      else next.set('status', statusFilter);
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter]);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
