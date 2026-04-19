@@ -89,7 +89,7 @@ const AdminOrders = () => {
   const { isAdmin } = useAdmin();
   void isAdmin;
   const [adminOrderPage, setAdminOrderPage] = useState(0);
-  const { data: ordersData, isLoading } = useAdminOrders(adminOrderPage);
+  const { data: ordersData, isLoading, isError, error: ordersError, refetch } = useAdminOrders(adminOrderPage);
   const orders = ordersData?.orders ?? [];
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,6 +129,16 @@ const AdminOrders = () => {
     return activeOrders.filter(o => isAfter(new Date(o.created_at), cutoff));
   }, [activeOrders, trashedOrders, timeFilter, statusFilter]);
 
+
+  // Parse every shipping address ONCE per orders dataset.
+  // Used by getCustomerName, getCustomerPhone, fraud analysis, CSV export.
+  const parsedByOrder = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof parseShippingAddress>>();
+    for (const o of orders) {
+      map.set(o.id, parseShippingAddress(o.shipping_address));
+    }
+    return map;
+  }, [orders]);
 
   // Compute fraud analysis for all orders (memoized)
   const fraudAnalysisMap = useMemo(() => {
@@ -196,7 +206,7 @@ const AdminOrders = () => {
 
     for (const order of selectedPendingOrders) {
       try {
-        const parsed = order.shipping_address ? parseShippingAddress(order.shipping_address) : null;
+        const parsed = parsedByOrder.get(order.id) ?? null;
         const customerName = order.profile?.full_name || parsed?.name || 'Unknown';
         const customerPhone = order.profile?.phone || parsed?.phone || '';
         const customerAddress = parsed?.addressParts?.join(', ') || order.shipping_address || '';
@@ -335,23 +345,15 @@ const AdminOrders = () => {
     }
   };
 
-  const getCustomerName = (order: AdminOrder): string => {
+  const getCustomerName = useCallback((order: AdminOrder): string => {
     if (order.profile?.full_name) return order.profile.full_name;
-    if (order.shipping_address) {
-      const parsed = parseShippingAddress(order.shipping_address);
-      return parsed.name || 'Unknown';
-    }
-    return 'Unknown';
-  };
+    return parsedByOrder.get(order.id)?.name || 'Unknown';
+  }, [parsedByOrder]);
 
-  const getCustomerPhone = (order: AdminOrder): string => {
+  const getCustomerPhone = useCallback((order: AdminOrder): string => {
     if (order.profile?.phone) return order.profile.phone;
-    if (order.shipping_address) {
-      const parsed = parseShippingAddress(order.shipping_address);
-      return parsed.phone || '';
-    }
-    return '';
-  };
+    return parsedByOrder.get(order.id)?.phone || '';
+  }, [parsedByOrder]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -430,6 +432,24 @@ const AdminOrders = () => {
     downloadCSV(csvContent, `orders-${format(new Date(), 'yyyy-MM-dd')}.csv`);
     toast.success('Orders exported to CSV');
   };
+
+  if (isError) {
+    return (
+      <AdminLayout title="Orders" subtitle="Manage customer orders">
+        <div className="rounded-2xl border border-danger-border bg-danger-soft/30 p-6 sm:p-8 text-center">
+          <AlertCircle className="h-10 w-10 mx-auto mb-3 text-danger" aria-hidden="true" />
+          <h2 className="text-base sm:text-lg font-semibold mb-1">Couldn't load orders</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            {ordersError instanceof Error ? ordersError.message : 'Something went wrong fetching orders.'}
+          </p>
+          <Button onClick={() => refetch()} className="gap-2">
+            <Loader2 className="h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout title="Orders" subtitle="Manage customer orders">

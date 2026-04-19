@@ -21,6 +21,15 @@ interface OrderTrackingTimelineProps {
   compact?: boolean;
 }
 
+/** Steadfast tracking response shape — only the fields we read. */
+interface SteadfastTrackingResponse {
+  delivery_status?: string;
+  updated_at?: string;
+  tracking_code?: string;
+  consignment_id?: string | number;
+  [key: string]: unknown;
+}
+
 const STEADFAST_STATUS_MAP: Record<string, string> = {
   'in_review': 'processing',
   'pending': 'processing',
@@ -38,7 +47,7 @@ const STEADFAST_STATUS_MAP: Record<string, string> = {
 
 export function OrderTrackingTimeline({ orderId, trackingId, consignmentId, orderStatus, compact = false }: OrderTrackingTimelineProps) {
   const [isTracking, setIsTracking] = useState(false);
-  const [trackingData, setTrackingData] = useState<any>(null);
+  const [trackingData, setTrackingData] = useState<SteadfastTrackingResponse | null>(null);
   const queryClient = useQueryClient();
 
   const fetchTracking = async () => {

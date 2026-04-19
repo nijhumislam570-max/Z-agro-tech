@@ -1,5 +1,7 @@
 // Fraud Detection Engine - Rule-based heuristic scoring for order risk analysis
 
+import type { OrderItem } from '@/types/database';
+
 export interface FraudSignal {
   id: string;
   label: string;
@@ -18,6 +20,17 @@ export interface FraudAnalysis {
 export interface OrderProfile {
   full_name: string | null;
   phone: string | null;
+}
+
+/** Minimal order shape used by the fraud engine — items intentionally `unknown` (we never read them). */
+export interface FraudOrderInput {
+  id: string;
+  user_id: string;
+  shipping_address: string | null;
+  total_amount: number;
+  created_at: string;
+  status: string | null;
+  items: OrderItem[] | unknown;
 }
 
 // --- Heuristic functions ---
@@ -70,10 +83,9 @@ export function isValidBDPhone(phone: string): { isValid: boolean; reason: strin
   }
 
   // Strip spaces, dashes, plus signs
-  const cleaned = phone.replace(/[\s\-\+\(\)]/g, '');
+  const cleaned = phone.replace(/[\s\-+()]/g, '');
 
-  // Bangladesh format: 01XXXXXXXXX (11 digits)
-  // Also accept +880 prefix
+  // Bangladesh format: 01XXXXXXXXX (11 digits) — also accept +880 prefix
   const bdPattern = /^(?:880|0)1[3-9]\d{8}$/;
 
   if (!bdPattern.test(cleaned)) {
@@ -100,7 +112,7 @@ export function parseShippingAddress(address: string | null): {
   const name = parts[0] || '';
 
   // Look for phone number in the parts
-  const phonePattern = /^[\d\+\-\s\(\)]{7,15}$/;
+  const phonePattern = /^[\d+\-\s()]{7,15}$/;
   let phone = '';
   let addressStartIdx = 1;
 
@@ -156,7 +168,7 @@ export function checkNameMismatch(
  * Checks if the same user placed another order within 1 hour of this one.
  */
 export function checkRapidOrders(
-  userOrders: Array<{ id: string; created_at: string; items: any; shipping_address: string | null }>,
+  userOrders: Array<{ id: string; created_at: string }>,
   currentOrder: { id: string; created_at: string }
 ): { isRapid: boolean; reason: string } {
   if (userOrders.length < 2) {
@@ -228,25 +240,9 @@ function checkShortAddressParts(addressParts: string[]): { isShort: boolean; rea
 // --- Main analysis function ---
 
 export function analyzeFraudRisk(
-  order: {
-    id: string;
-    user_id: string;
-    shipping_address: string | null;
-    total_amount: number;
-    created_at: string;
-    status: string | null;
-    items: any;
-  },
+  order: FraudOrderInput,
   profile: OrderProfile | null,
-  userOrders: Array<{
-    id: string;
-    user_id: string;
-    created_at: string;
-    status: string | null;
-    total_amount: number;
-    shipping_address: string | null;
-    items: any;
-  }>
+  userOrders: FraudOrderInput[]
 ): FraudAnalysis {
   let score = 0;
   const signals: FraudSignal[] = [];
