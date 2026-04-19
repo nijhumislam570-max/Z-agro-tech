@@ -31,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProductCategories } from '@/hooks/useProductCategories';
 import SEO from '@/components/SEO';
+import shopHeroAgriculture from '@/assets/shop-hero-agriculture.jpg';
 
 // Price range options outside component to prevent recreation
 const priceRangeOptions = [
@@ -381,45 +382,60 @@ const ShopPage = () => {
       />
       
       {/* Hero Banner */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 border-b border-border">
-        <div className="absolute inset-0 overflow-hidden hidden sm:block">
-          <div className="absolute inset-0 flex animate-[shop-slide_20s_linear_infinite]" style={{ width: '200%' }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[12.5%] h-full relative bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" aria-hidden="true" />
-            ))}
-          </div>
+      <header className="relative overflow-hidden border-b border-border">
+        {/* Background image with overlay */}
+        <div className="absolute inset-0">
+          <img
+            src={shopHeroAgriculture}
+            alt=""
+            aria-hidden="true"
+            width={1280}
+            height={896}
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+          />
+          {/* Warm gradient overlay for legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40 sm:from-background/92 sm:via-background/70 sm:to-background/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
         </div>
 
-        <div className="relative container mx-auto px-4 py-4 sm:py-8 lg:py-10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-            <div className="space-y-2 sm:space-y-4 flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full">
-                  <Tag className="h-3 w-3" />
-                  Special Offers
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+        <div className="relative container mx-auto px-4 py-6 sm:py-10 lg:py-14">
+          <div className="grid grid-cols-1 sm:grid-cols-12 items-center gap-5 sm:gap-6">
+            {/* Copy column */}
+            <div className="space-y-3 sm:space-y-4 sm:col-span-7 lg:col-span-7">
+              <span className="inline-flex items-center gap-1.5 bg-primary/15 text-primary text-[11px] sm:text-xs font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm border border-primary/20 w-fit">
+                <Tag className="h-3 w-3" />
+                Special Offers
+              </span>
+
+              <h1 className="font-bold text-foreground leading-[1.1] tracking-tight text-[1.75rem] sm:text-4xl lg:text-5xl xl:text-6xl">
                 Premium Agriculture
-                <span className="block text-primary">Supplies</span>
+                <span className="block text-primary mt-1">Supplies</span>
               </h1>
-              <p className="text-muted-foreground text-xs sm:text-base max-w-md hidden sm:block">
-                Quality seeds, fertilizers, livestock feed, and farm tools for modern farmers. Fast delivery across Bangladesh.
+
+              <p className="text-muted-foreground text-sm sm:text-base lg:text-lg max-w-xl leading-relaxed">
+                Quality seeds, fertilizers, livestock feed, and farm tools for modern farmers — delivered fast across Bangladesh.
               </p>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-muted-foreground bg-background/80 backdrop-blur-sm border border-border rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
-                  <Truck className="h-3 w-3 text-primary" /> Free ৳500+
+
+              {/* Trust strip — grid on mobile for clean alignment */}
+              <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-2.5 pt-1">
+                <span className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-[11px] sm:text-xs font-medium text-foreground bg-background/90 backdrop-blur-sm border border-border rounded-full px-2.5 sm:px-3.5 py-1.5 sm:py-2 shadow-sm">
+                  <Truck className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="truncate">Free ৳500+</span>
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-muted-foreground bg-background/80 backdrop-blur-sm border border-border rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
-                  <Shield className="h-3 w-3 text-accent" /> Authentic
+                <span className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-[11px] sm:text-xs font-medium text-foreground bg-background/90 backdrop-blur-sm border border-border rounded-full px-2.5 sm:px-3.5 py-1.5 sm:py-2 shadow-sm">
+                  <Shield className="h-3.5 w-3.5 text-accent shrink-0" />
+                  <span className="truncate">Authentic</span>
                 </span>
-                <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium text-muted-foreground bg-background/80 backdrop-blur-sm border border-border rounded-full px-2 sm:px-3 py-1 sm:py-1.5">
-                  <Package className="h-3 w-3 text-primary" /> {isLoading ? '…' : `${sortedProducts.length}+ Items`}
+                <span className="inline-flex items-center justify-center sm:justify-start gap-1.5 text-[11px] sm:text-xs font-medium text-foreground bg-background/90 backdrop-blur-sm border border-border rounded-full px-2.5 sm:px-3.5 py-1.5 sm:py-2 shadow-sm">
+                  <Package className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="truncate">{isLoading ? '…' : `${sortedProducts.length}+ Items`}</span>
                 </span>
               </div>
             </div>
 
-            <div className="hidden sm:block relative w-auto flex-shrink-0">
+            {/* Carousel column — visible on tablet+ */}
+            <div className="hidden sm:block sm:col-span-5 lg:col-span-5 relative">
               <HeroCarousel products={featuredProducts.length > 0 ? featuredProducts : products} />
             </div>
           </div>
