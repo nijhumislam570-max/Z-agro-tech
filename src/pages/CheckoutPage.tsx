@@ -15,8 +15,6 @@ import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import MobileNav from '@/components/MobileNav';
 import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
@@ -263,8 +261,7 @@ const CheckoutPageInner = () => {
 
   if (orderPlaced) {
     return (
-      <div className="min-h-screen bg-muted/30">
-        <Navbar />
+      <div className="bg-muted/30">
         <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-16">
           <div className="max-w-xl mx-auto">
             {/* Success Header */}
@@ -340,7 +337,6 @@ const CheckoutPageInner = () => {
             </div>
           </div>
         </div>
-        <MobileNav />
       </div>
     );
   }
@@ -352,9 +348,8 @@ const CheckoutPageInner = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-36 md:pb-8">
+    <div className="bg-muted/30 pb-36 md:pb-8">
       <SEO title="Checkout" description="Securely complete your Z Agro Tech order." noIndex />
-      <Navbar />
       
       {/* Breadcrumb */}
       <div className="bg-background border-b border-border">
@@ -807,8 +802,7 @@ const CheckoutPageInner = () => {
  * without losing route or cart context.
  */
 const CheckoutErrorFallback = () => (
-  <div className="min-h-screen bg-muted/30 pb-36 md:pb-8">
-    <Navbar />
+  <div className="bg-muted/30 pb-36 md:pb-8">
     <main id="main-content" className="container mx-auto px-4 py-12">
       <Card className="max-w-md mx-auto border-destructive/30">
         <CardContent className="p-6 text-center space-y-4">
@@ -831,7 +825,6 @@ const CheckoutErrorFallback = () => (
         </CardContent>
       </Card>
     </main>
-    <MobileNav />
   </div>
 );
 

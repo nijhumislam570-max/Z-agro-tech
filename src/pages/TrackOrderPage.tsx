@@ -12,9 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import Navbar from '@/components/Navbar';
-import MobileNav from '@/components/MobileNav';
-import Footer from '@/components/Footer';
 import { OrderTrackingTimeline } from '@/components/admin/OrderTrackingTimeline';
 import { getStatusColor } from '@/lib/statusColors';
 import { toast } from 'sonner';
@@ -142,14 +139,13 @@ const TrackOrderPage = () => {
   // Show login prompt if not authenticated
   if (!authLoading && !user) {
     return (
-      <div className="min-h-screen bg-background pb-20 md:pb-0">
+      <>
         <SEO
           title="Track Your Order"
           description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
           url="https://zagrotech.lovable.app/track-order"
           canonicalUrl="https://zagrotech.lovable.app/track-order"
         />
-        <Navbar />
         <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">
           <div className="max-w-md mx-auto">
             <Card>
@@ -171,22 +167,19 @@ const TrackOrderPage = () => {
             </Card>
           </div>
         </main>
-        <Footer />
-        <MobileNav />
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <>
       <SEO
         title="Track Your Order"
         description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
         url="https://zagrotech.lovable.app/track-order"
         canonicalUrl="https://zagrotech.lovable.app/track-order"
       />
-      <Navbar />
-      
+
       <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">
         <Button
           variant="ghost"
@@ -382,10 +375,7 @@ const TrackOrderPage = () => {
           )}
         </div>
       </main>
-
-      <Footer />
-      <MobileNav />
-    </div>
+    </>
   );
 };
 
