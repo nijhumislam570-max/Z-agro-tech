@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { GraduationCap, ArrowRight } from 'lucide-react';
 import { useMyEnrollments } from '@/hooks/useEnrollments';
 import { getCourseImage } from '@/lib/agriImages';
+import { usePrefetch } from '@/hooks/usePrefetch';
 
 export default function LearningPathTile() {
   const { data, isLoading } = useMyEnrollments();
