@@ -77,7 +77,7 @@ export const NewsletterCTA = () => {
               placeholder="your.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 rounded-full px-5 bg-background/95 border-primary-foreground/20 placeholder:text-muted-foreground/70"
+              className="h-12 rounded-full px-5 bg-background text-foreground border-primary-foreground/30 placeholder:text-muted-foreground"
               required
             />
             <Button

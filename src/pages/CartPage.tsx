@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCallback, memo, useMemo } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
@@ -259,10 +259,14 @@ const CartPage = () => {
                     </div>
                   )}
 
-                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Link
+                    to="/checkout#coupon"
+                    className="text-xs text-primary hover:underline flex items-center gap-1.5"
+                    aria-label="Have a coupon? Apply it at checkout"
+                  >
                     <Tag className="h-3 w-3" aria-hidden="true" />
                     Have a coupon? Apply it at checkout.
-                  </p>
+                  </Link>
 
                   <Separator />
                   
