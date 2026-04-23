@@ -49,19 +49,6 @@
     --harvest-light: 38 80% 88%;
     --soil: 28 35% 35%;
     --cream: 45 50% 96%;
-    /* Legacy aliases (kept so older components still resolve) */
-    --coral: 142 55% 28%;
-    --coral-light: 142 30% 88%;
-    --coral-dark: 142 60% 20%;
-    --mint: 142 40% 50%;
-    --mint-light: 90 25% 88%;
-    --sky: 200 50% 55%;
-    --sky-light: 200 50% 92%;
-    --lavender: 142 35% 45%;
-    --lavender-light: 90 25% 92%;
-    --sunshine: 38 80% 55%;
-    --sunshine-light: 38 80% 90%;
-    --peach: 38 60% 80%;
     
     /* Status / semantic feedback colors (always reach for these) */
     --success: 160 60% 35%;
