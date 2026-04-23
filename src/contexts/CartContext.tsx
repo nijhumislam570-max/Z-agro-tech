@@ -9,6 +9,12 @@ export interface CartItem {
   quantity: number;
   image: string;
   category: string;
+  /**
+   * Live max-stock cap captured when the item was added or last reconciled.
+   * Optional for backward compatibility with carts saved before this field
+   * existed; treat `undefined` as "unknown — don't clamp on `+`".
+   */
+  stock?: number;
 }
 
 // ─── Module-level store (singleton, no React context needed) ─────────
@@ -63,16 +69,33 @@ function getSnapshot(): CartItem[] {
 
 function addItemToStore(item: Omit<CartItem, 'quantity'> & { quantity?: number }) {
   const addQty = Math.max(1, item.quantity ?? 1);
+  const cap = item.stock ?? Infinity;
   const existing = cartItems.find(i => i.id === item.id);
   if (existing) {
+    // Refresh the stock cap on re-add so the cart always knows the latest
+    // ceiling — and clamp the resulting quantity to it.
+    const nextStock = item.stock ?? existing.stock;
+    const nextCap = nextStock ?? Infinity;
+    const nextQty = Math.min(existing.quantity + addQty, nextCap);
     cartItems = cartItems.map(i =>
-      i.id === item.id ? { ...i, quantity: i.quantity + addQty } : i
+      i.id === item.id ? { ...i, quantity: nextQty, stock: nextStock } : i
     );
   } else {
     const { quantity: _omit, ...rest } = item;
-    cartItems = [...cartItems, { ...rest, quantity: addQty }];
+    cartItems = [...cartItems, { ...rest, quantity: Math.min(addQty, cap) }];
   }
   emitChange();
+}
+
+function updateItemStockInStore(id: string, stock: number) {
+  let changed = false;
+  cartItems = cartItems.map((i) => {
+    if (i.id !== id) return i;
+    if (i.stock === stock) return i;
+    changed = true;
+    return { ...i, stock };
+  });
+  if (changed) emitChange();
 }
 
 function removeItemFromStore(id: string) {
@@ -106,9 +129,9 @@ function reconcileItemInStore(id: string, newPrice: number, maxStock: number) {
   cartItems = cartItems.map((i) => {
     if (i.id !== id) return i;
     const nextQty = Math.min(i.quantity, maxStock);
-    if (i.price === newPrice && i.quantity === nextQty) return i;
+    if (i.price === newPrice && i.quantity === nextQty && i.stock === maxStock) return i;
     changed = true;
-    return { ...i, price: newPrice, quantity: nextQty };
+    return { ...i, price: newPrice, quantity: nextQty, stock: maxStock };
   });
   if (changed) emitChange();
   return changed;
@@ -145,6 +168,10 @@ export function useCart() {
     return reconcileItemInStore(id, newPrice, maxStock);
   }, []);
 
+  const updateItemStock = useCallback((id: string, stock: number) => {
+    updateItemStockInStore(id, stock);
+  }, []);
+
   const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
   const totalAmount = useMemo(() => items.reduce((sum, item) => sum + (item.price * item.quantity), 0), [items]);
 
@@ -155,6 +182,7 @@ export function useCart() {
     updateQuantity,
     clearCart,
     reconcileItem,
+    updateItemStock,
     totalItems,
     totalAmount,
   };
