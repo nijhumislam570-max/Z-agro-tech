@@ -26,6 +26,14 @@ import { useProfile } from '@/hooks/useProfile';
 const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
 type TabValue = typeof VALID_TABS[number];
 
+const TileFallback = ({ label }: { label: string }) => (
+  <Card className="col-span-1 lg:col-span-12 border-destructive/30">
+    <CardContent className="p-4 text-center text-xs text-muted-foreground">
+      {label} couldn't load. Reload to try again.
+    </CardContent>
+  </Card>
+);
+
 const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
   const user = useAuthUser();
   const { profile } = useProfile();
