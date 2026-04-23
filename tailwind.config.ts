@@ -56,8 +56,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        peach: "hsl(var(--cream))",
-        cream: "hsl(var(--cream))",
         success: {
           DEFAULT: "hsl(var(--success))",
           light: "hsl(var(--success-light))",
