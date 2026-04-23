@@ -302,15 +302,15 @@ const AcademyPage = () => {
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground leading-none">5K+</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">Active learners</p>
+                          <p className="text-sm font-bold text-foreground leading-none">{BRAND_STATS.farmers.value}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{BRAND_STATS.farmers.label}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <PlayCircle className="h-4 w-4 text-accent shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground leading-none">200+</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">Hours of content</p>
+                          <p className="text-sm font-bold text-foreground leading-none">{BRAND_STATS.satisfaction.value}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{BRAND_STATS.satisfaction.label}</p>
                         </div>
                       </div>
                     </div>
@@ -337,7 +337,7 @@ const AcademyPage = () => {
                   <>
                     {' '}
                     in <span className="font-medium text-foreground capitalize">
-                      {category.replace('_', ' ')}
+                      {category.replace(/_/g, ' ')}
                     </span>
                   </>
                 )}
