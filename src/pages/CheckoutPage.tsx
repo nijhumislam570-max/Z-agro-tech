@@ -38,7 +38,6 @@ import {
   Tag
 } from 'lucide-react';
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
 import SEO from '@/components/SEO';
 
@@ -74,11 +73,12 @@ const paymentMethods = [
 ];
 
 const CheckoutPageInner = () => {
-  useDocumentTitle('Checkout');
   const { items, totalAmount, clearCart, totalItems } = useCart();
-  const { user } = useAuth();
+  const user = useAuthUser();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const couponInputRef = useRef<HTMLInputElement>(null);
+
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   // Note: Auth is enforced by RequireAuth wrapper in App.tsx
@@ -108,7 +108,8 @@ const CheckoutPageInner = () => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -123,23 +124,38 @@ const CheckoutPageInner = () => {
     },
   });
 
-  // Watch all form values for checkout tracking & delivery zone matching
-  const watchedValues = watch();
+  // Use targeted useWatch for division so only delivery-charge derivation re-runs
+  // when that field changes (avoids re-rendering the entire form on every keystroke
+  // in unrelated fields, which `watch()` would do).
+  const watchedDivision = useWatch({ control, name: 'division' });
 
-  // Track incomplete checkout — cast watched values since react-hook-form returns DeepPartial
+  // Build tracking snapshot lazily — read latest values on each tick rather than
+  // subscribing to every field change.
+  const trackingValues = getValues();
   const trackingData = {
-    fullName: watchedValues.fullName || '',
-    phone: watchedValues.phone || '',
-    address: watchedValues.address || '',
-    division: watchedValues.division || '',
-    district: watchedValues.district || '',
-    thana: watchedValues.thana || '',
+    fullName: trackingValues.fullName || '',
+    phone: trackingValues.phone || '',
+    address: trackingValues.address || '',
+    division: trackingValues.division || '',
+    district: trackingValues.district || '',
+    thana: trackingValues.thana || '',
   };
   const { markRecovered } = useCheckoutTracking(trackingData, items, totalAmount, paymentMethod);
 
   // Centralized delivery-charge calc — same hook used by CartPage to keep totals consistent.
-  const watchedDivision = watchedValues.division;
   const { charge: deliveryCharge, zoneName: matchedZoneName } = useDeliveryCharge(totalAmount, watchedDivision);
+
+  // Scroll to coupon input when arriving via /checkout#coupon (from CartPage link).
+  useEffect(() => {
+    if (location.hash === '#coupon') {
+      // Defer until after layout so the input exists in the DOM.
+      const t = window.setTimeout(() => {
+        couponInputRef.current?.focus();
+        couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+      return () => window.clearTimeout(t);
+    }
+  }, [location.hash]);
   
   // Calculate coupon discount
   const couponDiscount = (() => {
