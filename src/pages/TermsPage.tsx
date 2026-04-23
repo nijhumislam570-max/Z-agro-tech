@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { FileText } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { renderRichText } from '@/lib/richText';
+import { LEGAL_LAST_UPDATED } from '@/lib/legalMeta';
 
 const sections = [
   {
@@ -157,6 +158,15 @@ const TermsPage = memo(() => {
         canonicalUrl="https://zagrotech.lovable.app/terms"
         schema={[
           {
+            type: 'Organization',
+            name: 'Z Agro Tech',
+            url: 'https://zagrotech.lovable.app',
+            logo: 'https://zagrotech.lovable.app/favicon.png',
+            description:
+              "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
+            sameAs: [],
+          },
+          {
             type: 'BreadcrumbList',
             items: [
               { name: 'Home', url: 'https://zagrotech.lovable.app/' },
@@ -168,20 +178,19 @@ const TermsPage = memo(() => {
 
       <main
         id="main-content"
-        className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter font-nunito"
-        aria-label="Terms of Service"
+        className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter"
       >
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary/10 mb-4">
             <FileText className="h-8 w-8 text-primary" aria-hidden="true" />
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 font-fredoka">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground mb-3">
             Terms of Service
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
             Last Updated:{' '}
-            <time dateTime="2026-04-18">April 18, 2026</time>
+            <time dateTime={LEGAL_LAST_UPDATED.iso}>{LEGAL_LAST_UPDATED.display}</time>
           </p>
         </div>
 
@@ -200,7 +209,7 @@ const TermsPage = memo(() => {
         <div className="max-w-3xl mx-auto space-y-8">
           {sections.map((section) => (
             <section key={section.title} className="bg-card rounded-2xl border border-border p-6 sm:p-8">
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 font-fredoka">
+              <h2 className="text-lg sm:text-xl font-display font-semibold text-foreground mb-4">
                 {section.title}
               </h2>
               <div className="text-muted-foreground leading-relaxed">
