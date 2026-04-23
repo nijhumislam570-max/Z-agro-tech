@@ -75,7 +75,7 @@ const AdminCourses = () => {
 
   const { data: courses, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin-courses'],
-    staleTime: 30_000,
+    staleTime: STALE_30S,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('courses')
