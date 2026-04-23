@@ -6,17 +6,15 @@ import { useCart } from '@/contexts/CartContext';
 /**
  * On mount (and whenever the set of cart-item IDs changes), reconciles the
  * client-side cart with the latest product data from the database:
- *   - Updates prices that have changed since add-time
+ *   - Updates prices that have drifted since add-time
  *   - Clamps quantities to current stock
- *   - Removes items that are no longer active or exist
+ *   - Removes items that are no longer active or out of stock
  *
  * Surfaces a single toast summarizing what changed so the user is never
  * surprised by a "total mismatch" rejection at checkout.
- *
- * Reconciles at most once per unique set of IDs to avoid update loops.
  */
 export function useCartReconciliation() {
-  const { items, updateQuantity, removeItem } = useCart();
+  const { items, removeItem, reconcileItem } = useCart();
   const lastReconciledKey = useRef<string>('');
 
   useEffect(() => {
@@ -35,7 +33,7 @@ export function useCartReconciliation() {
     (async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('id, price, stock, is_active, name')
+        .select('id, price, stock, is_active')
         .in('id', ids);
 
       if (cancelled || error || !data) return;
@@ -45,59 +43,23 @@ export function useCartReconciliation() {
       let stockClamps = 0;
       let removed = 0;
 
-      // Snapshot to iterate while mutating cart.
-      for (const item of items) {
+      // Iterate over a snapshot — store mutations during the loop are fine
+      // because each action only mutates one item.
+      for (const item of [...items]) {
         const live = byId.get(item.id);
-        if (!live || !live.is_active) {
+        if (!live || !live.is_active || (live.stock ?? 0) <= 0) {
           removeItem(item.id);
           removed += 1;
           continue;
         }
         const liveStock = live.stock ?? 0;
-        if (liveStock <= 0) {
-          removeItem(item.id);
-          removed += 1;
-          continue;
-        }
-        if (item.quantity > liveStock) {
-          updateQuantity(item.id, liveStock);
-          stockClamps += 1;
-        }
-        if (Number(live.price) !== item.price) {
-          // Price drift — re-add at the new price (preserves quantity).
-          // Easiest path without a dedicated `setPrice` action.
-          removeItem(item.id);
-          // Re-insert via a minimal update: bump quantity from 0.
-          // We use updateQuantity AFTER remove, so do it in a microtask.
-          const newQty = Math.min(item.quantity, liveStock);
-          queueMicrotask(() => {
-            // addItem isn't available here; emulate by importing useCart's
-            // addItem from a parent? Instead, send a synthetic "update".
-            // Rather than re-architect, we just notify — the user will see
-            // updated totals on next render cycle from the server-recompute
-            // at checkout. To avoid that surprise, also update the local
-            // price by re-inserting via the cart's add path.
-            // Simplest: update price in localStorage directly.
-            try {
-              const STORAGE_KEY = 'zagrotech-cart';
-              const raw = localStorage.getItem(STORAGE_KEY);
-              if (!raw) return;
-              const cart: Array<{ id: string; price: number; quantity: number }> = JSON.parse(raw);
-              const next = cart.map((c) =>
-                c.id === item.id ? { ...c, price: Number(live.price), quantity: newQty } : c,
-              );
-              // If item was removed above, re-add it.
-              if (!next.some((c) => c.id === item.id)) {
-                next.push({ ...item, price: Number(live.price), quantity: newQty });
-              }
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-              // Force a store re-read by dispatching a synthetic storage event.
-              window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
-            } catch {
-              /* ignore */
-            }
-          });
-          priceChanges += 1;
+        const livePrice = Number(live.price);
+        const willClamp = item.quantity > liveStock;
+        const willRepriced = livePrice !== item.price;
+        if (willClamp || willRepriced) {
+          reconcileItem(item.id, livePrice, liveStock);
+          if (willClamp) stockClamps += 1;
+          if (willRepriced) priceChanges += 1;
         }
       }
 
