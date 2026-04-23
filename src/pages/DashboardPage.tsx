@@ -157,6 +157,8 @@ const DashboardPageInner = () => {
           </Tabs>
         </section>
       </main>
+
+      <EditProfileSheet open={editOpen} onOpenChange={setEditOpen} profile={profile} />
     </>
   );
 };
