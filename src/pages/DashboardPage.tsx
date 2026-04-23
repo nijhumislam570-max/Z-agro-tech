@@ -68,7 +68,6 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
 });
 
 const DashboardPageInner = () => {
-  useDocumentTitle('Dashboard');
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const activeTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam ?? '')
@@ -78,11 +77,13 @@ const DashboardPageInner = () => {
   const { profile } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
 
-  const handleTabChange = (value: string) => {
-    const next = new URLSearchParams(searchParams);
-    next.set('tab', value);
-    setSearchParams(next, { replace: true });
-  };
+  const handleTabChange = useCallback((value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', value);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const handleEdit = useCallback(() => setEditOpen(true), []);
 
