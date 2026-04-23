@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, ArrowLeft, Loader2, Sprout, GraduationCap, Truck, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Loader2, Sprout, GraduationCap, Truck, ShieldCheck, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { lovable } from '@/integrations/lovable/index';
 import logo from '@/assets/zagrotech-logo-circle.png';
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validations';
 import SEO from '@/components/SEO';
+import PasswordStrengthHints from '@/components/auth/PasswordStrengthHints';
 
 const AuthPage = () => {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
@@ -24,6 +25,9 @@ const AuthPage = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  // Inline confirmation banner shown after a signup that requires email
+  // verification — toasts disappear too quickly for a critical instruction.
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
   // Selector hooks — only re-render on the slices we actually consume.
   const user = useAuthUser();
@@ -47,6 +51,12 @@ const AuthPage = () => {
     resolver: zodResolver(signupSchema),
     defaultValues: { email: '', password: '', fullName: '' },
   });
+  // Track signup password reactively for the strength-hints component
+  // without re-rendering the entire form on every keystroke.
+  const signupPasswordValue = useWatch({
+    control: signupForm.control,
+    name: 'password',
+  }) ?? '';
 
   /**
    * After-auth redirect. If a redirect target was requested (via `?redirect=`
@@ -75,10 +85,19 @@ const AuthPage = () => {
     }
   }, [user, authLoading, redirectAfterAuth]);
 
+  // Build the post-OAuth landing URL. Supabase will append `?code=...` to
+  // this on success; the auth listener then picks up the new session and the
+  // user lands on the desired page (or `/` as a safe default).
+  const oauthRedirectUri = (() => {
+    if (typeof window === 'undefined') return undefined;
+    const target = fromPath && fromPath.startsWith('/') ? fromPath : '/';
+    return `${window.location.origin}${target}`;
+  })();
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin });
+      const { error } = await lovable.auth.signInWithOAuth('google', { redirect_uri: oauthRedirectUri });
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Google');
@@ -89,7 +108,7 @@ const AuthPage = () => {
   const handleAppleSignIn = async () => {
     setAppleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('apple', { redirect_uri: window.location.origin });
+      const { error } = await lovable.auth.signInWithOAuth('apple', { redirect_uri: oauthRedirectUri });
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Apple');
@@ -134,7 +153,8 @@ const AuthPage = () => {
       // message instead of bouncing to /dashboard which would just redirect back.
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.success('Account created! Please check your email to verify your address.');
+        toast.success('Account created! Check your email to verify your address.');
+        setPendingVerificationEmail(values.email);
         signupForm.reset();
         setActiveTab('signin');
         return;
@@ -151,6 +171,9 @@ const AuthPage = () => {
     setActiveTab(v as 'signin' | 'signup');
     loginForm.reset();
     signupForm.reset();
+    // Clear the verify-email banner when the user explicitly switches tabs
+    // — they've acknowledged it.
+    if (v !== 'signin') setPendingVerificationEmail(null);
   };
 
   if (authLoading || checkingAuth) {
@@ -247,6 +270,21 @@ const AuthPage = () => {
           </div>
 
           <div className="backdrop-blur-xl bg-white/85 dark:bg-card/80 border border-white/40 rounded-2xl shadow-2xl p-5 sm:p-7 transition-all duration-200">
+            {pendingVerificationEmail && (
+              <div
+                role="status"
+                className="mb-5 p-3 rounded-lg bg-info-light border border-info/30 flex items-start gap-2.5"
+              >
+                <MailCheck className="h-4 w-4 text-info mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-info-foreground">Verify your email</p>
+                  <p className="text-xs text-info-foreground/80 break-words">
+                    We sent a confirmation link to <strong className="font-semibold">{pendingVerificationEmail}</strong>.
+                    Click it, then sign in below.
+                  </p>
+                </div>
+              </div>
+            )}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6 h-11 bg-muted/70">
                 <TabsTrigger value="signin" className="text-sm font-semibold data-[state=active]:shadow-sm">Sign In</TabsTrigger>
@@ -307,9 +345,14 @@ const AuthPage = () => {
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-semibold" disabled={anyLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full h-11 font-semibold"
+                    disabled={anyLoading}
+                    aria-busy={loginSubmitting}
+                  >
                     {loginSubmitting ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…</>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> Signing in…</>
                     ) : 'Sign In'}
                   </Button>
                 </form>
@@ -374,11 +417,17 @@ const AuthPage = () => {
                     {signupForm.formState.errors.password && (
                       <p className="text-xs text-destructive" role="alert">{signupForm.formState.errors.password.message}</p>
                     )}
+                    <PasswordStrengthHints password={signupPasswordValue} />
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-semibold" disabled={anyLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full h-11 font-semibold"
+                    disabled={anyLoading}
+                    aria-busy={signupSubmitting}
+                  >
                     {signupSubmitting ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account…</>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> Creating account…</>
                     ) : 'Create Account'}
                   </Button>
                 </form>
