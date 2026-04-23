@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SEO from '@/components/SEO';
@@ -10,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { contactSchema, type ContactFormData } from '@/lib/validations';
 import { safeMutation } from '@/lib/supabaseService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,23 +23,27 @@ const contactInfo = [
     label: 'Email',
     value: 'hello@zagrotech.com',
     href: 'mailto:hello@zagrotech.com',
+    aria: 'Send email to hello@zagrotech.com',
   },
   {
     icon: <Phone className="h-5 w-5" />,
     label: 'Phone',
     value: '01349219441',
     href: 'tel:+8801349219441',
+    aria: 'Call Z Agro Tech at +8801349219441',
   },
   {
     icon: <MapPin className="h-5 w-5" />,
     label: 'Location',
     value: 'Farmgate, Dhaka 1205, Bangladesh',
     href: null,
+    aria: null,
   },
 ];
 
 const ContactPage = () => {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -48,6 +52,22 @@ const ContactPage = () => {
     resolver: zodResolver(contactSchema),
     defaultValues: { name: '', email: '', subject: '', message: '' },
   });
+
+  // Prefill name + email once auth/profile resolve, only if user hasn't typed yet.
+  useEffect(() => {
+    if (!user) return;
+    const current = form.getValues();
+    const patch: Partial<ContactFormData> = {};
+    if (!current.name && (profile?.full_name || user.user_metadata?.full_name)) {
+      patch.name = profile?.full_name ?? user.user_metadata?.full_name ?? '';
+    }
+    if (!current.email && user.email) {
+      patch.email = user.email;
+    }
+    if (Object.keys(patch).length) {
+      form.reset({ ...current, ...patch });
+    }
+  }, [user, profile, form]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -91,7 +111,26 @@ const ContactPage = () => {
       <SEO
         title="Contact Us"
         description="Have questions about Z Agro Tech? Get in touch with our team for support, product inquiries, or partnership opportunities."
+        url="https://zagrotech.lovable.app/contact"
         canonicalUrl="https://zagrotech.lovable.app/contact"
+        schema={[
+          {
+            type: 'Organization',
+            name: 'Z Agro Tech',
+            url: 'https://zagrotech.lovable.app',
+            logo: 'https://zagrotech.lovable.app/favicon.png',
+            description:
+              "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
+            sameAs: [],
+          },
+          {
+            type: 'BreadcrumbList',
+            items: [
+              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
+              { name: 'Contact', url: 'https://zagrotech.lovable.app/contact' },
+            ],
+          },
+        ]}
       />
 
       <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter">
@@ -124,7 +163,11 @@ const ContactPage = () => {
                       <div>
                         <p className="text-sm text-muted-foreground">{item.label}</p>
                         {item.href ? (
-                          <a href={item.href} className="font-medium hover:text-primary transition-colors">
+                          <a
+                            href={item.href}
+                            className="font-medium hover:text-primary transition-colors"
+                            aria-label={item.aria ?? undefined}
+                          >
                             {item.value}
                           </a>
                         ) : (
