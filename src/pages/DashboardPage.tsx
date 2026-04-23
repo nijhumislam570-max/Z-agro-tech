@@ -18,12 +18,21 @@ import RecommendedInputsTile from '@/components/dashboard/tiles/RecommendedInput
 import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
 import FeaturedCarouselTile from '@/components/dashboard/tiles/FeaturedCarouselTile';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { LazyMount } from '@/components/dashboard/LazyMount';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuthUser } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 
 const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
 type TabValue = typeof VALID_TABS[number];
+
+const TileFallback = ({ label }: { label: string }) => (
+  <Card className="col-span-1 lg:col-span-12 border-destructive/30">
+    <CardContent className="p-4 text-center text-xs text-muted-foreground">
+      {label} couldn't load. Reload to try again.
+    </CardContent>
+  </Card>
+);
 
 const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
   const user = useAuthUser();
@@ -135,15 +144,35 @@ const DashboardPageInner = () => {
               </p>
             </header>
             <BentoGrid>
-              <RecentOrdersList />
+              <ErrorBoundary fallback={<TileFallback label="Recent orders" />}>
+                <RecentOrdersList />
+              </ErrorBoundary>
               <div className="col-span-1 lg:col-span-4 grid grid-cols-1 gap-4 md:gap-5">
-                <QuickActionsTile />
-                <AlertsTile />
+                <ErrorBoundary fallback={<TileFallback label="Quick actions" />}>
+                  <QuickActionsTile />
+                </ErrorBoundary>
+                <ErrorBoundary fallback={<TileFallback label="Alerts" />}>
+                  <AlertsTile />
+                </ErrorBoundary>
               </div>
-              <LearningPathTile />
-              <RecommendedInputsTile />
-              <MasterclassTile />
-              <FeaturedCarouselTile />
+              <ErrorBoundary fallback={<TileFallback label="Learning path" />}>
+                <LearningPathTile />
+              </ErrorBoundary>
+              <LazyMount className="col-span-1 lg:col-span-7" minHeight="20rem">
+                <ErrorBoundary fallback={<TileFallback label="Recommended inputs" />}>
+                  <RecommendedInputsTile />
+                </ErrorBoundary>
+              </LazyMount>
+              <LazyMount className="col-span-1 lg:col-span-4" minHeight="22rem">
+                <ErrorBoundary fallback={<TileFallback label="Featured masterclass" />}>
+                  <MasterclassTile />
+                </ErrorBoundary>
+              </LazyMount>
+              <LazyMount className="col-span-1 lg:col-span-12" minHeight="20rem">
+                <ErrorBoundary fallback={<TileFallback label="Featured this week" />}>
+                  <FeaturedCarouselTile />
+                </ErrorBoundary>
+              </LazyMount>
             </BentoGrid>
           </div>
         </section>
@@ -160,27 +189,27 @@ const DashboardPageInner = () => {
           </header>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="grid w-full max-w-2xl grid-cols-4 h-auto">
-              <TabsTrigger value="orders" className="gap-2 min-h-[44px]" aria-label="Orders">
+              <TabsTrigger value="orders" className="flex-col sm:flex-row gap-1 sm:gap-2 min-h-[44px] py-2 text-[11px] sm:text-sm" aria-label="Orders">
                 <Package className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Orders</span>
+                <span>Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="courses" className="gap-2 min-h-[44px]" aria-label="Courses">
+              <TabsTrigger value="courses" className="flex-col sm:flex-row gap-1 sm:gap-2 min-h-[44px] py-2 text-[11px] sm:text-sm" aria-label="Courses">
                 <GraduationCap className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Courses</span>
+                <span>Courses</span>
               </TabsTrigger>
-              <TabsTrigger value="wishlist" className="gap-2 min-h-[44px]" aria-label="Wishlist">
+              <TabsTrigger value="wishlist" className="flex-col sm:flex-row gap-1 sm:gap-2 min-h-[44px] py-2 text-[11px] sm:text-sm" aria-label="Wishlist">
                 <Heart className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Wishlist</span>
+                <span>Wishlist</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 min-h-[44px]" aria-label="Profile">
+              <TabsTrigger value="profile" className="flex-col sm:flex-row gap-1 sm:gap-2 min-h-[44px] py-2 text-[11px] sm:text-sm" aria-label="Profile">
                 <User className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Profile</span>
+                <span>Profile</span>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="orders"><OrdersTab /></TabsContent>
             <TabsContent value="courses"><CoursesTab /></TabsContent>
             <TabsContent value="wishlist"><WishlistTab /></TabsContent>
-            <TabsContent value="profile"><ProfileTab /></TabsContent>
+            <TabsContent value="profile"><ProfileTab onEdit={handleEdit} /></TabsContent>
           </Tabs>
         </section>
       </main>

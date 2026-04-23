@@ -38,7 +38,8 @@ export function useMyEnrollments() {
             'batch:course_batches(id,name,start_date,end_date,status)',
         )
         .eq('user_id', user!.id)
-        .order('enrolled_at', { ascending: false });
+        .order('enrolled_at', { ascending: false })
+        .limit(50);
       if (error) throw error;
       return (data || []) as unknown as Enrollment[];
     },
