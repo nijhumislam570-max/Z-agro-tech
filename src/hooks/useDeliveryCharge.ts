@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_5MIN } from '@/lib/queryConstants';
+import { useDebounce } from '@/hooks/useDebounce';
 
 /**
  * Centralized delivery-charge calculation. Used by both Cart (preview) and
@@ -32,6 +33,11 @@ export const useDeliveryCharge = (
   subtotal: number,
   division?: string | null,
 ): DeliveryChargeResult => {
+  // H3: debounce the division input so cascading dropdown changes during
+  // typing don't trigger a re-derivation on every keystroke. Subtotal is
+  // already discrete (qty changes) so it doesn't need debouncing.
+  const debouncedDivision = useDebounce(division ?? '', 300);
+
   const { data: zones = [], isLoading } = useQuery({
     queryKey: ['delivery-zones'],
     queryFn: async () => {
@@ -47,7 +53,7 @@ export const useDeliveryCharge = (
 
   return useMemo(() => {
     // Case 3: no division → cart-style preview
-    if (!division || !division.trim()) {
+    if (!debouncedDivision || !debouncedDivision.trim()) {
       return {
         charge: subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : PREVIEW_FLAT_RATE,
         zoneName: null,
@@ -56,7 +62,7 @@ export const useDeliveryCharge = (
     }
 
     // Case 1: matched zone
-    const normalized = division.trim().toLowerCase();
+    const normalized = debouncedDivision.trim().toLowerCase();
     const matched = zones.find((z) =>
       (z.divisions as string[] | null)?.some((d) => d.toLowerCase() === normalized),
     );
@@ -70,5 +76,5 @@ export const useDeliveryCharge = (
 
     // Case 2: division given but unknown
     return { charge: FALLBACK_ZONE_RATE, zoneName: null, isLoading };
-  }, [subtotal, division, zones, isLoading]);
+  }, [subtotal, debouncedDivision, zones, isLoading]);
 };

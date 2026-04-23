@@ -212,6 +212,16 @@ const CheckoutPageInner = () => {
     }
 
     try {
+      // H4: Session-staleness guard. If the token expired in another tab the
+      // RPC call would 401 with a confusing error. Verify (and let supabase
+      // silently refresh) before firing the mutation.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error('Your session expired. Please sign in again.');
+        navigate('/auth', { state: { from: location }, replace: true });
+        return;
+      }
+
       const shippingAddress = `${validatedData.fullName}, ${validatedData.phone}, ${validatedData.address}, ${validatedData.thana}, ${validatedData.district}, ${validatedData.division}`;
 
       // Atomic order creation + stock decrement via DB function.

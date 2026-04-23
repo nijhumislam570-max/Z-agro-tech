@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_1MIN, STALE_5MIN } from '@/lib/queryConstants';
+import { STALE_5MIN } from '@/lib/queryConstants';
 import { useMyOrders } from './useMyOrders';
 import { useMyEnrollments } from './useEnrollments';
 
@@ -29,7 +29,10 @@ export function useRecommendedProducts(limit = 3) {
       if (error) throw error;
       return (data || []) as unknown as RecommendedProduct[];
     },
-    staleTime: STALE_1MIN,
+    // M4: featured/recommended lists rarely change inside a single session;
+    // 5min stale dramatically reduces refetches when navigating in/out of
+    // the dashboard or shop.
+    staleTime: STALE_5MIN,
   });
 }
 
