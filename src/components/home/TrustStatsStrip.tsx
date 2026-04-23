@@ -15,12 +15,13 @@ export const TrustStatsStrip = () => {
     <section className="container mx-auto px-4 sm:px-6 py-10 sm:py-14" aria-labelledby="trust-stats-heading">
       <h2 id="trust-stats-heading" className="sr-only">Z Agro Tech by the numbers</h2>
       <div className="relative overflow-hidden rounded-3xl border border-border/60 shadow-soft">
-        {/* Background image */}
+        {/* Background image — same source as Hero so the browser serves it from cache. */}
         <div className="absolute inset-0" aria-hidden="true">
           <img
             src={heroImage}
             alt=""
             loading="lazy"
+            decoding="async"
             width={1920}
             height={1088}
             className="w-full h-full object-cover"

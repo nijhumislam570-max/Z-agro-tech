@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, GraduationCap, ShoppingBag, Sprout, Users, Award, Smile } from 'lucide-react';
+import { ArrowRight, GraduationCap, ShoppingBag, Sprout, Users, Smile } from 'lucide-react';
 import heroImage from '@/assets/hero-agriculture-field.jpg';
 
 const heroStats = [

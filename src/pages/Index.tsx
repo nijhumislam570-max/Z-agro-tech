@@ -172,14 +172,32 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Below-the-fold sections — `content-visibility: auto` lets the
+            browser skip layout/paint until the section nears the viewport.
+            We hint a min-height per section so the scrollbar doesn't jitter
+            as off-screen sections are skipped. */}
         <FeaturedProductsGrid />
-        <CategoriesShowcase />
-        <FeaturedCoursesGrid />
-        <HowItWorks />
-        <Testimonials />
-        <TrustStatsStrip />
-        <NewsletterCTA />
-        <FAQTeaser />
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 800px' }}>
+          <CategoriesShowcase />
+        </div>
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 900px' }}>
+          <FeaturedCoursesGrid />
+        </div>
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 700px' }}>
+          <HowItWorks />
+        </div>
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 700px' }}>
+          <Testimonials />
+        </div>
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 600px' }}>
+          <TrustStatsStrip />
+        </div>
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 500px' }}>
+          <NewsletterCTA />
+        </div>
+        <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1px 700px' }}>
+          <FAQTeaser />
+        </div>
       </main>
     </>
   );
