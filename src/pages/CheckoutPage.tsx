@@ -681,22 +681,29 @@ const CheckoutPageInner = () => {
                         </p>
                       </div>
                     </div>
-                    <button onClick={removeCoupon} className="p-1 hover:bg-success-light dark:hover:bg-success-light rounded-full">
-                      <X className="h-4 w-4 text-success" />
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="p-2 hover:bg-success-light rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      aria-label={`Remove coupon ${appliedCoupon.code}`}
+                    >
+                      <X className="h-4 w-4 text-success" aria-hidden="true" />
                     </button>
                   </div>
                 ) : (
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       <Input
                         id="coupon"
+                        ref={couponInputRef}
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder="Coupon code"
                         className="h-10 pl-9 font-mono uppercase text-sm"
                         maxLength={20}
-                        onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                        aria-label="Coupon code"
                       />
                     </div>
                     <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()} className="h-10 px-4">
