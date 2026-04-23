@@ -358,6 +358,7 @@ const AuthPage = () => {
                       />
                       <button
                         type="button"
+                        tabIndex={-1}
                         onClick={() => setShowLoginPassword((v) => !v)}
                         className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                         aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
@@ -432,6 +433,7 @@ const AuthPage = () => {
                       />
                       <button
                         type="button"
+                        tabIndex={-1}
                         onClick={() => setShowSignupPassword((v) => !v)}
                         className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                         aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
@@ -443,6 +445,22 @@ const AuthPage = () => {
                       <p className="text-xs text-destructive" role="alert">{signupForm.formState.errors.password.message}</p>
                     )}
                     <PasswordStrengthHints password={signupPasswordValue} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                    <Input
+                      id="signup-confirm-password"
+                      type={showSignupPassword ? 'text' : 'password'}
+                      placeholder="Re-enter your password"
+                      autoComplete="new-password"
+                      aria-invalid={!!signupForm.formState.errors.confirmPassword}
+                      className={`h-11 ${signupForm.formState.errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                      {...signupForm.register('confirmPassword')}
+                    />
+                    {signupForm.formState.errors.confirmPassword && (
+                      <p className="text-xs text-destructive" role="alert">{signupForm.formState.errors.confirmPassword.message}</p>
+                    )}
                   </div>
 
                   <Button
