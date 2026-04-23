@@ -1,6 +1,7 @@
-import { memo, Fragment } from 'react';
+import { memo } from 'react';
 import { Shield } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { renderRichText } from '@/lib/richText';
 
 const sections = [
   {
@@ -95,110 +96,6 @@ You can control cookie settings through your browser preferences. Note that disa
   },
 ];
 
-/**
- * Render a single inline markdown line — supports:
- *   **bold**   → <strong>
- *   [label](url) → <a href="url">label</a> (mailto:/tel:/http(s):/ only)
- *
- * Intentionally minimal so we don't pull in a markdown lib for a static legal page.
- * Strings are rendered as plain text by React, so no XSS risk from the source content.
- */
-function renderInline(line: string): React.ReactNode {
-  // First split on links, then on bold within each chunk.
-  const linkRegex = /\[([^\]]+)\]\((mailto:[^)\s]+|tel:[^)\s]+|https?:\/\/[^)\s]+)\)/g;
-  const nodes: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  let key = 0;
-
-  const renderBold = (text: string): React.ReactNode => {
-    const parts = text.split(/(\*\*[^*]+\*\*)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="text-foreground font-semibold">{part.slice(2, -2)}</strong>;
-      }
-      return <Fragment key={i}>{part}</Fragment>;
-    });
-  };
-
-  while ((match = linkRegex.exec(line)) !== null) {
-    if (match.index > lastIndex) {
-      nodes.push(<Fragment key={`t-${key++}`}>{renderBold(line.slice(lastIndex, match.index))}</Fragment>);
-    }
-    nodes.push(
-      <a
-        key={`l-${key++}`}
-        href={match[2]}
-        className="text-primary hover:underline font-medium"
-      >
-        {match[1]}
-      </a>,
-    );
-    lastIndex = match.index + match[0].length;
-  }
-  if (lastIndex < line.length) {
-    nodes.push(<Fragment key={`t-${key++}`}>{renderBold(line.slice(lastIndex))}</Fragment>);
-  }
-  return nodes;
-}
-
-/**
- * Parse a section body into a sequence of <p> and <ul> blocks.
- * Lines starting with "- " are grouped into a single <ul>; blank lines split
- * paragraphs; everything else is a <p>.
- */
-function renderSection(body: string): React.ReactNode {
-  const lines = body.split('\n');
-  const blocks: React.ReactNode[] = [];
-  let para: string[] = [];
-  let list: string[] = [];
-  let blockKey = 0;
-
-  const flushPara = () => {
-    if (!para.length) return;
-    blocks.push(
-      <p key={`p-${blockKey++}`} className="mb-4 last:mb-0 leading-relaxed">
-        {para.map((l, i) => (
-          <Fragment key={i}>
-            {i > 0 && <br />}
-            {renderInline(l)}
-          </Fragment>
-        ))}
-      </p>,
-    );
-    para = [];
-  };
-
-  const flushList = () => {
-    if (!list.length) return;
-    blocks.push(
-      <ul key={`u-${blockKey++}`} className="mb-4 last:mb-0 space-y-2 list-disc pl-5 marker:text-primary">
-        {list.map((item, i) => (
-          <li key={i} className="leading-relaxed">{renderInline(item)}</li>
-        ))}
-      </ul>,
-    );
-    list = [];
-  };
-
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    if (line.startsWith('- ')) {
-      flushPara();
-      list.push(line.slice(2));
-    } else if (line === '') {
-      flushPara();
-      flushList();
-    } else {
-      flushList();
-      para.push(line);
-    }
-  }
-  flushPara();
-  flushList();
-  return blocks;
-}
-
 const PrivacyPolicyPage = memo(() => {
   return (
     <>
@@ -257,7 +154,7 @@ const PrivacyPolicyPage = memo(() => {
                 {section.title}
               </h2>
               <div className="text-muted-foreground leading-relaxed">
-                {renderSection(section.content)}
+                {renderRichText(section.content)}
               </div>
             </section>
           ))}
