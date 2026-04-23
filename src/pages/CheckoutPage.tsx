@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCart } from '@/contexts/CartContext';
 import { useAuthUser } from '@/contexts/AuthContext';
@@ -11,19 +11,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  Banknote, 
-  CreditCard, 
-  Smartphone, 
-  MapPin, 
-  Truck, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  Banknote,
+  CreditCard,
+  MapPin,
+  Truck,
   ChevronRight,
   Shield,
   Package,
@@ -35,10 +35,11 @@ import {
   Ticket,
   Loader2,
   X,
-  Tag
+  Tag,
 } from 'lucide-react';
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
+import { getDivisions, getDistricts, getThanas } from '@/lib/bangladeshRegions';
 import SEO from '@/components/SEO';
 
 // Only payment methods that are actually live ship in the UI. Add new methods
