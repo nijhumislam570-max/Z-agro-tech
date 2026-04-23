@@ -114,11 +114,10 @@ const AuthPage = () => {
     try {
       const { error } = await signIn(values.email, values.password);
       if (error) throw error;
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        toast.success('Welcome back to Z Agro Tech!');
-        await redirectAfterAuth(currentUser.id);
-      }
+      // Don't manually redirect — the auth listener will populate `user`,
+      // and the useEffect above will run redirectAfterAuth() exactly once.
+      // Manual redirect here was racing the effect and double-navigating.
+      toast.success('Welcome back to Z Agro Tech!');
     } catch (error: unknown) {
       const raw = error instanceof Error ? error.message : 'Something went wrong';
       toast.error(friendlyAuthMessage(raw));
@@ -130,8 +129,18 @@ const AuthPage = () => {
       const { error, user: newUser } = await signUp(values.email, values.password, values.fullName);
       if (error) throw error;
       if (!newUser) throw new Error('Failed to create account. Please try again.');
+
+      // If email confirmation is required, no session is created — show a check-email
+      // message instead of bouncing to /dashboard which would just redirect back.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.success('Account created! Please check your email to verify your address.');
+        signupForm.reset();
+        setActiveTab('signin');
+        return;
+      }
       toast.success('Welcome to Z Agro Tech!');
-      await redirectAfterAuth(newUser.id);
+      // Redirect handled by the auth-state effect above.
     } catch (error: unknown) {
       const raw = error instanceof Error ? error.message : 'Something went wrong';
       toast.error(friendlyAuthMessage(raw));
@@ -273,7 +282,7 @@ const AuthPage = () => {
                     <div className="relative">
                       <Input
                         id="login-password"
-                        type={showPassword ? 'text' : 'password'}
+                        type={showLoginPassword ? 'text' : 'password'}
                         placeholder="Enter your password"
                         autoComplete="current-password"
                         aria-invalid={!!loginForm.formState.errors.password}
@@ -282,11 +291,11 @@ const AuthPage = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onClick={() => setShowLoginPassword((v) => !v)}
                         className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                     {loginForm.formState.errors.password && (
@@ -342,7 +351,7 @@ const AuthPage = () => {
                     <div className="relative">
                       <Input
                         id="signup-password"
-                        type={showPassword ? 'text' : 'password'}
+                        type={showSignupPassword ? 'text' : 'password'}
                         placeholder="Create a strong password"
                         autoComplete="new-password"
                         aria-invalid={!!signupForm.formState.errors.password}
@@ -351,11 +360,11 @@ const AuthPage = () => {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
+                        onClick={() => setShowSignupPassword((v) => !v)}
                         className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                     {signupForm.formState.errors.password && (
