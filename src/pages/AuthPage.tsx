@@ -339,9 +339,14 @@ const AuthPage = () => {
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full h-11 font-semibold" disabled={anyLoading}>
+                  <Button
+                    type="submit"
+                    className="w-full h-11 font-semibold"
+                    disabled={anyLoading}
+                    aria-busy={loginSubmitting}
+                  >
                     {loginSubmitting ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in…</>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" /> Signing in…</>
                     ) : 'Sign In'}
                   </Button>
                 </form>
