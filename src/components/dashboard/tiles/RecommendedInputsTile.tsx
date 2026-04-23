@@ -27,6 +27,7 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
       price: Number(product.price),
       image: product.image_url ?? '/placeholder.svg',
       category: product.category,
+      stock: product.stock ?? undefined,
     });
     toast.success(`${product.name} added to cart`);
   };
