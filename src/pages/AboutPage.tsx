@@ -41,7 +41,26 @@ const AboutPage = memo(() => {
       <SEO
         title="About Us"
         description="Z Agro Tech is Bangladesh's trusted hub for premium agriculture supplies and expert-led farming courses, built for modern farmers."
+        url="https://zagrotech.lovable.app/about"
         canonicalUrl="https://zagrotech.lovable.app/about"
+        schema={[
+          {
+            type: 'Organization',
+            name: 'Z Agro Tech',
+            url: 'https://zagrotech.lovable.app',
+            logo: 'https://zagrotech.lovable.app/favicon.png',
+            description:
+              "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
+            sameAs: [],
+          },
+          {
+            type: 'BreadcrumbList',
+            items: [
+              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
+              { name: 'About', url: 'https://zagrotech.lovable.app/about' },
+            ],
+          },
+        ]}
       />
 
       <main id="main-content" className="animate-page-enter">
@@ -104,7 +123,7 @@ const AboutPage = memo(() => {
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature) => (
-                <Card key={feature.title} className="border-border/50 hover:shadow-lg transition-shadow">
+                <Card key={feature.title} className="border-border/50 hover:shadow-soft hover:-translate-y-1 transition-all">
                   <CardContent className="pt-6">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
                       {feature.icon}
