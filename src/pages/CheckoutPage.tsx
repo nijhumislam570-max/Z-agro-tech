@@ -365,7 +365,7 @@ const CheckoutPageInner = () => {
 
   return (
     <div className="bg-muted/30 pb-36 md:pb-8">
-      <SEO title="Checkout" description="Securely complete your Z Agro Tech order." noIndex />
+      <SEO title="Checkout" description="Securely complete your Z Agro Tech order." url="/checkout" noIndex />
       
       {/* Breadcrumb */}
       <div className="bg-background border-b border-border">
