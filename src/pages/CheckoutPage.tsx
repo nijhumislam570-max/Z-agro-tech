@@ -76,7 +76,6 @@ const CheckoutPageInner = () => {
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [placedItems, setPlacedItems] = useState<typeof items>([]);
   const [placedTotal, setPlacedTotal] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [couponCode, setCouponCode] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -87,12 +86,13 @@ const CheckoutPageInner = () => {
     id: string;
   } | null>(null);
 
-  // react-hook-form with Zod resolver
+  // react-hook-form with Zod resolver. paymentMethod is part of the form so
+  // submission is atomic with the rest of the validated payload.
   const {
     register,
     handleSubmit,
     control,
-    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -104,26 +104,22 @@ const CheckoutPageInner = () => {
       district: '',
       thana: '',
       notes: '',
+      paymentMethod: 'cod',
     },
   });
 
-  // Use targeted useWatch for division so only delivery-charge derivation re-runs
-  // when that field changes (avoids re-rendering the entire form on every keystroke
-  // in unrelated fields, which `watch()` would do).
-  const watchedDivision = useWatch({ control, name: 'division' });
+  // Field-scoped watchers — only the affected derived UI re-runs.
+  const watchedDivision = useWatch({ control, name: 'division' }) || '';
+  const watchedDistrict = useWatch({ control, name: 'district' }) || '';
+  const paymentMethod = useWatch({ control, name: 'paymentMethod' }) || 'cod';
 
-  // Build tracking snapshot lazily — read latest values on each tick rather than
-  // subscribing to every field change.
-  const trackingValues = getValues();
-  const trackingData = {
-    fullName: trackingValues.fullName || '',
-    phone: trackingValues.phone || '',
-    address: trackingValues.address || '',
-    division: trackingValues.division || '',
-    district: trackingValues.district || '',
-    thana: trackingValues.thana || '',
-  };
-  const { markRecovered } = useCheckoutTracking(trackingData, items, totalAmount, paymentMethod);
+  // Cascading dropdown sources.
+  const divisionOptions = getDivisions();
+  const districtOptions = watchedDivision ? getDistricts(watchedDivision) : [];
+  const thanaOptions = watchedDivision && watchedDistrict ? getThanas(watchedDivision, watchedDistrict) : [];
+
+  // Tracking subscribes via control directly — no per-render getValues() polling.
+  const { markRecovered } = useCheckoutTracking(control, items, totalAmount, paymentMethod);
 
   // Centralized delivery-charge calc — same hook used by CartPage to keep totals consistent.
   const { charge: deliveryCharge, zoneName: matchedZoneName } = useDeliveryCharge(totalAmount, watchedDivision);
