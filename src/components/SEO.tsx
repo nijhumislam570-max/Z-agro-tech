@@ -402,6 +402,20 @@ function generateJsonLd(schema: Schema): object {
         })),
       };
 
+    case 'FAQPage':
+      return {
+        ...baseContext,
+        '@type': 'FAQPage',
+        mainEntity: schema.items.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
+          },
+        })),
+      };
+
     default:
       return baseContext;
   }
