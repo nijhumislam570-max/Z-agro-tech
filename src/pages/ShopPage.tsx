@@ -747,9 +747,9 @@ const ShopPage = () => {
               </Badge>
             )}
             {searchQuery && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs" role="listitem">
-                "{searchQuery}"
-                <button onClick={handleClearSearch} className="ml-1 hover:bg-muted rounded-full p-0.5" aria-label="Remove search filter">
+              <Badge variant="secondary" className="gap-1 pr-1 text-xs max-w-[60vw] sm:max-w-xs" role="listitem">
+                <span className="truncate">&quot;{searchQuery}&quot;</span>
+                <button onClick={handleClearSearch} className="ml-1 hover:bg-muted rounded-full p-0.5 flex-shrink-0" aria-label="Remove search filter">
                   <X className="h-3 w-3" aria-hidden="true" />
                 </button>
               </Badge>
