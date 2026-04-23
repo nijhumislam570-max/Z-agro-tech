@@ -1,5 +1,5 @@
-import { memo, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -8,6 +8,7 @@ import OrdersTab from '@/components/dashboard/OrdersTab';
 import CoursesTab from '@/components/dashboard/CoursesTab';
 import WishlistTab from '@/components/dashboard/WishlistTab';
 import ProfileTab from '@/components/dashboard/ProfileTab';
+import EditProfileSheet from '@/components/dashboard/EditProfileSheet';
 import { BentoGrid } from '@/components/dashboard/BentoGrid';
 import { DashboardStatGrid } from '@/components/dashboard/DashboardStatGrid';
 import { RecentOrdersList } from '@/components/dashboard/RecentOrdersList';
@@ -25,7 +26,7 @@ import { useProfile } from '@/hooks/useProfile';
 const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
 type TabValue = typeof VALID_TABS[number];
 
-const Hero = memo(function Hero() {
+const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
   const { user } = useAuth();
   const { profile } = useProfile();
 
@@ -52,13 +53,14 @@ const Hero = memo(function Hero() {
         </h2>
         <p className="text-sm text-white/80">{today}</p>
       </div>
-      <Link
-        to="/dashboard?tab=profile"
+      <button
+        type="button"
+        onClick={onEdit}
         className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg px-3 py-2 transition-all min-h-[44px]"
       >
         <Pencil className="h-3.5 w-3.5" />
         Edit profile
-      </Link>
+      </button>
     </div>
   );
 });
@@ -71,11 +73,16 @@ const DashboardPageInner = () => {
     ? (tabParam as TabValue)
     : 'orders';
 
+  const { profile } = useProfile();
+  const [editOpen, setEditOpen] = useState(false);
+
   const handleTabChange = (value: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', value);
     setSearchParams(next, { replace: true });
   };
+
+  const handleEdit = useCallback(() => setEditOpen(true), []);
 
   return (
     <>
@@ -92,7 +99,7 @@ const DashboardPageInner = () => {
         <section className="bg-agri-gradient" aria-labelledby="dashboard-hero-heading">
           <h2 id="dashboard-hero-heading" className="sr-only">At-a-glance overview</h2>
           <div className="container mx-auto px-4 sm:px-6 py-6 md:py-10">
-            <Hero />
+            <Hero onEdit={handleEdit} />
             <DashboardStatGrid />
           </div>
         </section>
@@ -150,6 +157,8 @@ const DashboardPageInner = () => {
           </Tabs>
         </section>
       </main>
+
+      <EditProfileSheet open={editOpen} onOpenChange={setEditOpen} profile={profile} />
     </>
   );
 };
