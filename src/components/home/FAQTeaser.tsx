@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Accordion,
@@ -27,9 +26,8 @@ const faqs = [
   },
 ];
 
-export const FAQTeaser = forwardRef<HTMLElement>((_, ref) => (
+export const FAQTeaser = () => (
   <section
-    ref={ref}
     className="container mx-auto px-4 sm:px-6 py-12 sm:py-16"
     aria-labelledby="faq-heading"
   >
@@ -90,8 +88,6 @@ export const FAQTeaser = forwardRef<HTMLElement>((_, ref) => (
       </div>
     </div>
   </section>
-));
-
-FAQTeaser.displayName = 'FAQTeaser';
+);
 
 export default FAQTeaser;

@@ -15,6 +15,12 @@ export const NewsletterCTA = () => {
       return;
     }
     setSubmitting(true);
+    // TODO(newsletter): wire to a `newsletter_subscribers` table or external
+    // ESP. Until then this is intentionally optimistic — see /admin/settings
+    // to track subscriber demand.
+    if (import.meta.env.DEV) {
+      console.warn('[NewsletterCTA] Subscription is not persisted yet.', { email });
+    }
     await new Promise((r) => setTimeout(r, 600));
     toast.success("You're on the list! We'll keep you posted.");
     setEmail('');
