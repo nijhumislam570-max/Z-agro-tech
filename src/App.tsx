@@ -14,7 +14,9 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AdminShell } from "@/components/admin/AdminLayout";
+import AdminNotFound from "@/components/admin/AdminNotFound";
 import PublicShell from "@/components/PublicShell";
+import ProfileRedirect from "@/components/ProfileRedirect";
 import RouteProgress from "@/components/RouteProgress";
 
 // Public pages
