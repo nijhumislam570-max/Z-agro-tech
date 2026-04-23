@@ -79,10 +79,19 @@ const AuthPage = () => {
     }
   }, [user, authLoading, redirectAfterAuth]);
 
+  // Build the post-OAuth landing URL. Supabase will append `?code=...` to
+  // this on success; the auth listener then picks up the new session and the
+  // user lands on the desired page (or `/` as a safe default).
+  const oauthRedirectUri = (() => {
+    if (typeof window === 'undefined') return undefined;
+    const target = fromPath && fromPath.startsWith('/') ? fromPath : '/';
+    return `${window.location.origin}${target}`;
+  })();
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('google', { redirect_uri: window.location.origin });
+      const { error } = await lovable.auth.signInWithOAuth('google', { redirect_uri: oauthRedirectUri });
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Google');
@@ -93,7 +102,7 @@ const AuthPage = () => {
   const handleAppleSignIn = async () => {
     setAppleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('apple', { redirect_uri: window.location.origin });
+      const { error } = await lovable.auth.signInWithOAuth('apple', { redirect_uri: oauthRedirectUri });
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Apple');
