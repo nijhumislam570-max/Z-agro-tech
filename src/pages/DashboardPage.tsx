@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -44,9 +44,19 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
     return user?.email?.split('@')[0] ?? 'Farmer';
   }, [profile?.full_name, user?.email]);
 
+  // L4: Re-derive when the tab is foregrounded so a session left open past
+  // midnight refreshes the date label without a manual reload.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') setNow(new Date());
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
   const today = useMemo(
-    () => new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }),
-    [],
+    () => now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }),
+    [now],
   );
 
   return (
@@ -85,6 +95,16 @@ const DashboardPageInner = () => {
 
   const { profile } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
+
+  // L5: Skip-to-tabs lets keyboard users jump past the hero/bento grid
+  // straight to the Orders/Courses/Wishlist/Profile tablist.
+  const skipToTabs = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
+    e.preventDefault();
+    const trigger = tabsRef.current?.querySelector<HTMLButtonElement>('[role="tab"]');
+    trigger?.focus();
+    trigger?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   const handleTabChange = useCallback((value: string) => {
     setSearchParams((prev) => {
@@ -106,6 +126,15 @@ const DashboardPageInner = () => {
       />
       <main id="main-content" className="flex-1 animate-page-enter">
         <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
+        {/* L5: Skip-to-tabs — visible on focus only, lets keyboard users
+            jump past the bento grid straight to their order/course history. */}
+        <a
+          href="#dashboard-tabs"
+          onClick={skipToTabs}
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-lg"
+        >
+          Skip to your activity
+        </a>
 
         {/* HERO + Stat Grid */}
         <section
@@ -178,7 +207,7 @@ const DashboardPageInner = () => {
         </section>
 
         {/* DETAIL TABS */}
-        <section className="container mx-auto px-4 sm:px-6 py-8 md:py-10">
+        <section id="dashboard-tabs" ref={tabsRef} className="container mx-auto px-4 sm:px-6 py-8 md:py-10" tabIndex={-1}>
           <header className="mb-5">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
               Your activity
