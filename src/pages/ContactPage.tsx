@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,22 +41,25 @@ const contactInfo = [
   },
 ];
 
-const ContactPage = () => {
+const ContactPage = memo(() => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
+  // Use a Date.now() deadline so background-tab throttling can't drift the timer.
+  const [deadline, setDeadline] = useState(0);
   const [cooldown, setCooldown] = useState(0);
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
     defaultValues: { name: '', email: '', subject: '', message: '' },
   });
+  const { reset, getValues } = form;
 
   // Prefill name + email once auth/profile resolve, only if user hasn't typed yet.
   useEffect(() => {
     if (!user) return;
-    const current = form.getValues();
+    const current = getValues();
     const patch: Partial<ContactFormData> = {};
     if (!current.name && (profile?.full_name || user.user_metadata?.full_name)) {
       patch.name = profile?.full_name ?? user.user_metadata?.full_name ?? '';
@@ -65,15 +68,22 @@ const ContactPage = () => {
       patch.email = user.email;
     }
     if (Object.keys(patch).length) {
-      form.reset({ ...current, ...patch });
+      reset({ ...current, ...patch });
     }
-  }, [user, profile, form]);
+  }, [user, profile, reset, getValues]);
 
+  // Drive the visible cooldown counter from the deadline timestamp.
   useEffect(() => {
-    if (cooldown <= 0) return;
-    const timer = setTimeout(() => setCooldown(c => c - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [cooldown]);
+    if (!deadline) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setCooldown(remaining);
+      if (remaining === 0) setDeadline(0);
+    };
+    tick();
+    const id = setInterval(tick, 500);
+    return () => clearInterval(id);
+  }, [deadline]);
 
   const onSubmit = async (data: ContactFormData) => {
     if (cooldown > 0) return;
@@ -87,15 +97,16 @@ const ContactPage = () => {
       }).select()
     );
 
+    // Pass an empty `successMsg` so the toast is suppressed — we show an
+    // inline confirmation card instead, avoiding the double-success signal.
     const result = await safeMutation(insertPromise, {
-        successMsg: "Message sent successfully! We'll get back to you soon.",
-        errorMsg: 'Failed to send message. Please try again.',
-      }
-    );
+      successMsg: '',
+      errorMsg: 'Failed to send message. Please try again.',
+    });
 
     if (!result.error) {
       setSubmitted(true);
-      setCooldown(COOLDOWN_SECONDS);
+      setDeadline(Date.now() + COOLDOWN_SECONDS * 1000);
       form.reset();
     }
   };
@@ -207,7 +218,7 @@ const ContactPage = () => {
                       <p className="text-muted-foreground mb-4">
                         Please sign in to send us a message. This helps us prevent spam and respond to you faster.
                       </p>
-                      <Button onClick={() => navigate('/auth')} className="min-h-[44px]">
+                      <Button onClick={() => navigate('/auth?redirect=/contact')} className="min-h-[44px]">
                         <LogIn className="h-4 w-4 mr-2" />
                         Sign In to Contact Us
                       </Button>
@@ -262,6 +273,7 @@ const ContactPage = () => {
                                     placeholder="Your name"
                                     className="min-h-[44px] text-base"
                                     maxLength={100}
+                                    aria-required="true"
                                     {...field}
                                   />
                                 </FormControl>
@@ -281,6 +293,7 @@ const ContactPage = () => {
                                     placeholder="you@example.com"
                                     className="min-h-[44px] text-base"
                                     maxLength={255}
+                                    aria-required="true"
                                     {...field}
                                   />
                                 </FormControl>
@@ -295,7 +308,10 @@ const ContactPage = () => {
                           name="subject"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Subject</FormLabel>
+                              <FormLabel>
+                                Subject{' '}
+                                <span className="text-xs text-muted-foreground font-normal">(optional)</span>
+                              </FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="How can we help?"
@@ -319,7 +335,8 @@ const ContactPage = () => {
                                 <Textarea
                                   placeholder="Tell us more about your inquiry..."
                                   rows={5}
-                                  className="min-h-[44px] text-base"
+                                  className="text-base"
+                                  aria-required="true"
                                   {...field}
                                 />
                               </FormControl>
@@ -332,6 +349,7 @@ const ContactPage = () => {
                           type="submit"
                           className="w-full sm:w-auto min-h-[44px]"
                           disabled={form.formState.isSubmitting || cooldown > 0}
+                          aria-busy={form.formState.isSubmitting}
                         >
                           {form.formState.isSubmitting ? (
                             <>
@@ -356,6 +374,8 @@ const ContactPage = () => {
       </main>
     </>
   );
-};
+});
+
+ContactPage.displayName = 'ContactPage';
 
 export default ContactPage;

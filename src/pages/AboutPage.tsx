@@ -4,6 +4,7 @@ import { Sprout, ShieldCheck, GraduationCap, ShoppingBag, Truck, Leaf, ArrowRigh
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import SEO from '@/components/SEO';
+import { BRAND_STATS } from '@/lib/brandStats';
 
 const features = [
   {
@@ -28,11 +29,12 @@ const features = [
   },
 ];
 
+// Stats sourced from `BRAND_STATS` so Home + About never drift.
 const stats = [
-  { value: '5K+', label: 'Active Farmers' },
-  { value: '500+', label: 'Premium Products' },
-  { value: '50+', label: 'Expert Courses' },
-  { value: '64', label: 'Districts Served' },
+  BRAND_STATS.farmers,
+  BRAND_STATS.products,
+  BRAND_STATS.courses,
+  BRAND_STATS.districts,
 ];
 
 const AboutPage = memo(() => {
@@ -123,7 +125,7 @@ const AboutPage = memo(() => {
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature) => (
-                <Card key={feature.title} className="border-border/50 hover:shadow-soft hover:-translate-y-1 transition-all">
+                <Card key={feature.title} className="border-border/50 hover:shadow-soft hover:-translate-y-1 focus-within:shadow-soft focus-within:-translate-y-1 transition-all">
                   <CardContent className="pt-6">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
                       {feature.icon}

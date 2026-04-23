@@ -1,9 +1,11 @@
 import { useState, memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { HelpCircle, Search, X } from 'lucide-react';
+import { HelpCircle, Search, X, Sprout, ShoppingBag, GraduationCap, Lock, SearchX } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEO from '@/components/SEO';
+import EmptyState from '@/components/ui/empty-state';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
   Accordion,
@@ -12,10 +14,16 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-const faqData = [
+type FAQCategory = {
+  title: string;
+  icon: LucideIcon;
+  faqs: { question: string; answer: string }[];
+};
+
+const faqData: FAQCategory[] = [
   {
     title: 'General Questions',
-    icon: '🌱',
+    icon: Sprout,
     faqs: [
       { question: 'What is Z Agro Tech?', answer: 'Z Agro Tech is a comprehensive agriculture platform combining a premium marketplace for agri-inputs (seeds, fertilizers, crop-protection, tools) with the Smart Farming Academy — expert-led courses for modern farmers in Bangladesh.' },
       { question: 'Is Z Agro Tech free to use?', answer: 'Yes! Browsing products and courses, and creating an account is completely free. You only pay when you purchase a product or enrol in a paid course.' },
@@ -24,7 +32,7 @@ const faqData = [
   },
   {
     title: 'Shop & Products',
-    icon: '🛒',
+    icon: ShoppingBag,
     faqs: [
       { question: 'How do I place an order?', answer: 'Browse the Shop, add items to your cart, proceed to checkout, fill in your delivery address, and select Cash on Delivery. Your order will be confirmed immediately.' },
       { question: 'What payment methods are accepted?', answer: 'We currently support Cash on Delivery (COD) on all orders. Mobile banking (bKash, Nagad) and card payments are coming soon.' },
@@ -36,7 +44,7 @@ const faqData = [
   },
   {
     title: 'Academy & Courses',
-    icon: '🎓',
+    icon: GraduationCap,
     faqs: [
       { question: 'How do I enrol in a course?', answer: 'Open the Academy page, choose a course, and click "Enrol". You\'ll be guided through batch selection (where applicable) and confirmation. Our team will reach out via WhatsApp for next steps.' },
       { question: 'Are the courses online or on-site?', answer: 'Both. Each course lists its mode — Online, On-site, or Hybrid — along with batch dates and duration.' },
@@ -46,7 +54,7 @@ const faqData = [
   },
   {
     title: 'Account & Security',
-    icon: '🔐',
+    icon: Lock,
     faqs: [
       { question: 'How do I reset my password?', answer: 'Click "Forgot Password" on the sign-in page, enter your email, and we\'ll send you a reset link. Follow the link to set a new password.' },
       { question: 'Can I sign in with Google?', answer: 'Yes — use "Continue with Google" on the sign-in page for quick, secure authentication using your Google account.' },
@@ -107,7 +115,6 @@ const FAQPage = memo(() => {
       <main
         id="main-content"
         className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter bg-gradient-to-b from-primary/5 via-background to-background flex-1"
-        aria-label="Frequently Asked Questions"
       >
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
@@ -142,10 +149,10 @@ const FAQPage = memo(() => {
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-11 w-11 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 aria-label="Clear search"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -165,19 +172,26 @@ const FAQPage = memo(() => {
         {/* FAQ Categories */}
         <div className="max-w-3xl mx-auto space-y-6">
           {filteredCategories.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">
-                No FAQs found matching <span className="font-medium text-foreground">"{debouncedQuery}"</span>.
-              </p>
-              <Button variant="outline" onClick={() => setSearchQuery('')} className="min-h-[44px]">
-                Clear search
-              </Button>
-            </div>
+            <EmptyState
+              icon={SearchX}
+              title="No FAQs found"
+              description={`Nothing matched "${debouncedQuery}". Try a different keyword or clear the search.`}
+              action={
+                <Button variant="outline" onClick={() => setSearchQuery('')} className="min-h-[44px]">
+                  Clear search
+                </Button>
+              }
+            />
           ) : (
             filteredCategories.map((category) => (
               <div key={category.title} className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                 <div className="px-5 py-4 flex items-center gap-3 border-b border-border">
-                  <span className="text-2xl" aria-hidden="true">{category.icon}</span>
+                  <span
+                    className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10 text-primary flex-shrink-0"
+                    aria-hidden="true"
+                  >
+                    <category.icon className="h-5 w-5" />
+                  </span>
                   <h2 className="font-semibold text-foreground">{category.title}</h2>
                   <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     {category.faqs.length}
