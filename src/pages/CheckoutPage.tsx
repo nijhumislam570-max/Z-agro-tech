@@ -222,7 +222,7 @@ const CheckoutPageInner = () => {
         p_items: JSON.parse(JSON.stringify(items)),
         p_total_amount: grandTotal,
         p_shipping_address: shippingAddress,
-        p_payment_method: paymentMethod,
+        p_payment_method: validatedData.paymentMethod,
         p_coupon_id: appliedCoupon?.id || null,
         p_division: validatedData.division,
       });
