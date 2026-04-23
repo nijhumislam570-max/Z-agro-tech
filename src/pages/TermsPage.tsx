@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { FileText } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { renderRichText } from '@/lib/richText';
 
 const sections = [
   {
@@ -140,9 +141,9 @@ Our total liability shall not exceed the amount you paid us in the past 12 month
     title: '13. Contact Information',
     content: `For questions about these Terms of Service, please contact us:
 
-**Email:** legal@zagrotech.com
+**Email:** [legal@zagrotech.com](mailto:legal@zagrotech.com)
 **Address:** Farmgate, Dhaka 1205, Bangladesh
-**Phone:** +880 1349-219441`,
+**Phone:** [+880 1349-219441](tel:+8801349219441)`,
   },
 ];
 
@@ -152,10 +153,24 @@ const TermsPage = memo(() => {
       <SEO
         title="Terms of Service"
         description="Review the Terms of Service for using the Z Agro Tech platform — products, courses, payments, delivery, and liability."
+        url="https://zagrotech.lovable.app/terms"
         canonicalUrl="https://zagrotech.lovable.app/terms"
+        schema={[
+          {
+            type: 'BreadcrumbList',
+            items: [
+              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
+              { name: 'Terms of Service', url: 'https://zagrotech.lovable.app/terms' },
+            ],
+          },
+        ]}
       />
 
-      <main id="main-content" className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter font-nunito" role="main" aria-label="Terms of Service">
+      <main
+        id="main-content"
+        className="container mx-auto px-4 md:px-8 py-8 sm:py-12 animate-page-enter font-nunito"
+        aria-label="Terms of Service"
+      >
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary/10 mb-4">
@@ -165,7 +180,8 @@ const TermsPage = memo(() => {
             Terms of Service
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Last Updated: April 18, 2026
+            Last Updated:{' '}
+            <time dateTime="2026-04-18">April 18, 2026</time>
           </p>
         </div>
 
@@ -182,17 +198,13 @@ const TermsPage = memo(() => {
 
         {/* Sections */}
         <div className="max-w-3xl mx-auto space-y-8">
-          {sections.map((section, index) => (
-            <section key={index} className="bg-card rounded-2xl border border-border p-6 sm:p-8">
+          {sections.map((section) => (
+            <section key={section.title} className="bg-card rounded-2xl border border-border p-6 sm:p-8">
               <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-4 font-fredoka">
                 {section.title}
               </h2>
-              <div className="prose prose-sm max-w-none text-muted-foreground leading-relaxed">
-                {section.content.split('\n\n').map((paragraph, pIndex) => (
-                  <p key={pIndex} className="mb-4 last:mb-0 whitespace-pre-line leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="text-muted-foreground leading-relaxed">
+                {renderRichText(section.content)}
               </div>
             </section>
           ))}
