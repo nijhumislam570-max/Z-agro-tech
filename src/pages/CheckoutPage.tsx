@@ -561,30 +561,32 @@ const CheckoutPageInner = () => {
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
                     {paymentMethods.map((method) => {
                       const Icon = method.icon;
+                      const selected = paymentMethod === method.id;
                       return (
-                        <div
+                        <label
                           key={method.id}
+                          htmlFor={method.id}
                           className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 transition-all ${
-                            method.available 
-                              ? paymentMethod === method.id 
-                                ? 'border-primary bg-primary/5' 
+                            method.available
+                              ? selected
+                                ? 'border-primary bg-primary/5 cursor-pointer'
                                 : 'border-border hover:border-primary/50 cursor-pointer'
                               : 'border-border/50 bg-muted/30 opacity-60 cursor-not-allowed'
                           }`}
-                          onClick={() => method.available && setPaymentMethod(method.id)}
+                          aria-disabled={!method.available}
                         >
-                          <RadioGroupItem 
-                            value={method.id} 
-                            id={method.id} 
+                          <RadioGroupItem
+                            value={method.id}
+                            id={method.id}
                             disabled={!method.available}
                             className="sr-only"
                           />
                           <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            paymentMethod === method.id && method.available
+                            selected && method.available
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}>
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -595,10 +597,10 @@ const CheckoutPageInner = () => {
                             </div>
                             <p className="text-xs sm:text-sm text-muted-foreground">{method.description}</p>
                           </div>
-                          {paymentMethod === method.id && method.available && (
-                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                          {selected && method.available && (
+                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" aria-hidden="true" />
                           )}
-                        </div>
+                        </label>
                       );
                     })}
                   </RadioGroup>
