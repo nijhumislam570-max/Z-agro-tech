@@ -44,19 +44,22 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 sm:mb-6">
       <div className="space-y-1.5">
-        <div className="flex items-center gap-2 text-white/80 text-[11px] font-semibold uppercase tracking-wider">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/90 backdrop-blur border border-primary/20 text-[11px] font-semibold uppercase tracking-wider text-primary shadow-soft">
           <Sparkles className="h-3.5 w-3.5" />
           Your Farm Hub
         </div>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white">
-          Welcome back, {greetingName}
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
+          Welcome back,{' '}
+          <span className="bg-gradient-to-r from-primary to-[hsl(142,45%,40%)] bg-clip-text text-transparent">
+            {greetingName}
+          </span>
         </h2>
-        <p className="text-sm text-white/80">{today}</p>
+        <p className="text-sm text-muted-foreground">{today}</p>
       </div>
       <button
         type="button"
         onClick={onEdit}
-        className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg px-3 py-2 transition-all min-h-[44px]"
+        className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-foreground bg-card hover:bg-secondary border border-border hover:border-primary/40 rounded-lg px-3 py-2 shadow-soft transition-all min-h-[44px]"
       >
         <Pencil className="h-3.5 w-3.5" />
         Edit profile
