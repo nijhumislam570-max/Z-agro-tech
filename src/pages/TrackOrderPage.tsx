@@ -65,7 +65,7 @@ const TrackOrderPage = () => {
       // Only attempt by-UUID lookup if the input looks like one — otherwise
       // Postgres rejects the cast with a 400 and we lose the chance to fall
       // back to the tracking_id lookup below.
-      if (UUID_RE.test(id)) {
+      if (isUuid(id)) {
         const result = await supabase
           .from('orders')
           .select(cols)
