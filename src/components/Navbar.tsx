@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sheet';
 import { CartQuickPeek } from '@/components/cart/CartQuickPeek';
 import { usePrefetch } from '@/hooks/usePrefetch';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const navLinks = [
   { path: '/shop', label: 'Shop', icon: Store },
@@ -111,6 +112,7 @@ const Navbar = memo(() => {
           <div className="flex-1" />
 
           <div className="flex items-center gap-1">
+            <ThemeToggle className="hidden md:flex" />
             <CartQuickPeek>
               <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label={`Cart with ${totalItems} items`} {...cartHoverPrefetch}>
                 <ShoppingCart className="h-4 w-4" />
