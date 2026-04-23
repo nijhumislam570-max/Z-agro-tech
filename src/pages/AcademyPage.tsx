@@ -44,6 +44,11 @@ const AcademyPage = () => {
   const certCount = (allCourses ?? []).filter((c) => c.provides_certificate).length;
   const freeCount = (allCourses ?? []).filter((c) => c.price <= 0).length;
 
+  // Batched fetch for "next batch" badges across the visible grid — replaces
+  // per-card useCourseBatches() N+1.
+  const visibleIds = useMemo(() => filtered.map((c) => c.id), [filtered]);
+  const { data: nextBatches } = useCoursesNextBatches(visibleIds);
+
   // ItemList schema from top 10 visible (filtered) courses for academy SEO
   const academyItemListItems = useMemo(
     () =>
