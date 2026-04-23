@@ -29,13 +29,20 @@ export function useProductCategories() {
   });
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const channel = supabase
       .channel('product-categories-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'product_categories' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['product-categories'] });
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['product-categories'] });
+        }, 400);
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
   }, [queryClient]);
 
   const addCategory = useMutation({

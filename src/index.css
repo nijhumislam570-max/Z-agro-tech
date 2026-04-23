@@ -164,6 +164,33 @@
     --danger-foreground: 0 30% 95%;
     --neutral-soft: 140 12% 14%;
     --neutral-border: 140 10% 22%;
+
+    /* Brand-specific tokens (dark) — keep dead-token parity */
+    --forest: 142 50% 50%;
+    --forest-light: 142 40% 60%;
+    --forest-dark: 142 60% 30%;
+    --sage: 90 20% 40%;
+    --sage-light: 140 14% 16%;
+    --harvest: 38 75% 58%;
+    --harvest-light: 38 40% 22%;
+    --soil: 28 25% 28%;
+    --cream: 140 14% 14%;
+
+    /* Gradients (dark) — deeper loam + forest, no pastel cream wash */
+    --gradient-hero: linear-gradient(135deg, hsl(140 16% 10%), hsl(140 14% 12%), hsl(38 30% 14%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 50% 32%), hsl(142 45% 42%));
+    --gradient-accent: linear-gradient(135deg, hsl(38 70% 48%), hsl(38 75% 58%));
+    --gradient-fun: linear-gradient(135deg, hsl(142 50% 32%), hsl(38 70% 48%));
+    --gradient-story: linear-gradient(135deg, hsl(142 50% 32%), hsl(90 30% 40%), hsl(38 70% 48%));
+    --gradient-rainbow: linear-gradient(135deg, hsl(142 50% 32%), hsl(90 30% 40%), hsl(38 70% 48%));
+
+    /* Shadows (dark) — higher alpha so they read against deep loam bg */
+    --shadow-card: 0 4px 20px -4px hsl(0 0% 0% / 0.45);
+    --shadow-hover: 0 12px 40px -12px hsl(142 60% 20% / 0.55);
+    --shadow-button: 0 4px 14px -4px hsl(142 60% 20% / 0.55);
+    --shadow-soft: 0 2px 12px -2px hsl(0 0% 0% / 0.40);
+    --shadow-glow: 0 0 20px hsl(142 50% 50% / 0.30);
+    --shadow-playful: 0 8px 30px -8px hsl(38 75% 58% / 0.30);
   }
 }
 

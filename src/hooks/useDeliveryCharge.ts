@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_5MIN } from '@/lib/queryConstants';
 
 /**
  * Centralized delivery-charge calculation. Used by both Cart (preview) and
@@ -41,7 +42,7 @@ export const useDeliveryCharge = (
       if (error) throw error;
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: STALE_5MIN,
   });
 
   return useMemo(() => {

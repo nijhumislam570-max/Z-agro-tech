@@ -30,7 +30,11 @@ export const RequireAdmin = ({ children }: RequireAdminProps) => {
       toast.error('Admin access required', {
         description: "You don't have permission to view this page.",
       });
-      const t = setTimeout(() => navigate('/', { replace: true }), 1500);
+      const t = setTimeout(() => {
+        // Re-check inside the timeout — guards against late role-resolution races
+        // where the user's admin role becomes truthy between toast + redirect.
+        if (!isAdmin) navigate('/', { replace: true });
+      }, 1500);
       return () => clearTimeout(t);
     }
   }, [user, authLoading, isAdmin, roleLoading, navigate]);

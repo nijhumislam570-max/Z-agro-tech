@@ -62,6 +62,7 @@ import { TimeFilterBar, getTimeCutoff, type TimeFilter } from '@/components/admi
 import { AdminStatCard } from '@/components/admin/AdminStatCard';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { STALE_2MIN } from '@/lib/queryConstants';
 
 type PaymentFilter = 'all' | 'paid' | 'unpaid';
 
@@ -220,7 +221,7 @@ const AdminEcommerceCustomers = () => {
       return data || [];
     },
     enabled: isAdmin,
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2MIN,
   });
 
   // Fetch profiles
@@ -234,7 +235,7 @@ const AdminEcommerceCustomers = () => {
       return data || [];
     },
     enabled: isAdmin,
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2MIN,
   });
 
   // Fetch user roles
@@ -248,7 +249,7 @@ const AdminEcommerceCustomers = () => {
       return data || [];
     },
     enabled: isAdmin,
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2MIN,
   });
 
   // Removed duplicate realtime channel — useAdminRealtimeDashboard already handles orders & incomplete_orders

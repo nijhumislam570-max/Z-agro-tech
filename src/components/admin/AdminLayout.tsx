@@ -37,10 +37,6 @@ export const useAdminPageMeta = (title: string, subtitle?: string) => {
   }, [ctx, title, subtitle]);
 };
 
-interface AdminShellProps {
-  children?: ReactNode;
-}
-
 /**
  * Backwards-compatible page wrapper. Pages still write
  *   <AdminLayout title="X" subtitle="Y">...</AdminLayout>
@@ -65,7 +61,7 @@ export const AdminLayout = ({ title, subtitle, children }: AdminLayoutCompatProp
  * Mounted ONCE for the `/admin` route tree; each child page renders
  * via <Outlet /> without remounting the shell.
  */
-export const AdminShell = ({ children }: AdminShellProps) => {
+export const AdminShell = () => {
   const [collapsed, setCollapsed] = useState(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     return stored === 'true';
@@ -145,7 +141,7 @@ export const AdminShell = ({ children }: AdminShellProps) => {
           <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
             <div key={location.pathname} className="animate-page-enter">
               <Suspense fallback={<AdminPageSkeleton />}>
-                {children ?? <Outlet />}
+                <Outlet />
               </Suspense>
             </div>
           </main>

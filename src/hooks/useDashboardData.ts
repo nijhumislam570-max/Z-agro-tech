@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_1MIN } from '@/lib/queryConstants';
 import { useMyOrders } from './useMyOrders';
 import { useMyEnrollments } from './useEnrollments';
 
@@ -27,7 +28,7 @@ export function useRecommendedProducts(limit = 3) {
       if (error) throw error;
       return (data || []) as unknown as RecommendedProduct[];
     },
-    staleTime: 60_000,
+    staleTime: STALE_1MIN,
   });
 }
 
@@ -56,7 +57,7 @@ export function useFeaturedMasterclass() {
       if (error) throw error;
       return (data as unknown as FeaturedMasterclass | null) ?? null;
     },
-    staleTime: 60_000,
+    staleTime: STALE_1MIN,
   });
 }
 

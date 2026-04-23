@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { profileSchema } from '@/lib/validations';
+import { STALE_5MIN } from '@/lib/queryConstants';
 
 export interface ProfileRow {
   id: string;
@@ -45,7 +46,7 @@ export const useProfile = () => {
   const query = useQuery({
     queryKey: profileKey(userId),
     enabled: !!userId,
-    staleTime: 1000 * 60 * 5, // 5min — profile rarely changes
+    staleTime: STALE_5MIN, // profile rarely changes
     queryFn: async (): Promise<ProfileRow | null> => {
       if (!userId) return null;
       const { data, error } = await supabase

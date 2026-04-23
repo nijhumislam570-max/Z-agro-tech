@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { STALE_1MIN } from '@/lib/queryConstants';
 
 export function useMyOrders() {
   const { user } = useAuth();
   return useQuery({
     queryKey: ['my-orders', user?.id],
     enabled: !!user,
-    staleTime: 60_000,
+    staleTime: STALE_1MIN,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')

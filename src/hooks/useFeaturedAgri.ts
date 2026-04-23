@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_1MIN } from '@/lib/queryConstants';
 import { useRecommendedProducts } from './useDashboardData';
 
 export interface FeaturedProductItem {
@@ -39,7 +40,7 @@ function useFeaturedCourses(limit = 3) {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 60_000,
+    staleTime: STALE_1MIN,
   });
 }
 

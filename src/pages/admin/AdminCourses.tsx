@@ -40,6 +40,7 @@ const CurriculumEditor = lazy(() =>
 import { CourseBatchesTable } from '@/components/admin/CourseBatchesTable';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { courseFormSchema, type CourseFormData } from '@/lib/validations';
+import { STALE_30S } from '@/lib/queryConstants';
 
 const defaultValues: CourseFormData = {
   title: '',
@@ -74,7 +75,7 @@ const AdminCourses = () => {
 
   const { data: courses, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin-courses'],
-    staleTime: 30_000,
+    staleTime: STALE_30S,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('courses')
