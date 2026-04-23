@@ -264,6 +264,21 @@ const AuthPage = () => {
           </div>
 
           <div className="backdrop-blur-xl bg-white/85 dark:bg-card/80 border border-white/40 rounded-2xl shadow-2xl p-5 sm:p-7 transition-all duration-200">
+            {pendingVerificationEmail && (
+              <div
+                role="status"
+                className="mb-5 p-3 rounded-lg bg-info-light border border-info/30 flex items-start gap-2.5"
+              >
+                <MailCheck className="h-4 w-4 text-info mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-info-foreground">Verify your email</p>
+                  <p className="text-xs text-info-foreground/80 break-words">
+                    We sent a confirmation link to <strong className="font-semibold">{pendingVerificationEmail}</strong>.
+                    Click it, then sign in below.
+                  </p>
+                </div>
+              </div>
+            )}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6 h-11 bg-muted/70">
                 <TabsTrigger value="signin" className="text-sm font-semibold data-[state=active]:shadow-sm">Sign In</TabsTrigger>
