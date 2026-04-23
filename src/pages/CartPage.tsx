@@ -56,8 +56,11 @@ const CartItem = memo(({
         <img
           src={item.image || '/placeholder.svg'}
           alt={item.name}
+          width={112}
+          height={112}
           className="h-full w-full object-cover"
           loading="lazy"
+          decoding="async"
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
         />
       </Link>
@@ -248,7 +251,7 @@ const CartPage = () => {
                   <div className="flex justify-between text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Truck className="h-4 w-4" aria-hidden="true" />
-                      <span>Delivery</span>
+                      <span>Delivery <span className="text-[10px]">(est.)</span></span>
                     </div>
                     {deliveryCharge === 0 ? (
                       <span className="text-success font-medium">FREE</span>
@@ -256,6 +259,9 @@ const CartPage = () => {
                       <span>৳{deliveryCharge}</span>
                     )}
                   </div>
+                  <p className="text-[10px] text-muted-foreground -mt-1">
+                    Final delivery rate calculated at checkout based on your division.
+                  </p>
 
                   {remainingForFreeDelivery > 0 && (
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
@@ -310,7 +316,7 @@ const CartPage = () => {
                   </li>
                   <li className="flex items-center gap-2 text-muted-foreground">
                     <Tag className="h-4 w-4 text-primary" aria-hidden="true" />
-                    <span>Best Prices</span>
+                    <span>Quality Guaranteed</span>
                   </li>
                 </ul>
               </div>
