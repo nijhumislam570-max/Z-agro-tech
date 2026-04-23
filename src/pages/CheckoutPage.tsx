@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthUser } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useDeliveryCharge } from '@/hooks/useDeliveryCharge';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,6 @@ import {
   Tag
 } from 'lucide-react';
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
 import SEO from '@/components/SEO';
 
@@ -74,11 +73,12 @@ const paymentMethods = [
 ];
 
 const CheckoutPageInner = () => {
-  useDocumentTitle('Checkout');
   const { items, totalAmount, clearCart, totalItems } = useCart();
-  const { user } = useAuth();
+  const user = useAuthUser();
   const navigate = useNavigate();
-  
+  const location = useLocation();
+  const couponInputRef = useRef<HTMLInputElement>(null);
+
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   // Note: Auth is enforced by RequireAuth wrapper in App.tsx
@@ -108,7 +108,8 @@ const CheckoutPageInner = () => {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -123,23 +124,38 @@ const CheckoutPageInner = () => {
     },
   });
 
-  // Watch all form values for checkout tracking & delivery zone matching
-  const watchedValues = watch();
+  // Use targeted useWatch for division so only delivery-charge derivation re-runs
+  // when that field changes (avoids re-rendering the entire form on every keystroke
+  // in unrelated fields, which `watch()` would do).
+  const watchedDivision = useWatch({ control, name: 'division' });
 
-  // Track incomplete checkout — cast watched values since react-hook-form returns DeepPartial
+  // Build tracking snapshot lazily — read latest values on each tick rather than
+  // subscribing to every field change.
+  const trackingValues = getValues();
   const trackingData = {
-    fullName: watchedValues.fullName || '',
-    phone: watchedValues.phone || '',
-    address: watchedValues.address || '',
-    division: watchedValues.division || '',
-    district: watchedValues.district || '',
-    thana: watchedValues.thana || '',
+    fullName: trackingValues.fullName || '',
+    phone: trackingValues.phone || '',
+    address: trackingValues.address || '',
+    division: trackingValues.division || '',
+    district: trackingValues.district || '',
+    thana: trackingValues.thana || '',
   };
   const { markRecovered } = useCheckoutTracking(trackingData, items, totalAmount, paymentMethod);
 
   // Centralized delivery-charge calc — same hook used by CartPage to keep totals consistent.
-  const watchedDivision = watchedValues.division;
   const { charge: deliveryCharge, zoneName: matchedZoneName } = useDeliveryCharge(totalAmount, watchedDivision);
+
+  // Scroll to coupon input when arriving via /checkout#coupon (from CartPage link).
+  useEffect(() => {
+    if (location.hash === '#coupon') {
+      // Defer until after layout so the input exists in the DOM.
+      const t = window.setTimeout(() => {
+        couponInputRef.current?.focus();
+        couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+      return () => window.clearTimeout(t);
+    }
+  }, [location.hash]);
   
   // Calculate coupon discount
   const couponDiscount = (() => {
@@ -349,7 +365,7 @@ const CheckoutPageInner = () => {
 
   return (
     <div className="bg-muted/30 pb-36 md:pb-8">
-      <SEO title="Checkout" description="Securely complete your Z Agro Tech order." noIndex />
+      <SEO title="Checkout" description="Securely complete your Z Agro Tech order." url="/checkout" noIndex />
       
       {/* Breadcrumb */}
       <div className="bg-background border-b border-border">
@@ -428,8 +444,10 @@ const CheckoutPageInner = () => {
                         placeholder="Your full name"
                         className="h-11 rounded-lg"
                         maxLength={100}
+                        autoComplete="name"
+                        aria-invalid={!!errors.fullName}
                       />
-                      {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
+                      {errors.fullName && <p className="text-xs text-destructive" role="alert">{errors.fullName.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="flex items-center gap-2 text-sm">
@@ -443,8 +461,10 @@ const CheckoutPageInner = () => {
                         placeholder="+880 1XXX-XXXXXX"
                         className="h-11 rounded-lg"
                         maxLength={20}
+                        autoComplete="tel"
+                        aria-invalid={!!errors.phone}
                       />
-                      {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+                      {errors.phone && <p className="text-xs text-destructive" role="alert">{errors.phone.message}</p>}
                     </div>
                   </div>
 
@@ -459,8 +479,10 @@ const CheckoutPageInner = () => {
                       placeholder="House #, Road #, Area"
                       className="min-h-[80px] rounded-lg resize-none"
                       maxLength={500}
+                      autoComplete="street-address"
+                      aria-invalid={!!errors.address}
                     />
-                    {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
+                    {errors.address && <p className="text-xs text-destructive" role="alert">{errors.address.message}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -472,8 +494,10 @@ const CheckoutPageInner = () => {
                         placeholder="Dhaka"
                         className="h-11 rounded-lg"
                         maxLength={50}
+                        autoComplete="address-level1"
+                        aria-invalid={!!errors.division}
                       />
-                      {errors.division && <p className="text-xs text-destructive">{errors.division.message}</p>}
+                      {errors.division && <p className="text-xs text-destructive" role="alert">{errors.division.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="district" className="text-sm">District</Label>
@@ -483,8 +507,10 @@ const CheckoutPageInner = () => {
                         placeholder="Dhaka"
                         className="h-11 rounded-lg"
                         maxLength={50}
+                        autoComplete="address-level2"
+                        aria-invalid={!!errors.district}
                       />
-                      {errors.district && <p className="text-xs text-destructive">{errors.district.message}</p>}
+                      {errors.district && <p className="text-xs text-destructive" role="alert">{errors.district.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="thana" className="text-sm">Thana</Label>
@@ -494,8 +520,10 @@ const CheckoutPageInner = () => {
                         placeholder="Dhanmondi"
                         className="h-11 rounded-lg"
                         maxLength={50}
+                        autoComplete="address-level3"
+                        aria-invalid={!!errors.thana}
                       />
-                      {errors.thana && <p className="text-xs text-destructive">{errors.thana.message}</p>}
+                      {errors.thana && <p className="text-xs text-destructive" role="alert">{errors.thana.message}</p>}
                     </div>
                   </div>
 
@@ -533,30 +561,32 @@ const CheckoutPageInner = () => {
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
                     {paymentMethods.map((method) => {
                       const Icon = method.icon;
+                      const selected = paymentMethod === method.id;
                       return (
-                        <div
+                        <label
                           key={method.id}
+                          htmlFor={method.id}
                           className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 transition-all ${
-                            method.available 
-                              ? paymentMethod === method.id 
-                                ? 'border-primary bg-primary/5' 
+                            method.available
+                              ? selected
+                                ? 'border-primary bg-primary/5 cursor-pointer'
                                 : 'border-border hover:border-primary/50 cursor-pointer'
                               : 'border-border/50 bg-muted/30 opacity-60 cursor-not-allowed'
                           }`}
-                          onClick={() => method.available && setPaymentMethod(method.id)}
+                          aria-disabled={!method.available}
                         >
-                          <RadioGroupItem 
-                            value={method.id} 
-                            id={method.id} 
+                          <RadioGroupItem
+                            value={method.id}
+                            id={method.id}
                             disabled={!method.available}
                             className="sr-only"
                           />
                           <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            paymentMethod === method.id && method.available
+                            selected && method.available
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}>
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -567,10 +597,10 @@ const CheckoutPageInner = () => {
                             </div>
                             <p className="text-xs sm:text-sm text-muted-foreground">{method.description}</p>
                           </div>
-                          {paymentMethod === method.id && method.available && (
-                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                          {selected && method.available && (
+                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" aria-hidden="true" />
                           )}
-                        </div>
+                        </label>
                       );
                     })}
                   </RadioGroup>
@@ -604,7 +634,7 @@ const CheckoutPageInner = () => {
             <div className="bg-background rounded-xl sm:rounded-2xl border border-border shadow-sm sticky top-24">
               <div className="p-4 sm:p-5 border-b border-border">
                 <h2 className="font-bold text-foreground">Order Summary</h2>
-                <p className="text-xs sm:text-sm text-muted-foreground">{totalItems} item{totalItems > 1 ? 's' : ''}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
               </div>
               
               {/* Order Items */}
@@ -651,22 +681,29 @@ const CheckoutPageInner = () => {
                         </p>
                       </div>
                     </div>
-                    <button onClick={removeCoupon} className="p-1 hover:bg-success-light dark:hover:bg-success-light rounded-full">
-                      <X className="h-4 w-4 text-success" />
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="p-2 hover:bg-success-light rounded-full min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      aria-label={`Remove coupon ${appliedCoupon.code}`}
+                    >
+                      <X className="h-4 w-4 text-success" aria-hidden="true" />
                     </button>
                   </div>
                 ) : (
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       <Input
                         id="coupon"
+                        ref={couponInputRef}
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                         placeholder="Coupon code"
                         className="h-10 pl-9 font-mono uppercase text-sm"
                         maxLength={20}
-                        onKeyDown={(e) => e.key === 'Enter' && applyCoupon()}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                        aria-label="Coupon code"
                       />
                     </div>
                     <Button variant="outline" size="sm" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()} className="h-10 px-4">
