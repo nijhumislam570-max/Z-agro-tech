@@ -8,6 +8,12 @@ import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import EditProfileSheet from './EditProfileSheet';
 
+interface ProfileTabProps {
+  /** Optional: if the page already mounts an EditProfileSheet, pass a trigger
+   *  callback so we don't double-mount the sheet. */
+  onEdit?: () => void;
+}
+
 const Field = ({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | null }) => (
   <div className="flex items-start gap-3">
     <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
@@ -24,10 +30,16 @@ const Field = ({ icon: Icon, label, value }: { icon: React.ElementType; label: s
   </div>
 );
 
-const ProfileTab = () => {
+const ProfileTab = ({ onEdit }: ProfileTabProps) => {
   const { user } = useAuth();
   const { profile, loading } = useProfile();
-  const [editOpen, setEditOpen] = useState(false);
+  // Only used as a fallback if the parent didn't supply onEdit (keeps the
+  // component usable in isolation, e.g. tests).
+  const [fallbackEditOpen, setFallbackEditOpen] = useState(false);
+  const handleEdit = () => {
+    if (onEdit) onEdit();
+    else setFallbackEditOpen(true);
+  };
 
   if (loading) {
     return (
@@ -50,12 +62,20 @@ const ProfileTab = () => {
   }
 
   const initial = (profile?.full_name ?? user?.email ?? 'U').charAt(0).toUpperCase();
-  const addressLine = [profile?.thana, profile?.district, profile?.division]
-    .filter(Boolean)
-    .join(', ') || null;
+  const region = [profile?.thana, profile?.district, profile?.division].filter(Boolean);
+  // Only show region when at least the division is set; otherwise it looks weird
+  // (e.g. just "thana"). Memory rule: format as ${thana}, ${district}, ${division}.
+  const addressLine = profile?.division ? region.join(', ') : null;
 
-  // True only when none of the meaningful fields are filled.
-  const hasNothing = !profile?.full_name && !profile?.phone && !profile?.address && !profile?.division;
+  // Stronger completeness check — includes district/thana so the nudge stays
+  // visible until the user has a usable delivery address, not just a division.
+  const hasNothing =
+    !profile?.full_name &&
+    !profile?.phone &&
+    !profile?.address &&
+    !profile?.division &&
+    !profile?.district &&
+    !profile?.thana;
 
   return (
     <>
@@ -76,9 +96,9 @@ const ProfileTab = () => {
                 <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" onClick={handleEdit} className="gap-2 flex-shrink-0">
               <Pencil className="h-3.5 w-3.5" />
-              Edit
+              Edit profile
             </Button>
           </div>
 
@@ -90,7 +110,7 @@ const ProfileTab = () => {
                 <p className="text-xs text-muted-foreground">
                   Add your phone and delivery address to make checkout faster.
                 </p>
-                <Button size="sm" onClick={() => setEditOpen(true)}>Get started</Button>
+                <Button size="sm" onClick={handleEdit}>Get started</Button>
               </div>
             </div>
           )}
@@ -104,7 +124,14 @@ const ProfileTab = () => {
         </CardContent>
       </Card>
 
-      <EditProfileSheet open={editOpen} onOpenChange={setEditOpen} profile={profile} />
+      {/* Only mounted when no parent-supplied onEdit; prevents duplicate Sheets. */}
+      {!onEdit && (
+        <EditProfileSheet
+          open={fallbackEditOpen}
+          onOpenChange={setFallbackEditOpen}
+          profile={profile}
+        />
+      )}
     </>
   );
 };
