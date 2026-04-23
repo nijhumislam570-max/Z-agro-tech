@@ -12,15 +12,13 @@
  */
 import type { QueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_1MIN, STALE_5MIN } from '@/lib/queryConstants';
 
 type DataPrefetcher = (qc: QueryClient) => Promise<unknown>;
 
 interface PublicPrefetchEntry {
   data?: DataPrefetcher;
 }
-
-const STALE_5MIN = 1000 * 60 * 5;
-const STALE_1MIN = 1000 * 60;
 
 const PUBLIC_PREFETCH: Record<string, PublicPrefetchEntry> = {
   '/shop': {
