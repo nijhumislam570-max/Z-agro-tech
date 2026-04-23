@@ -729,17 +729,30 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_incomplete_orders: { Args: never; Returns: number }
-      create_order_with_stock: {
-        Args: {
-          p_coupon_id?: string
-          p_items: Json
-          p_payment_method?: string
-          p_shipping_address?: string
-          p_total_amount: number
-          p_user_id: string
-        }
-        Returns: string
-      }
+      create_order_with_stock:
+        | {
+            Args: {
+              p_coupon_id?: string
+              p_items: Json
+              p_payment_method?: string
+              p_shipping_address?: string
+              p_total_amount: number
+              p_user_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_coupon_id?: string
+              p_division?: string
+              p_items: Json
+              p_payment_method?: string
+              p_shipping_address?: string
+              p_total_amount: number
+              p_user_id: string
+            }
+            Returns: string
+          }
       decrement_stock: {
         Args: { p_product_id: string; p_quantity: number }
         Returns: undefined
@@ -767,6 +780,16 @@ export type Database = {
       increment_coupon_usage: {
         Args: { p_coupon_id: string }
         Returns: undefined
+      }
+      validate_coupon: {
+        Args: { p_code: string; p_subtotal: number }
+        Returns: {
+          code: string
+          discount_type: string
+          discount_value: number
+          id: string
+          max_discount_amount: number
+        }[]
       }
     }
     Enums: {
