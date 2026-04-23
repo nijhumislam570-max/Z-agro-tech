@@ -226,6 +226,26 @@ const CourseDetailPage = () => {
               course={course}
               batch={activeBatch}
             />
+
+            {/* Mobile sticky-bottom enroll bar — desktop sidebar handles this above lg. */}
+            {!activeEnrollment && (
+              <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/60 shadow-[0_-8px_24px_-12px_hsl(var(--foreground)/0.15)] px-4 py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Course fee</p>
+                  <p className="text-lg font-bold text-primary leading-tight">
+                    {course.price > 0 ? `৳${course.price}` : 'Free'}
+                  </p>
+                </div>
+                <Button
+                  size="lg"
+                  className="flex-shrink-0 h-12 px-6"
+                  onClick={() => setEnrollOpen(true)}
+                  disabled={!hasOpenBatch && (batches?.length ?? 0) > 0}
+                >
+                  Enroll now
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>
