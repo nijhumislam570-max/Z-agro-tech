@@ -15,17 +15,17 @@ interface StatProps {
 const StatCard = memo(({ label, value, icon: Icon, to }: StatProps) => (
   <Link
     to={to}
-    className="group rounded-xl bg-white/15 backdrop-blur-sm border border-white/20 hover:border-white/40 hover:bg-white/20 px-4 py-3.5 sm:px-5 sm:py-4 transition-all duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-white/60"
+    className="group rounded-xl bg-card border border-border/60 hover:border-primary/40 hover:shadow-md px-4 py-3.5 sm:px-5 sm:py-4 transition-all duration-200 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-primary/40"
   >
     <div className="flex items-center gap-3">
-      <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-        <Icon className="h-5 w-5 text-white" />
+      <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+        <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[11px] sm:text-xs text-white/75 font-medium uppercase tracking-wide truncate">
+        <div className="text-[11px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wide truncate">
           {label}
         </div>
-        <div className="text-xl sm:text-2xl font-display font-bold text-white leading-tight truncate">
+        <div className="text-xl sm:text-2xl font-display font-bold text-foreground leading-tight truncate">
           {value}
         </div>
       </div>
@@ -43,7 +43,7 @@ export const DashboardStatGrid = memo(function DashboardStatGrid() {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-[72px] sm:h-[84px] rounded-xl bg-white/20" />
+          <Skeleton key={i} className="h-[72px] sm:h-[84px] rounded-xl" />
         ))}
       </div>
     );
