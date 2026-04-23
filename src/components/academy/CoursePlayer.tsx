@@ -23,6 +23,11 @@ export const CoursePlayer = ({ videoUrl, thumbnailUrl, title }: Props) => {
           src={embed.src}
           title={embed.title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          // Defense-in-depth: even though embed sources are whitelisted in
+          // getVideoEmbed, sandbox prevents form submission, top-level nav,
+          // and same-origin access — only video playback + scripts run.
+          sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
+          referrerPolicy="no-referrer-when-downgrade"
           allowFullScreen
           className="w-full h-full border-0"
           loading="lazy"
