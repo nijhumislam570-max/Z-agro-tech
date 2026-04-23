@@ -400,6 +400,8 @@ const CheckoutPageInner = () => {
       </div>
 
       <main id="main-content" className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
+        <h1 className="sr-only">Checkout</h1>
+
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Form Section */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-4 sm:space-y-6">
@@ -673,8 +675,8 @@ const CheckoutPageInner = () => {
                 <p className="text-xs sm:text-sm text-muted-foreground">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
               </div>
               
-              {/* Order Items */}
-              <div className="max-h-[280px] overflow-y-auto">
+              {/* Order Items — only scroll when list is long enough to need it. */}
+              <div className={items.length > 4 ? 'max-h-[280px] overflow-y-auto' : ''}>
                 <div className="p-4 sm:p-5 space-y-3">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-3">
@@ -861,7 +863,14 @@ const CheckoutPageInner = () => {
           className="w-full h-11 text-sm font-semibold rounded-xl"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Placing Order...' : 'Place Order'}
+          {isSubmitting ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              Placing Order...
+            </span>
+          ) : (
+            'Place Order'
+          )}
         </Button>
       </div>
     </div>
