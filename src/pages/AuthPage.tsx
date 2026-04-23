@@ -25,6 +25,9 @@ const AuthPage = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  // Inline confirmation banner shown after a signup that requires email
+  // verification — toasts disappear too quickly for a critical instruction.
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
 
   // Selector hooks — only re-render on the slices we actually consume.
   const user = useAuthUser();
