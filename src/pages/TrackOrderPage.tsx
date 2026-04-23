@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthUser, useAuthLoading } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import SEO from '@/components/SEO';
+import { isUuid } from '@/hooks/useUuidParam';
 
 interface OrderDetails {
   id: string;
@@ -35,7 +36,7 @@ interface OrderDetails {
   items: any[];
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
 const TrackOrderPage = () => {
   const [searchParams] = useSearchParams();
