@@ -51,6 +51,12 @@ const AuthPage = () => {
     resolver: zodResolver(signupSchema),
     defaultValues: { email: '', password: '', fullName: '' },
   });
+  // Track signup password reactively for the strength-hints component
+  // without re-rendering the entire form on every keystroke.
+  const signupPasswordValue = useWatch({
+    control: signupForm.control,
+    name: 'password',
+  }) ?? '';
 
   /**
    * After-auth redirect. If a redirect target was requested (via `?redirect=`
