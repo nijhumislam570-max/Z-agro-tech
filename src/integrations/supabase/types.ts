@@ -592,6 +592,13 @@ export type Database = {
             foreignKeyName: "reviews_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "product_ratings"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -642,6 +649,13 @@ export type Database = {
             foreignKeyName: "wishlists_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "product_ratings"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "wishlists_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -649,6 +663,14 @@ export type Database = {
       }
     }
     Views: {
+      product_ratings: {
+        Row: {
+          avg_rating: number | null
+          product_id: string | null
+          review_count: number | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           avatar_url: string | null
@@ -695,6 +717,17 @@ export type Database = {
         Returns: undefined
       }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
+      get_order_tracking_summary: {
+        Args: { p_tracking_id: string }
+        Returns: {
+          consignment_id: string
+          created_at: string
+          id: string
+          rejection_reason: string
+          status: string
+          tracking_id: string
+        }[]
+      }
       get_protected_admin_user_id: { Args: never; Returns: string }
       has_role: {
         Args: {

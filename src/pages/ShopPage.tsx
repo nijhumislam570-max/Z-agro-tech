@@ -33,6 +33,10 @@ import { useProductCategories } from '@/hooks/useProductCategories';
 import SEO from '@/components/SEO';
 import shopHeroAgriculture from '@/assets/shop-hero-agriculture.jpg';
 import { STALE_2MIN, STALE_5MIN } from '@/lib/queryConstants';
+import { escapeIlikePattern } from '@/lib/searchUtils';
+
+const GRID_COLS_STORAGE_KEY = 'zagrotech-shop-grid-cols';
+const FEATURED_LIMIT = 10;
 
 // Price range options outside component to prevent recreation
 const priceRangeOptions = [
@@ -200,7 +204,20 @@ const ShopPage = () => {
   const searchQuery = useDebounce(searchInput, 300);
   const [productType, setProductType] = useState(searchParams.get('type') || 'All');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
-  const [gridCols, setGridCols] = useState<3 | 4 | 6>(4);
+  const [gridCols, setGridColsState] = useState<3 | 4 | 6>(() => {
+    if (typeof window === 'undefined') return 4;
+    const stored = window.localStorage.getItem(GRID_COLS_STORAGE_KEY);
+    const parsed = stored ? Number(stored) : NaN;
+    return parsed === 3 || parsed === 4 || parsed === 6 ? (parsed as 3 | 4 | 6) : 4;
+  });
+  const setGridCols = useCallback((next: 3 | 4 | 6) => {
+    setGridColsState(next);
+    try {
+      window.localStorage.setItem(GRID_COLS_STORAGE_KEY, String(next));
+    } catch {
+      // ignore quota / privacy-mode errors
+    }
+  }, []);
   const [priceRange, setPriceRange] = useState<'all' | 'under500' | '500to1000' | 'over1000'>(
     (searchParams.get('price') as 'all' | 'under500' | '500to1000' | 'over1000') || 'all'
   );
@@ -215,7 +232,7 @@ const ShopPage = () => {
     setSearchParams(params, { replace: true });
   }, [searchQuery, productType, sortBy, priceRange, setSearchParams]);
 
-  // ── Featured products query (separate, unchanged) ──────────────────────────
+  // ── Featured products query (capped — carousel only displays a handful) ───
   const { data: featuredProducts = [] } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
@@ -224,7 +241,8 @@ const ShopPage = () => {
         .select('id, name, price, category, product_type, description, image_url, images, stock, badge, discount, created_at, is_featured, is_active, compare_price, sku')
         .eq('is_active', true)
         .eq('is_featured', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(FEATURED_LIMIT);
       if (error) throw error;
       return (data || []) as Product[];
     },
@@ -250,7 +268,9 @@ const ShopPage = () => {
         .eq('is_active', true)
         .range(from, to);
 
-      if (searchQuery) query = query.ilike('name', `%${searchQuery}%`);
+      // Escape `%` and `_` so user input can't inject LIKE wildcards
+      // (security/perf: a stray `%` would otherwise match every row).
+      if (searchQuery) query = query.ilike('name', `%${escapeIlikePattern(searchQuery)}%`);
       if (productType !== 'All') query = query.eq('category', productType);
 
       if (priceRange === 'under500') query = query.lt('price', 500);
@@ -276,9 +296,13 @@ const ShopPage = () => {
   // Flatten pages → single array
   const products = useMemo(() => data?.pages.flat() ?? [], [data]);
 
-  // Client-side sort for top-rated (ratings live in reviews table)
+  // Fetch ratings for both the main grid and the recently-viewed strip.
+  // The hook caches per-id so overlap between the two lists costs nothing.
   const productIds = useMemo(() => products.map(p => p.id), [products]);
   const ratings = useProductRatings(productIds);
+
+  const recentIds = useMemo(() => recentProducts.map(p => p.id), [recentProducts]);
+  const recentRatings = useProductRatings(recentIds);
 
   const sortedProducts = useMemo(() => {
     if (sortBy !== 'top-rated') return products;
@@ -289,17 +313,17 @@ const ShopPage = () => {
     });
   }, [products, sortBy, ratings]);
 
-  // Use DB categories for filter options (includes admin-created categories with 0 products)
+  // Use DB categories as the canonical filter list. We deliberately do NOT
+  // merge in `products[].category` because the loaded subset shifts as the
+  // user scrolls infinite-scroll, which would otherwise reorder the dropdown
+  // mid-session.
   const productTypes = useMemo(() => {
     const activeNames = dbCategories
       .filter(c => c.is_active)
       .map(c => c.name)
       .sort((a, b) => a.localeCompare(b));
-    // Fallback: also include any category strings from loaded products not yet in the DB table
-    const fromProducts = new Set(products.map(p => p.category).filter(Boolean) as string[]);
-    const merged = new Set([...activeNames, ...fromProducts]);
-    return ['All', ...Array.from(merged).sort((a, b) => a.localeCompare(b))];
-  }, [dbCategories, products]);
+    return ['All', ...activeNames];
+  }, [dbCategories]);
 
   // ── Realtime subscription (debounced — admin bulk edits won't thrash) ──────
   useEffect(() => {
@@ -352,10 +376,14 @@ const ShopPage = () => {
   }, []);
 
   const gridClass = gridCols === 3
-    ? 'grid-cols-3 md:grid-cols-3 lg:grid-cols-3'
+    ? 'grid-cols-3 lg:grid-cols-3'
     : gridCols === 4
-      ? 'grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+      ? 'grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
       : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6';
+
+  // Match the visible grid density so we render ~2 rows worth of skeletons
+  // on the initial load instead of a fixed 8 (looked sparse at gridCols=6).
+  const skeletonCount = gridCols * 2;
 
   // Build ItemList schema from up to 10 visible products for storefront SEO
   const shopItemListItems = useMemo(
@@ -460,8 +488,8 @@ const ShopPage = () => {
             <div className="flex gap-2 sm:gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <input 
-                  type="text" 
+                <input
+                  type="search"
                   placeholder="Search products..." 
                   value={searchInput}
                   onChange={handleSearchChange}
@@ -723,9 +751,9 @@ const ShopPage = () => {
               </Badge>
             )}
             {searchQuery && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs" role="listitem">
-                "{searchQuery}"
-                <button onClick={handleClearSearch} className="ml-1 hover:bg-muted rounded-full p-0.5" aria-label="Remove search filter">
+              <Badge variant="secondary" className="gap-1 pr-1 text-xs max-w-[60vw] sm:max-w-xs" role="listitem">
+                <span className="truncate">&quot;{searchQuery}&quot;</span>
+                <button onClick={handleClearSearch} className="ml-1 hover:bg-muted rounded-full p-0.5 flex-shrink-0" aria-label="Remove search filter">
                   <X className="h-3 w-3" aria-hidden="true" />
                 </button>
               </Badge>
@@ -738,7 +766,7 @@ const ShopPage = () => {
           {/* Initial loading state: full skeleton grid */}
           {isLoading ? (
             <div className={`grid gap-2 sm:gap-3 ${gridClass}`} aria-busy="true" aria-label="Loading products">
-              {[...Array(8)].map((_, i) => (
+              {[...Array(skeletonCount)].map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
@@ -806,15 +834,17 @@ const ShopPage = () => {
             <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-none -mx-1 px-1">
               {recentProducts.map(product => (
                 <div key={product.id} className="flex-shrink-0 w-[160px] sm:w-[200px]">
-                  <ProductCard 
-                    id={product.id} 
-                    name={product.name} 
+                  <ProductCard
+                    id={product.id}
+                    name={product.name}
                     price={product.price}
-                    category={product.category} 
+                    category={product.category}
                     image={product.image}
-                    badge={product.badge} 
+                    badge={product.badge}
                     discount={product.discount}
                     stock={product.stock}
+                    avgRating={recentRatings[product.id]?.avgRating}
+                    reviewCount={recentRatings[product.id]?.reviewCount}
                   />
                 </div>
               ))}
