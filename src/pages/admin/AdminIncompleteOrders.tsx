@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import { STALE_5MIN } from '@/lib/queryConstants';
 
 const IncompleteStatCard = ({ icon: Icon, label, value, iconColor, iconBg, bgClass, active, onClick }: { icon: React.ElementType; label: string; value: string | number; iconColor: string; iconBg: string; bgClass: string; active?: boolean; onClick?: () => void }) => (
   <div
@@ -82,7 +83,7 @@ const AdminIncompleteOrders = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: STALE_5MIN,
   });
 
   // Editable form state for convert dialog

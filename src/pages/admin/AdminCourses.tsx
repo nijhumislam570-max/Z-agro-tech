@@ -40,6 +40,7 @@ const CurriculumEditor = lazy(() =>
 import { CourseBatchesTable } from '@/components/admin/CourseBatchesTable';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { courseFormSchema, type CourseFormData } from '@/lib/validations';
+import { STALE_30S } from '@/lib/queryConstants';
 
 const defaultValues: CourseFormData = {
   title: '',
