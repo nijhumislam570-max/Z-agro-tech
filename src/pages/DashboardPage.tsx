@@ -26,7 +26,7 @@ import { useProfile } from '@/hooks/useProfile';
 const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
 type TabValue = typeof VALID_TABS[number];
 
-const Hero = memo(function Hero() {
+const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
   const { user } = useAuth();
   const { profile } = useProfile();
 
@@ -53,13 +53,14 @@ const Hero = memo(function Hero() {
         </h2>
         <p className="text-sm text-white/80">{today}</p>
       </div>
-      <Link
-        to="/dashboard?tab=profile"
+      <button
+        type="button"
+        onClick={onEdit}
         className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-white/90 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg px-3 py-2 transition-all min-h-[44px]"
       >
         <Pencil className="h-3.5 w-3.5" />
         Edit profile
-      </Link>
+      </button>
     </div>
   );
 });
