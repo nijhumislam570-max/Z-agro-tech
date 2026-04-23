@@ -1,7 +1,6 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Package, GraduationCap, Heart, User, Sparkles, Pencil, AlertTriangle } from 'lucide-react';
 import OrdersTab from '@/components/dashboard/OrdersTab';
@@ -20,7 +19,7 @@ import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
 import FeaturedCarouselTile from '@/components/dashboard/tiles/FeaturedCarouselTile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthUser } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 
 const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
