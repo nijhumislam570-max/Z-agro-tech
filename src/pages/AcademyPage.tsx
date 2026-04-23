@@ -2,16 +2,17 @@ import { useState, useMemo } from 'react';
 import SEO from '@/components/SEO';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCourses, type CourseCategory } from '@/hooks/useCourses';
+import { useCoursesNextBatches } from '@/hooks/useCourseNextBatch';
 import { CourseCard } from '@/components/academy/CourseCard';
 import { CourseSkeleton } from '@/components/academy/CourseSkeleton';
 import { CourseCategoryChips } from '@/components/academy/CourseCategoryChips';
 import { GraduationCap, Search, X, BookOpen, Award, Languages, Sparkles, Users, PlayCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { BRAND_STATS } from '@/lib/brandStats';
 
 const AcademyPage = () => {
-  useDocumentTitle('Academy');
+  // SEO component owns <title>; no need for useDocumentTitle here.
   const [category, setCategory] = useState<CourseCategory | 'all'>('all');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 250);
