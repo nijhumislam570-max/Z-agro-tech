@@ -139,7 +139,8 @@ const CheckoutPageInner = () => {
     }
   }, [location.hash]);
   
-  // Calculate coupon discount
+  // Calculate coupon discount — formula mirrors create_order_with_stock to
+  // stay inside the ±৳1 server tolerance even on round-number subtotals.
   const couponDiscount = (() => {
     if (!appliedCoupon) return 0;
     if (appliedCoupon.discount_type === 'free_delivery') return deliveryCharge;
