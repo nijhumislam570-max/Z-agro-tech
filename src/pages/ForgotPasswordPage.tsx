@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Mail, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,16 +20,25 @@ const ForgotPasswordPage = () => {
   const [emailError, setEmailError] = useState('');
   const emailInputRef = useRef<HTMLInputElement>(null);
 
-  // Refocus the email field when returning from the success state
+  // After the user clicks "try again" we re-render the form. Refocus the
+  // email field so they can immediately retype. (Initial mount focus is
+  // handled by `autoFocus` on the input — this effect only fires when
+  // `sent` flips back to false, avoiding a double-focus on first render.)
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     if (!sent) emailInputRef.current?.focus();
   }, [sent]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailError('');
 
-    const result = emailSchema.safeParse(email.trim());
+    const trimmed = email.trim();
+    const result = emailSchema.safeParse(trimmed);
     if (!result.success) {
       setEmailError(result.error.errors[0]?.message || 'Invalid email');
       emailInputRef.current?.focus();
@@ -38,7 +47,10 @@ const ForgotPasswordPage = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      // Note: Supabase intentionally returns success regardless of whether the
+      // email exists — this is the correct behavior to prevent account
+      // enumeration. We always show the "check your email" UI.
+      const { error } = await supabase.auth.resetPasswordForEmail(trimmed, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
@@ -46,30 +58,31 @@ const ForgotPasswordPage = () => {
 
       setSent(true);
       toast.success('Password reset link sent to your email');
-    } catch (error: any) {
-      const raw = (error?.message || '').toLowerCase();
+    } catch (error: unknown) {
+      const raw = (error instanceof Error ? error.message : '').toLowerCase();
       let friendly = 'Failed to send reset link. Please try again.';
-      if (raw.includes('rate limit') || raw.includes('for security purposes')) {
+      if (raw.includes('rate limit') || raw.includes('for security purposes') || raw.includes('too many')) {
         friendly = 'Too many requests. Please wait a few minutes before trying again.';
       } else if (raw.includes('invalid format') || raw.includes('unable to validate email')) {
         friendly = 'Please enter a valid email address.';
-      } else if (raw.includes('network') || raw.includes('failed to fetch')) {
+      } else if (raw.includes('network') || raw.includes('failed to fetch') || raw.includes('load failed')) {
         friendly = 'Network error. Please check your connection and try again.';
       }
       toast.error(friendly);
     } finally {
       setLoading(false);
     }
-  }, [email]);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+    <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
       <SEO
         title="Forgot Password"
         description="Reset your Z Agro Tech account password securely."
         url="/forgot-password"
         noIndex
       />
+      <h1 className="sr-only">Forgot Password</h1>
       <Card className="w-full max-w-md shadow-card rounded-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -161,7 +174,7 @@ const ForgotPasswordPage = () => {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };
 

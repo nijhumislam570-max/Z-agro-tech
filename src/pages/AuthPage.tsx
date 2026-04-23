@@ -49,7 +49,7 @@ const AuthPage = () => {
   });
   const signupForm = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { email: '', password: '', fullName: '' },
+    defaultValues: { email: '', password: '', confirmPassword: '', fullName: '' },
   });
   // Track signup password reactively for the strength-hints component
   // without re-rendering the entire form on every keystroke.
@@ -64,16 +64,24 @@ const AuthPage = () => {
    * route admins to /admin and everyone else to /dashboard.
    */
   const redirectAfterAuth = useCallback(async (userId: string) => {
-    if (fromPath) {
+    if (isSafeRelativePath(fromPath)) {
       navigate(fromPath, { replace: true });
       return;
     }
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-    const isAdmin = roleData?.some((r) => r.role === 'admin') ?? false;
-    navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
+    try {
+      const { data: roleData, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      if (error) throw error;
+      const isAdmin = roleData?.some((r) => r.role === 'admin') ?? false;
+      navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
+    } catch {
+      // Network/RLS failure → fall back to the user dashboard rather than
+      // silently sending the user to a wrong route.
+      navigate('/dashboard', { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, fromPath]);
 
   useEffect(() => {
@@ -85,12 +93,19 @@ const AuthPage = () => {
     }
   }, [user, authLoading, redirectAfterAuth]);
 
-  // Build the post-OAuth landing URL. Supabase will append `?code=...` to
-  // this on success; the auth listener then picks up the new session and the
-  // user lands on the desired page (or `/` as a safe default).
+  // Build the post-OAuth landing URL. Sanitize `fromPath` to prevent open
+  // redirects: must be a relative same-origin path. Reject protocol-relative
+  // (`//host`), backslash variants, and anything that isn't a clean `/path`.
+  const isSafeRelativePath = (p: string | undefined): p is string => {
+    if (!p) return false;
+    if (!p.startsWith('/')) return false;
+    if (p.startsWith('//') || p.startsWith('/\\')) return false;
+    if (p.includes('\\')) return false;
+    return true;
+  };
   const oauthRedirectUri = (() => {
     if (typeof window === 'undefined') return undefined;
-    const target = fromPath && fromPath.startsWith('/') ? fromPath : '/';
+    const target = isSafeRelativePath(fromPath) ? fromPath : '/';
     return `${window.location.origin}${target}`;
   })();
 
@@ -117,12 +132,16 @@ const AuthPage = () => {
   };
 
   const friendlyAuthMessage = (rawMessage: string): string => {
+    // NOTE: We intentionally do NOT map "User already registered" to a
+    // confirming message here — that would be email enumeration. The signup
+    // flow handles existing accounts silently (see `onSignup`).
     const map: Record<string, string> = {
-      'User already registered': 'An account with this email already exists. Please sign in instead.',
       'Invalid login credentials': 'Incorrect email or password. Please try again.',
       'Email not confirmed': 'Please verify your email address before signing in.',
       'Too many requests': 'Too many attempts. Please wait a moment and try again.',
       'Signup disabled': 'New registrations are currently disabled. Please contact support.',
+      'Password should be at least': 'Password is too weak. Please choose a stronger password.',
+      'pwned': 'This password has appeared in a data breach. Please choose a different one.',
     };
     return Object.entries(map).find(([key]) =>
       rawMessage.toLowerCase().includes(key.toLowerCase()),
@@ -146,13 +165,19 @@ const AuthPage = () => {
   const onSignup = async (values: SignupFormData) => {
     try {
       const { error, user: newUser } = await signUp(values.email, values.password, values.fullName);
-      if (error) throw error;
-      if (!newUser) throw new Error('Failed to create account. Please try again.');
+      // Email-enumeration mitigation: if Supabase reports the email is already
+      // registered, show the same generic "check your email" UX as a fresh
+      // signup. Attackers can no longer probe for account existence here.
+      const raw = error instanceof Error ? error.message.toLowerCase() : '';
+      const isAlreadyRegistered = raw.includes('already registered') || raw.includes('user already');
+      if (error && !isAlreadyRegistered) throw error;
+      if (!error && !newUser) throw new Error('Failed to create account. Please try again.');
 
-      // If email confirmation is required, no session is created — show a check-email
-      // message instead of bouncing to /dashboard which would just redirect back.
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Use the signUp response directly — `getSession()` after signUp races
+      // with the auth listener. `email_confirmed_at` is the source of truth
+      // for whether a session was created.
+      const sessionCreated = !!(newUser && newUser.email_confirmed_at);
+      if (!sessionCreated) {
         toast.success('Account created! Check your email to verify your address.');
         setPendingVerificationEmail(values.email);
         signupForm.reset();
@@ -333,6 +358,7 @@ const AuthPage = () => {
                       />
                       <button
                         type="button"
+                        tabIndex={-1}
                         onClick={() => setShowLoginPassword((v) => !v)}
                         className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                         aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
@@ -407,6 +433,7 @@ const AuthPage = () => {
                       />
                       <button
                         type="button"
+                        tabIndex={-1}
                         onClick={() => setShowSignupPassword((v) => !v)}
                         className="absolute right-0 top-0 h-11 w-11 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                         aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
@@ -418,6 +445,22 @@ const AuthPage = () => {
                       <p className="text-xs text-destructive" role="alert">{signupForm.formState.errors.password.message}</p>
                     )}
                     <PasswordStrengthHints password={signupPasswordValue} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                    <Input
+                      id="signup-confirm-password"
+                      type={showSignupPassword ? 'text' : 'password'}
+                      placeholder="Re-enter your password"
+                      autoComplete="new-password"
+                      aria-invalid={!!signupForm.formState.errors.confirmPassword}
+                      className={`h-11 ${signupForm.formState.errors.confirmPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                      {...signupForm.register('confirmPassword')}
+                    />
+                    {signupForm.formState.errors.confirmPassword && (
+                      <p className="text-xs text-destructive" role="alert">{signupForm.formState.errors.confirmPassword.message}</p>
+                    )}
                   </div>
 
                   <Button
@@ -463,6 +506,13 @@ const AuthPage = () => {
                 Apple
               </Button>
             </div>
+
+            <p className="mt-4 text-[11px] leading-relaxed text-center text-muted-foreground">
+              By continuing, you agree to our{' '}
+              <Link to="/terms" className="underline hover:text-foreground transition-colors">Terms of Service</Link>
+              {' '}and{' '}
+              <Link to="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>.
+            </p>
           </div>
 
           <div className="mt-6 text-center">

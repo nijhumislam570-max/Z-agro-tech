@@ -24,15 +24,21 @@ export const loginSchema = z.object({
 });
 export type LoginFormData = z.infer<typeof loginSchema>;
 
-export const signupSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  fullName: z
-    .string()
-    .min(1, 'Full name is required')
-    .max(100, 'Full name must be less than 100 characters')
-    .regex(noXSSRegex, 'Name cannot contain < or > characters'),
-});
+export const signupSchema = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+    fullName: z
+      .string()
+      .min(1, 'Full name is required')
+      .max(100, 'Full name must be less than 100 characters')
+      .regex(noXSSRegex, 'Name cannot contain < or > characters'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 export type SignupFormData = z.infer<typeof signupSchema>;
 
 // ========== Checkout / Profile ==========
