@@ -1,7 +1,10 @@
 import { useState, memo, useMemo } from 'react';
-import { HelpCircle, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { HelpCircle, Search, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEO from '@/components/SEO';
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   Accordion,
   AccordionContent,
@@ -52,32 +55,60 @@ const faqData = [
   },
 ];
 
+// Flat list used for the FAQPage JSON-LD schema (full dataset, not filtered).
+const allFaqs = faqData.flatMap((c) => c.faqs);
+
 const FAQPage = memo(() => {
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedQuery = useDebounce(searchQuery, 200);
 
-  const filteredCategories = useMemo(() =>
-    faqData
-      .map(category => ({
+  const filteredCategories = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase();
+    if (!q) return faqData;
+    return faqData
+      .map((category) => ({
         ...category,
         faqs: category.faqs.filter(
-          faq =>
-            faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
+          (faq) =>
+            faq.question.toLowerCase().includes(q) ||
+            faq.answer.toLowerCase().includes(q),
         ),
       }))
-      .filter(category => category.faqs.length > 0),
-    [searchQuery]
+      .filter((category) => category.faqs.length > 0);
+  }, [debouncedQuery]);
+
+  const totalMatches = useMemo(
+    () => filteredCategories.reduce((sum, c) => sum + c.faqs.length, 0),
+    [filteredCategories],
   );
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-primary/5 via-background to-background flex-1">
+    <>
       <SEO
         title="FAQs"
         description="Find answers to common questions about Z Agro Tech — products, orders, courses, delivery and account security."
+        url="https://zagrotech.lovable.app/faq"
         canonicalUrl="https://zagrotech.lovable.app/faq"
+        schema={[
+          {
+            type: 'BreadcrumbList',
+            items: [
+              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
+              { name: 'FAQ', url: 'https://zagrotech.lovable.app/faq' },
+            ],
+          },
+          {
+            type: 'FAQPage',
+            items: allFaqs,
+          },
+        ]}
       />
 
-      <main id="main-content" className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter" role="main" aria-label="Frequently Asked Questions">
+      <main
+        id="main-content"
+        className="container mx-auto px-4 py-8 sm:py-12 animate-page-enter bg-gradient-to-b from-primary/5 via-background to-background flex-1"
+        aria-label="Frequently Asked Questions"
+      >
         {/* Hero */}
         <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-primary/10 mb-4">
@@ -94,23 +125,53 @@ const FAQPage = memo(() => {
         {/* Search */}
         <div className="max-w-xl mx-auto mb-8">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground"
+              aria-hidden="true"
+            />
             <Input
-              type="text"
+              type="search"
               placeholder="Search FAQs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-12 rounded-xl text-base"
+              className="pl-12 pr-12 h-12 rounded-xl text-base"
               aria-label="Search frequently asked questions"
+              aria-describedby="faq-results-count"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
+          {/* Live results count for screen readers */}
+          <p
+            id="faq-results-count"
+            className="sr-only"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {debouncedQuery
+              ? `${totalMatches} ${totalMatches === 1 ? 'result' : 'results'} for "${debouncedQuery}"`
+              : `${allFaqs.length} questions available`}
+          </p>
         </div>
 
         {/* FAQ Categories */}
         <div className="max-w-3xl mx-auto space-y-6">
           {filteredCategories.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No FAQs found matching your search.</p>
+              <p className="text-muted-foreground mb-4">
+                No FAQs found matching <span className="font-medium text-foreground">"{debouncedQuery}"</span>.
+              </p>
+              <Button variant="outline" onClick={() => setSearchQuery('')} className="min-h-[44px]">
+                Clear search
+              </Button>
             </div>
           ) : (
             filteredCategories.map((category) => (
@@ -123,10 +184,10 @@ const FAQPage = memo(() => {
                   </span>
                 </div>
                 <Accordion type="single" collapsible className="w-full">
-                  {category.faqs.map((faq, index) => (
+                  {category.faqs.map((faq) => (
                     <AccordionItem
-                      key={index}
-                      value={`${category.title}-${index}`}
+                      key={faq.question}
+                      value={`${category.title}-${faq.question}`}
                       className="border-b border-border last:border-b-0"
                     >
                       <AccordionTrigger className="px-5 py-4 text-left hover:no-underline hover:bg-muted/30 text-sm sm:text-base">
@@ -148,15 +209,15 @@ const FAQPage = memo(() => {
           <p className="text-muted-foreground mb-4">
             Didn't find what you're looking for?
           </p>
-          <a
-            href="/contact"
+          <Link
+            to="/contact"
             className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
           >
             Contact our support team →
-          </a>
+          </Link>
         </div>
       </main>
-    </div>
+    </>
   );
 });
 
