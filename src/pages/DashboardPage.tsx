@@ -1,5 +1,5 @@
-import { memo, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -8,6 +8,7 @@ import OrdersTab from '@/components/dashboard/OrdersTab';
 import CoursesTab from '@/components/dashboard/CoursesTab';
 import WishlistTab from '@/components/dashboard/WishlistTab';
 import ProfileTab from '@/components/dashboard/ProfileTab';
+import EditProfileSheet from '@/components/dashboard/EditProfileSheet';
 import { BentoGrid } from '@/components/dashboard/BentoGrid';
 import { DashboardStatGrid } from '@/components/dashboard/DashboardStatGrid';
 import { RecentOrdersList } from '@/components/dashboard/RecentOrdersList';
