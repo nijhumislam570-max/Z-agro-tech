@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { useAuthUser } from "@/contexts/AuthContext";
-import { logger } from "@/lib/logger";
+import { log404 } from "@/lib/log404";
 
 const SUGGESTIONS = [
   { to: "/shop", label: "Shop", icon: ShoppingBag },
@@ -28,9 +28,9 @@ const NotFound = () => {
   const user = useAuthUser();
 
   useEffect(() => {
-    // Always log — DEV gets console.error via logger; production warns silently
-    // into the analytics buffer so operators can audit broken links later.
-    logger.warn("[404]", location.pathname + location.search);
+    // Telemetry: log every 404 so operators can repair dead links. Dedupes
+    // per session inside log404() to avoid spamming the table on refresh.
+    log404(location.pathname + location.search, "public");
   }, [location.pathname, location.search]);
 
   const primaryDestination = user
