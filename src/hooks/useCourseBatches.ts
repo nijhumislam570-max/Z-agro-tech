@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { batchUpsertSchema, type BatchUpsertInput } from '@/lib/validations/courseActions';
-import { STALE_30S } from '@/lib/queryConstants';
+import { STALE_5MIN } from '@/lib/queryConstants';
 
 export type BatchStatus = 'open' | 'filling' | 'closed' | 'completed';
 
@@ -23,7 +23,7 @@ export function useCourseBatches(courseId: string | undefined) {
   return useQuery({
     queryKey: ['course-batches', courseId],
     enabled: !!courseId,
-    staleTime: STALE_30S,
+    staleTime: STALE_5MIN,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('course_batches')
