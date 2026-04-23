@@ -174,23 +174,23 @@ const CourseDetailPage = () => {
                     />
                   </div>
 
-                  {enrollment ? (
+                  {activeEnrollment ? (
                     <div className="space-y-3">
                       <div className="rounded-xl bg-success/10 border border-success/30 p-4 flex items-center gap-3 text-success">
                         <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
                         <p className="text-sm font-medium">
-                          {enrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
+                          {activeEnrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
                         </p>
                       </div>
-                      {enrollment.status !== 'pending' && (
+                      {activeEnrollment.status !== 'pending' && (
                         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-2">
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-semibold uppercase tracking-wider text-muted-foreground">Your progress</span>
-                            <span className="font-bold text-primary">{enrollment.progress ?? 0}%</span>
+                            <span className="font-bold text-primary">{activeEnrollment.progress ?? 0}%</span>
                           </div>
-                          <Progress value={enrollment.progress ?? 0} className="h-2" aria-label="Course completion" />
+                          <Progress value={activeEnrollment.progress ?? 0} className="h-2" aria-label="Course completion" />
                           <p className="text-xs text-muted-foreground">
-                            {(enrollment.progress ?? 0) >= 100 ? 'Course completed — well done!' : 'Keep learning to reach 100%.'}
+                            {(activeEnrollment.progress ?? 0) >= 100 ? 'Course completed — well done!' : 'Keep learning to reach 100%.'}
                           </p>
                         </div>
                       )}
