@@ -2,24 +2,30 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, GraduationCap, ShoppingBag, Sprout, Users, Smile } from 'lucide-react';
 import heroImage from '@/assets/hero-agriculture-field.jpg';
+import heroImage1440 from '@/assets/hero-agriculture-field-1440.jpg';
+import heroImage960 from '@/assets/hero-agriculture-field-960.jpg';
+import { BRAND_STATS } from '@/lib/brandStats';
 
 const heroStats = [
-  { icon: Users, value: '5,000+', label: 'Farmers' },
-  { icon: GraduationCap, value: '40+', label: 'Courses' },
-  { icon: Smile, value: '98%', label: 'Satisfaction' },
+  { icon: Users, value: BRAND_STATS.farmers.value, label: 'Farmers' },
+  { icon: GraduationCap, value: BRAND_STATS.courses.value, label: 'Courses' },
+  { icon: Smile, value: BRAND_STATS.satisfaction.value, label: 'Satisfaction' },
 ];
 
 export const HeroSection = () => (
   <section className="relative overflow-hidden">
-    {/* Background image with overlay */}
+    {/* Background image with overlay — responsive srcset cuts mobile bytes by ~75% */}
     <div className="absolute inset-0" aria-hidden="true">
       <img
         src={heroImage}
+        srcSet={`${heroImage960} 960w, ${heroImage1440} 1440w, ${heroImage} 1920w`}
+        sizes="100vw"
         alt=""
         width={1920}
         height={1088}
         className="w-full h-full object-cover"
         fetchPriority="high"
+        decoding="async"
       />
       <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/65" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
@@ -64,7 +70,7 @@ export const HeroSection = () => (
           style={{ animationDelay: '120ms', animationFillMode: 'both' }}
         >
           Grow smarter with{' '}
-          <span className="bg-gradient-to-r from-primary to-[hsl(142,45%,38%)] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
             Z Agro Tech
           </span>
         </h1>

@@ -4,6 +4,7 @@ import { Sprout, ShieldCheck, GraduationCap, ShoppingBag, Truck, Leaf, ArrowRigh
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import SEO from '@/components/SEO';
+import { BRAND_STATS } from '@/lib/brandStats';
 
 const features = [
   {
@@ -28,11 +29,12 @@ const features = [
   },
 ];
 
+// Stats sourced from `BRAND_STATS` so Home + About never drift.
 const stats = [
-  { value: '5K+', label: 'Active Farmers' },
-  { value: '500+', label: 'Premium Products' },
-  { value: '50+', label: 'Expert Courses' },
-  { value: '64', label: 'Districts Served' },
+  BRAND_STATS.farmers,
+  BRAND_STATS.products,
+  BRAND_STATS.courses,
+  BRAND_STATS.districts,
 ];
 
 const AboutPage = memo(() => {

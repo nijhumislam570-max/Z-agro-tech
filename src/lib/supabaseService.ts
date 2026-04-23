@@ -80,7 +80,9 @@ export async function safeMutation<T>(
       return { data: null, error: message };
     }
 
-    toast.success(successMsg);
+    // Pass `successMsg: ''` to suppress the toast — useful when the caller
+    // shows its own inline confirmation UI and a toast would be redundant.
+    if (successMsg) toast.success(successMsg);
     return { data, error: null };
   } catch (err: unknown) {
     const raw = err instanceof Error ? err.message : String(err);
