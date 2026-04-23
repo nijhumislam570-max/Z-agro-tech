@@ -11,6 +11,7 @@
  */
 import type { QueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { STALE_2MIN } from '@/lib/queryConstants';
 
 type DataPrefetcher = (qc: QueryClient) => Promise<unknown>;
 
@@ -18,8 +19,6 @@ interface AdminPrefetchEntry {
   chunk?: () => Promise<unknown>;
   data?: DataPrefetcher;
 }
-
-const STALE_2MIN = 1000 * 60 * 2;
 
 const ADMIN_PREFETCH: Record<string, AdminPrefetchEntry> = {
   '/admin': {

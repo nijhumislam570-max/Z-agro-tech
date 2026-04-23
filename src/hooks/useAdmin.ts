@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserRole } from '@/hooks/useUserRole';
 import { indexBy, groupBy, uniqueKeys, joinByKey } from '@/lib/dbJoins';
+import { STALE_2MIN } from '@/lib/queryConstants';
 import type { AdminOrder } from '@/types/database';
 
 interface ProfileLite {
@@ -69,7 +70,7 @@ export const useAdminStats = () => {
       };
     },
     enabled: isAdmin,
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2MIN,
   });
 };
 

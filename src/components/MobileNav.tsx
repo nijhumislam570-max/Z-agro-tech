@@ -1,5 +1,5 @@
-import { forwardRef, useCallback } from 'react';
-import { Home, Store, ShoppingCart, GraduationCap, User, Shield, LogIn, LayoutDashboard } from 'lucide-react';
+import { useCallback } from 'react';
+import { Home, Store, ShoppingCart, GraduationCap, Shield, LogIn, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +9,7 @@ import { prefetchRoute } from '@/lib/imageUtils';
 import { prefetchPublicRoute } from '@/lib/publicPrefetch';
 import { prefetchAdminRoute } from '@/lib/adminPrefetch';
 
-const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
+const MobileNav = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { totalItems } = useCart();
@@ -37,8 +37,6 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
     { icon: GraduationCap, label: 'Academy', path: '/academy', badge: 0 },
     { icon: profileItem.icon, label: profileItem.label, path: profileItem.path, badge: 0 },
   ];
-  // Note: Dashboard is reachable via the profile slot ("Dashboard" label) for signed-in non-admins.
-  // Admins see "Admin" — Dashboard is one tap away from the desktop Navbar; mobile keeps 5 slots for clarity.
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -47,7 +45,6 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
 
   return (
     <nav
-      ref={ref}
       className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
@@ -84,8 +81,6 @@ const MobileNav = forwardRef<HTMLElement, object>((_, ref) => {
       </div>
     </nav>
   );
-});
-
-MobileNav.displayName = 'MobileNav';
+};
 
 export default MobileNav;
