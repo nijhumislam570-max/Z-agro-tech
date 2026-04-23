@@ -1,123 +1,149 @@
 
 
-# Read-Only Audit — Routing, 404 & Guards
+# Z Agro Tech — Consolidated Audit Roadmap
 
-Scope: `/profile → /dashboard` redirect, `*` (404) page, `RequireAuth` / `RequireAdmin`, dynamic-route handling, and edge cases. **No code changes** — findings only. Priority: **P1** (fix soon), **P2** (polish), **P3** (nice-to-have).
-
----
-
-## A. `/profile → /dashboard` Redirect
-
-**Implementation**: `<Route path="/profile" element={<Navigate to="/dashboard" replace />} />` mounted **inside `PublicShell`**, sibling to `/dashboard`.
-
-**Findings**
-
-- ✅ **Correct redirect mechanics** — `replace` flag is set, so the user's back button skips `/profile` and returns to wherever they came from. No history pollution. Memory rule: singular naming + `navigate()` semantics — satisfied.
-- **P2 — Redirect drops query strings and hash**. A user visiting `/profile?tab=orders&utm_source=email` lands on `/dashboard` with no params, losing the intended tab. Fix: `<Navigate to={{ pathname: '/dashboard', search: location.search, hash: location.hash }} replace />` via a tiny wrapper.
-- **P2 — Redirect mounts `PublicShell` (Navbar/Footer/MobileNav) for one frame** before `<Navigate>` runs in the same render. Cosmetically fine because the components are already mounted from the previous route, but a deep-link cold load to `/profile` shows the public shell skeleton briefly before bouncing. Hoisting the redirect **above** `<Route element={<PublicShell />}>` would make it instant.
-- **P2 — Redirect is unauthenticated**. `/profile` redirects to `/dashboard` regardless of auth state. The user then hits `<RequireAuth>` on `/dashboard` and is bounced to `/auth?from=/dashboard`. The `from` location is `/dashboard`, not `/profile` — the original intent is lost (rare but matters for share-links).
-- **P3 — No analytics event** for the redirect. If `/profile` is being linked from external surfaces (old emails, partner sites), there's no telemetry to know whether to keep the alias.
-
-**Verdict**: Functionally correct, minor UX polish opportunities around query-string preservation and skeleton flash.
+Synthesis of all prior audits (Cart, Checkout, Dashboard, Routing/404/Guards) plus already-shipped fixes. Decisive, prioritized, actionable.
 
 ---
 
-## B. `*` 404 Page (`NotFound.tsx`)
+## 1. Top Critical Issues (fix immediately)
 
-**Implementation**: `<Route path="*" element={<NotFound />} />` registered **only inside the `PublicShell`** route group. SEO with `noIndex`. Two CTAs: "Back to Home" + "Browse Shop". `useEffect` logs the bad path in DEV.
-
-**Findings**
-
-- **P1 — `*` is scoped to the public shell only** — there is **no** catch-all on the admin tree. A logged-in admin visiting `/admin/nonsense` falls through every admin child route, returns to the parent `<Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>`, and `<AdminShell />` renders with an **empty `<Outlet />`** → blank content area inside the admin chrome with no error message and no redirect. Add `<Route path="*" element={<AdminNotFound />} />` (or reuse a shared component) inside the admin children.
-- **P1 — `*` is also outside the auth-page tree** — `/auth-typo` (any sibling of `/auth`, `/forgot-password`, `/reset-password`) DOES match `*` because `*` lives inside `PublicShell`, so it works for those — but only because the public shell route has no `path` and matches everything. Verify by visiting `/foo`: should render NotFound inside the public shell ✅. Visit `/admin/foo`: blank admin shell ❌.
-- **P1 — `<Link to="/">` and `<Link to="/shop">`** are the only recovery paths. There's **no "Go back" button** that uses `navigate(-1)`. A user following a stale email link to `/product/deleted-id` (which falls through to NotFound — actually wait, it falls through to ProductDetailPage which handles its own 404; see C below) loses the source page. Add a third CTA: `<Button variant="ghost" onClick={() => navigate(-1)}>Go back</Button>`.
-- **P2 — No search box**. The "Search" icon at the top is decorative only. A 404 is the natural moment to offer site search; could send the user to `/shop?q=...` or `/academy?q=...`.
-- **P2 — No suggested popular destinations** beyond Home and Shop. Academy, Track Order, FAQ, Contact are all relevant alternatives. A 4-tile grid would help recovery.
-- **P2 — Logged-in users see the same generic 404 as anonymous visitors**. For an authenticated user, "Back to Dashboard" should be a primary option ahead of "Back to Home".
-- **P2 — `useEffect` only `console.error`s in DEV**. Production 404s are invisible to operators. Wire to the analytics layer (`logger.warn` / `analytics.track('404', { path })`) so dead links can be repaired.
-- **P3 — `noIndex` ✅**, but no `<meta name="robots" content="noindex,nofollow">` for crawlers that ignore `<head>` elements injected by JS. Document-level (in `index.html`) is impossible — but this is fine for SPAs.
-- **P3 — H1 + `<main id="main-content">` ✅** (memory rule).
-- **P3 — `animate-page-enter` ✅** (memory rule).
-- **P3 — No status code**. A real 404 from a server returns HTTP 404; a SPA always returns 200 + renders this component. Crawlers may index. `noIndex` mitigates but is not equivalent. Consider a `<meta http-equiv>` workaround or a static prerender step.
-
-**Verdict**: Visually clean but **functionally narrow** — admin tree has no catch-all (P1), and recovery paths are minimal.
+| # | Issue | Surface | Why it's critical |
+|---|---|---|---|
+| C1 | **Server-side price/total trust** — checkout posts `subtotal`, `delivery`, `total` from the client. No DB trigger recomputes against `products.price`. | `/checkout` → `orders` insert | **Price tampering risk.** A modified client can place a ৳1 order. Highest-severity commerce bug. |
+| C2 | **Stock not decremented atomically on order placement** — concurrent checkouts can oversell the same unit. | `/checkout` mutation | Inventory integrity. Already partially mitigated by client-side cart cap, but server is the source of truth. |
+| C3 | **`useMyOrders` returns full `items` JSON for every order, no `.limit()`** *(addressed in Dashboard sprint, verify shipped)* | `/dashboard?tab=orders` | Payload balloons linearly; mobile users on slow networks hit multi-MB responses. |
+| C4 | **Coupon validation is client-only** — discount applied in JS, sent to server as a number. | `/checkout` | Same class as C1: anyone can forge a 100% discount. |
 
 ---
 
-## C. Auth & Role Guards
+## 2. High Impact Fixes (next priority)
 
-### `RequireAuth` (used by `/cart`, `/checkout`, `/dashboard`)
-
-- ✅ Renders accessible loading state (`role="status"`, `aria-live="polite"`).
-- ✅ Uses `<Navigate to="/auth" state={{ from: location.pathname }} replace />` — `replace` correctly prevents the protected URL from polluting history.
-- ✅ `state.from` is read by `AuthPage` (line 41) and used for post-auth redirect — round-trip works.
-- **P2 — `state.from` only stores `pathname`**, not `search`/`hash`. A user bounced from `/checkout?coupon=SUMMER` returns to `/checkout` with the coupon param dropped. Fix: store the full `location` object.
-- **P2 — `loading` state is a full-screen overlay** that flashes for ~50-200 ms on every protected-route mount, even when the session is already known. Consider deferring the spinner with a 250 ms timer to avoid flash.
-- **P3 — No timeout safeguard**. If `useAuth().loading` somehow gets stuck `true`, the user sees the spinner forever. Add a 10 s timeout that surfaces a "Trouble loading session" UI with retry.
-
-### `RequireAdmin` (used by `/admin/*`)
-
-- ✅ Uses `useAuth()` + `useAdmin()` correctly; waits for both `authLoading` and `roleLoading` before deciding.
-- ✅ `toastedRef` prevents duplicate toasts on re-render.
-- ✅ Re-checks `isAdmin` inside the 1.5s timeout to handle late role-resolution races.
-- ✅ Wraps children in `<ErrorBoundary>` — admin tree is isolated from each tile crash.
-- **P1 — Inconsistent redirect target with `RequireAuth`**. `RequireAuth` uses `<Navigate>` (declarative, immediate). `RequireAdmin` uses `useEffect → navigate()` (imperative, post-mount). Two different patterns for the same problem. The `useEffect` path causes:
-  - One render of "Access Denied" UI before the `setTimeout(1500)` fires → user sees the screen flash even when they should be bounced cleanly.
-  - On admins, no flash because the early `if (!isAdmin)` doesn't trigger — but on non-admins, they see "Access Denied" for 1.5s **then** are redirected. The 1.5s is intentional for toast read time, but it's a long flash.
-- **P1 — Unauthenticated path uses `?redirect=` query** (`/auth?redirect=/admin/foo`) while `RequireAuth` uses `state.from`. Two redirect protocols for the same destination (`AuthPage`). `AuthPage` handles both ✅, but the inconsistency makes maintenance error-prone — pick one.
-- **P2 — `navigate(-1)`/Go Home is the only escape** from "Access Denied". A common case: a user pasted a stale `/admin/orders` link from the URL bar; the cleaner UX is "Go to your Dashboard" (since they're authenticated, just not admin).
-- **P2 — `window.location.pathname`** is read for the redirect query (line 24) instead of `location.pathname` from `useLocation()`. Bypasses React Router's location source — works but couples to the global window.
+| # | Issue | Surface |
+|---|---|---|
+| H1 | **No rate limiting on order placement** — nothing stops a script from posting 1000 orders. Add Postgres function or edge function with per-user throttle. | `orders` insert |
+| H2 | **Checkout success state lives in component** — page reload loses confirmation. Move to `?orderId=` URL param + dedicated `/order-confirmation/:id` route. | `/checkout` |
+| H3 | **Cart `useDeliveryCharge` recomputes on every keystroke** in address fields. Debounce 300ms. | `/cart`, `/checkout` |
+| H4 | **No session-staleness guard** — user with expired token in another tab can mount `/checkout`, fire mutation, get 401. Add `supabase.auth.getSession()` check before submit. | `/checkout` |
+| H5 | **Admin actions (approve/reject order, delete user) lack confirmation audit trail** — no `admin_actions` log table for compliance. | `/admin/*` |
+| H6 | **Wishlist/cart sync race on multi-tab** — Supabase Realtime not subscribed; tabs diverge. | `/cart`, `/dashboard?tab=wishlist` |
 
 ---
 
-## D. Edge Cases & Dynamic Routes
+## 3. Medium Improvements
 
-### `/product/:id` and `/course/:id`
-
-- ✅ `ProductDetailPage` has an outer guard: `if (!id) return <Navigate to="/shop" replace />` — handles `:id` missing (theoretical, since routes require a value).
-- **P1 — `/product/<bad-uuid>`** does NOT 404 — it renders the page, fires a query against `products` (server returns no row), and the page renders its own `productError` UI. Acceptable, but the user sees a brief loading spinner + "Product not found" instead of the cleaner global 404. Same for `/course/<bad-uuid>`.
-- **P1 — `CourseDetailPage` has no `:id` guard at all** (line 21: `const { id } = useParams<{ id: string }>();` — used directly). If the route ever gets matched without `id` (impossible today, but defensive), `useCourse(undefined)` is called. The hook should handle it, but the pattern differs from `ProductDetailPage`.
-- **P2 — `/product/:id` with non-UUID strings** (e.g. `/product/abc`) hits the DB with `eq('id', 'abc')` → DB returns 0 rows + a Postgres `invalid input syntax for type uuid` error. The error UI is shown, but the network request is wasted. Add a UUID check in the outer guard, mirroring `TrackOrderPage`'s `UUID_RE`.
-- **P2 — `/track-order?id=<bad>`** — the page validates `UUID_RE` ✅ before querying. Good defensive pattern; **promote it to a shared util** and apply it to product/course detail pages.
-
-### `/auth-typo`, `/admni`, etc.
-
-- ✅ Falls through to `*` → NotFound inside `PublicShell`. ✅
-- **P3 — No "Did you mean…?" suggestion** for common typos (e.g. `/admni` → "Did you mean /admin?"). Optional polish.
-
-### Trailing slashes / case sensitivity
-
-- React Router 6 is **case-sensitive by default** — `/Shop` does NOT match `/shop` and falls through to NotFound. **P3**: consider normalizing case in a top-level redirect. Memory rule mentions singular routes — this is the natural place to also enforce lowercase.
-- **P3 — No trailing-slash normalization**. `/shop/` likely matches (React Router strips by default), but `/shop///` may not. Low risk.
-
-### Broken outbound links
-
-- **P3 — No `rel="noopener noreferrer"` audit** done here, but: `/track-order` (line 22) and others use `useNavigate` for internal nav (memory rule ✅). External links in components were not audited — out of scope.
-
-### Concurrent unauthenticated `/cart` + `/checkout`
-
-- **P2 — Race**: a user logged in, opens `/cart`, session expires in another tab, navigates to `/checkout`. `RequireAuth` reads stale `user` from context briefly → checkout mounts → first query 401s → unhandled. Acceptable if Supabase auto-refreshes, but worth a session-staleness guard.
+- **M1** — Standardize `EmptyState` usage across remaining ad-hoc empty states (admin tables, search results).
+- **M2** — Promote `useUuidParam` to all remaining `:id` routes (admin order detail, enrollment detail).
+- **M3** — Add `react-hook-form` + Zod to remaining admin forms still using local state (audit `AdminCoupons`, `AdminDeliveryZones`).
+- **M4** — Stale times: bump recommended/featured queries from `STALE_1MIN` → `STALE_5MIN`.
+- **M5** — Add `width`/`height` to all remaining `<img>` (audit Academy, Shop product cards).
+- **M6** — Add `loading="lazy"` to below-the-fold images globally.
+- **M7** — Address field length cap in `profileSchema` and `checkoutSchema` (currently unbounded).
+- **M8** — Server-side validation that `district ⊆ getDistricts(division)` via DB trigger.
+- **M9** — `RequireAdmin` "Access Denied" flash — shorten to 600ms or use immediate `<Navigate>`.
+- **M10** — Production 404 logging → wire `NotFound`/`AdminNotFound` `logger.warn` to a `route_404_log` table for dead-link repair.
 
 ---
 
-## E. Cross-Cutting Routing Issues
+## 4. Low Priority Polish
 
-### Critical (P1)
+- **L1** — Case normalization (`/Shop` → `/shop`) via top-level redirect.
+- **L2** — "Did you mean…?" suggestions on 404 (Levenshtein vs route table).
+- **L3** — `RequireAuth` 10s timeout safeguard with retry UI.
+- **L4** — `Hero` greeting `today` recomputes on visibility change (handles past-midnight sessions).
+- **L5** — Skip-to-tabs link on dashboard.
+- **L6** — `font-mono` on all order ID renderings (still inconsistent in 1-2 spots).
+- **L7** — Avatar upload field in `EditProfileSheet` (column exists, no UI).
+- **L8** — `LifetimeSpend` formatter smooth transition at ৳1000 boundary.
+- **L9** — Course card thumbnails in `CoursesTab` (currently icon-only).
+- **L10** — "View certificate" / "Awaiting confirmation" status-aware CTAs in courses tab.
 
-1. **No `*` catch-all inside `/admin`** → admin typos render a blank `<Outlet />` with no recovery UI.
-2. **Inconsistent guard implementations** (`RequireAuth` declarative vs `RequireAdmin` imperative) → different UX, different redirect protocols for the same `AuthPage`.
-3. **Dynamic-route bad-input handling is per-page** → product/course pages each have ad-hoc error UIs instead of a shared "ID not found" pattern; `CourseDetailPage` has no outer guard at all.
-4. **404 page lacks a "Go back" / `navigate(-1)` escape** and offers only 2 destinations.
+---
 
-### Medium (P2)
+## Route-by-Route Health Summary
 
-5. **`/profile` redirect drops query/hash**.
-6. **`RequireAuth.state.from` only stores `pathname`** → search/hash lost on auth round-trip.
-7. **`RequireAdmin` "Access Denied" flashes for 1.5 s** even for clearly non-admin users.
-8. **404 not logged in production** — operators can't find dead links.
-9. **Logged-in users see the same 404 as anonymous** — no "Back to Dashboard" CTA.
-10. **No UUID validation on `/product/:id` or `/course/:id`** → wasted DB roundtrip + Postgres error.
+| Route | Status | Top remaining risk |
+|---|---|---|
+| `/` (Index) | 🟢 Healthy | None critical (not deeply audited this round) |
+| `/shop` | 🟢 Healthy | M5/M6 image polish |
+| `/product/:id` | 🟢 Hardened | UUID guard shipped; product not-found UX could route to global 404 |
+| `/cart` | 🟡 Stable | H3 debounce; M9 stock realtime |
+| `/checkout` | 🔴 **Critical** | **C1, C2, C4 — server-side validation gaps** |
+| `/dashboard` (+ tabs) | 🟢 Hardened | C3 verify shipped; H6 multi-tab realtime |
+| `/profile` | 🟢 Hardened | Redirect now preserves query/hash |
+| `/track-order` | 🟢 Healthy | Uses shared UUID guard |
+| `/auth`, `/forgot-password`, `/reset-password` | 🟢 Healthy | Round-trip via `state.from` works |
+| `/course/:id` | 🟢 Hardened | UUID guard shipped |
+| `/academy` | 🟡 Not deeply audited | Recommend pass next sprint |
+| `/admin/*` | 🟡 Stable | H5 audit log; admin 404 shipped |
+| `*` (404) | 🟢 Hardened | M10 prod logging |
 
-### Low (P3)
+Legend: 🟢 healthy · 🟡 polish needed · 🔴 must fix
 
-11. No case normalization (`/Shop` →
+---
+
+## System-Wide Risks
+
+### Security
+- **Trust boundary violation at `/checkout`** (C1, C2, C4) — client computes financial values the server accepts blindly. **Highest priority across the entire platform.**
+- **No rate limiting on writes** (H1) — orders, contact messages, reviews all postable in unlimited bursts.
+- **No admin audit log** (H5) — destructive actions (delete user, reject order) leave no forensic trail.
+- ✅ RLS correctly user-scoped on all customer tables.
+- ✅ Single-admin DB trigger enforced.
+- ✅ `isSafeRelativePath` blocks open-redirect.
+
+### Performance
+- **Dashboard lazy-loading shipped** ✅ — verify in production.
+- **Cart recomputation** (H3) — debounce delivery calc.
+- **Image CLS** (M5/M6) — systematic `width`/`height`/`loading="lazy"` audit needed.
+- ✅ Lazy route chunks, `STALE_*` constants, React Query dedupe in place.
+
+### Data Integrity
+- **Stock oversell race** (C2) — atomic decrement needed.
+- **Multi-tab cart/wishlist drift** (H6) — Realtime subscription needed.
+- **Region cascade not validated server-side** (M8).
+- ✅ Cart localStorage migration shim working; `zagrotech-cart` standardized.
+
+---
+
+## Final Fix Roadmap
+
+```text
+Step 1 — SECURE THE CHECKOUT (this sprint, ~3-5 days)
+  1a. Create place_order(p_items jsonb, p_coupon_code text, p_address jsonb)
+      Postgres SECURITY DEFINER function:
+        - Recompute subtotal from products.price server-side
+        - Validate + apply coupon from coupons table server-side
+        - Recompute delivery from delivery_zones server-side
+        - Atomically UPDATE products SET stock = stock - qty WHERE stock >= qty
+          (rollback whole tx if any item fails)
+        - INSERT INTO orders with server-computed totals
+        - RETURN order_id
+  1b. Replace client supabase.from('orders').insert() with rpc('place_order')
+  1c. Add per-user rate limit (5 orders / 10 min) inside the RPC
+  1d. Add /order-confirmation/:id route; redirect on success
+  1e. Add admin_actions audit log table + trigger on orders/users updates
+
+Step 2 — PERFORMANCE & MULTI-TAB CONSISTENCY (next sprint, ~2-3 days)
+  2a. Debounce useDeliveryCharge inputs (300ms)
+  2b. Subscribe Supabase Realtime on cart_items + wishlists tables
+  2c. Session-staleness guard in checkout submit
+  2d. Verify dashboard P1s shipped (limit, lazy tiles, wishlist React Query)
+  2e. Bump featured/recommended stale times to 5min
+
+Step 3 — POLISH & OBSERVABILITY (following sprint, ~1-2 days)
+  3a. Wire NotFound/AdminNotFound logger.warn → route_404_log table
+  3b. Promote useUuidParam to all remaining :id routes
+  3c. Standardize EmptyState across admin tables
+  3d. Image audit pass (width/height/loading="lazy")
+  3e. Schema length caps (address, notes fields)
+  3f. Shorten RequireAdmin Access Denied flash to 600ms
+  3g. Polish backlog (L1-L10) as bandwidth allows
+```
+
+### Decision Points
+
+- **Do not ship new features until Step 1 lands.** Price tampering is exploitable today.
+- **Step 2 can run in parallel with Step 1** if you have bandwidth — different files, no conflicts.
+- **Step 3 is bookkeeping** — do it when the team has slack, not before Step 1.
+
