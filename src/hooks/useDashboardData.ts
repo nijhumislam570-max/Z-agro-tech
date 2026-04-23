@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { STALE_1MIN } from '@/lib/queryConstants';
+import { STALE_1MIN, STALE_5MIN } from '@/lib/queryConstants';
 import { useMyOrders } from './useMyOrders';
 import { useMyEnrollments } from './useEnrollments';
 

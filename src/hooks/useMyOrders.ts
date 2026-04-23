@@ -15,7 +15,8 @@ export function useMyOrders() {
         .select('id,status,total_amount,created_at,items,tracking_id,payment_method,shipping_address,consignment_id,rejection_reason,payment_status')
         .eq('user_id', user!.id)
         .is('trashed_at', null)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
       if (error) throw error;
       return data || [];
     },
