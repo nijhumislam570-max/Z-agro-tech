@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
-import { useParams, useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useUuidParam } from '@/hooks/useUuidParam';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/contexts/CartContext';
@@ -43,10 +44,11 @@ const PLACEHOLDER_IMAGE =
 
 /**
  * Outer guard — bounces malformed/missing :id to /shop before any hooks
- * mount. Keeps the inner component's hook order stable.
+ * mount. Validates UUID format upfront so we never fire a Postgres
+ * `invalid input syntax for type uuid` query for typos like `/product/abc`.
  */
 const ProductDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const id = useUuidParam('id');
   if (!id) return <Navigate to="/shop" replace />;
   return <ProductDetailPageInner id={id} />;
 };
