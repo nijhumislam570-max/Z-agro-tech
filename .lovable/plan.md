@@ -1,148 +1,163 @@
 
 
-# Read-Only Audit — Auth Pages
+# Read-Only Audit — Shop Pages
 
-Scope: `/auth`, `/forgot-password`, `/reset-password`. **No code changes** — findings only. Priority labels: **P1** (security/correctness, fix soon), **P2** (polish), **P3** (nice-to-have).
+Scope: `/shop`, `/product/:id`, `/track-order`. **No code changes** — findings only. Priority: **P1** (fix soon), **P2** (polish), **P3** (nice-to-have).
 
 ---
 
-## A. `/auth` — Sign In / Sign Up
+## A. `/shop` — Product Catalog
 
-**Summary**: Split-screen layout (branding panel + glassmorphism form card), shadcn Tabs for Sign In / Sign Up, react-hook-form + Zod (`loginSchema`, `signupSchema`), separate password-visibility state per form, Google/Apple OAuth via `lovable.auth.signInWithOAuth`, post-auth role-based redirect with `?redirect=` honoring, inline post-signup verification banner. Selector hooks (`useAuthUser`, `useAuthLoading`, `useAuthActions`) avoid token-rotation re-renders.
+**Summary**: Infinite-scroll catalog (PAGE_SIZE=20) via `useInfiniteQuery` + Intersection Observer sentinel. Debounced search (300ms), URL-synced filters (`search/type/sort/price`), shadcn Select on desktop + bottom Sheet on mobile, hero with separate `featured-products` query and auto-rotating `HeroCarousel`. Realtime invalidation on `products` + `product_categories` (debounced 400ms). Server-side filtering for category/price/sort, client-side sort only for `top-rated`. ItemList JSON-LD + SEO present.
 
 **Findings**
 
-- **P1 — Open redirect risk in `oauthRedirectUri`** (line 91-95). `fromPath` comes from `?redirect=` query string. Code only checks `fromPath.startsWith('/')` — that allows `//evil.com/path` (protocol-relative URL). Browsers resolve `https://zagrotech.lovable.app//evil.com` as `//evil.com`. Mitigation: also reject `fromPath.startsWith('//')` and `fromPath.includes('\\')`.
-- **P1 — `redirectAfterAuth` always queries `user_roles`** (line 71-76) even when a `fromPath` redirect is requested — but only after the early return. Actually correct on re-read. **However**, the query is `.select('role').eq('user_id', userId)` with **no `.maybeSingle()` and no error handling**. If RLS denies (shouldn't, since the user-views-own-role policy exists) or the network drops, `roleData` is `undefined` and the user lands on `/dashboard` — silent failure. Wrap in try/catch + log.
-- **P1 — `useEffect` redirect race** (line 79-86). When `signIn` succeeds, the listener fires → `user` populates → effect redirects. But the `onLogin` toast fires immediately after `signIn` returns. If the user is already redirected by the time the toast renders, that's fine. The bigger issue: the effect calls `redirectAfterAuth` **every time** `user` changes, including after token rotation — `user` reference changes on every refresh in `AuthContext` (line 31 `state = { ...state }`). That re-fires `redirectAfterAuth`, re-queries `user_roles`, and tries to `navigate(...)` while already on a different page. Likely a no-op due to `replace: true`, but it's wasted work and a race vector.
-- **P1 — Email enumeration via `friendlyAuthMessage`** (line 119-130). Mapping `'User already registered'` → `"An account with this email already exists. Please sign in instead."` confirms account existence to attackers performing signup-based enumeration. Industry standard is to return the same generic success message regardless and rely on email verification to resolve. (Trade-off: worse UX. Document the choice.)
-- **P1 — No CAPTCHA / rate limit on the client side**. Supabase has built-in rate limiting, but the form has zero throttling between submit attempts. A bot can hammer `signIn` until they hit Supabase's 429. Consider an on-failure cool-down (e.g., 1s after each error).
-- **P2 — `redirectAfterAuth` race with admin check**: between `signIn` resolving and the `useEffect` running, `roleData` query takes a round-trip. Briefly the user sits on `/auth` after success. Add an inline "Redirecting…" overlay during this window.
-- **P2 — `signIn` errors are caught and re-thrown**: `onLogin` calls `signIn`, gets `{ error }`, then `throw error`. The try/catch is purely cosmetic — could destructure and toast directly.
-- **P2 — `pendingVerificationEmail` cleared on tab switch to non-signin** (line 176). But the user is **switched to** `signin` (line 159), so the banner is shown on signin. If the user then switches to signup and back, the banner is gone. Subtle but the conditional `if (v !== 'signin')` is backwards from intent — it should clear when leaving signin, not entering signup. Currently works because it only clears when switching **to** signup (the only other tab), but reads ambiguously.
-- **P2 — `getSession()` after signup** (line 154) is racy. If email confirmation is **disabled**, the listener will populate the session asynchronously; `getSession()` may return the just-created session OR null depending on timing. Better: check `data.user?.email_confirmed_at` from the `signUp` response.
-- **P2 — `signupSchema` has no password-confirmation field**. Users typing a typo'd password create the account anyway and only discover it on next login. Add `confirmPassword` + `.refine()` cross-check.
-- **P2 — Password visibility toggle** is two separate `useState` (lines 23-24) — fine, but the inline `<button>` is `tabIndex` 0 and sits between the password input and the Submit button → screen-reader and keyboard users tab through it. Consider `tabIndex={-1}` so it doesn't intercept tab order.
-- **P2 — OAuth buttons have no ToS/Privacy gating**. Single click → external redirect → account created. Memory rule and best practice want a "By continuing you agree to…" line under the OAuth row.
-- **P2 — `anyLoading` blocks both submit buttons across tabs** (line 192). If a Google sign-in is in flight, the user can't even type in the email tab. Acceptable but heavy-handed.
-- **P3 — `friendlyAuthMessage`** does case-insensitive substring on raw error text. Brittle if Supabase re-words errors. Use error `code`/`status` where available.
-- **P3 — Logo image (`zagrotech-logo-circle.png`)** is statically imported and used twice (desktop + mobile). Fine, but no `width`/`height` attributes — minor CLS.
-- **P3 — Tabs use `mb-6 h-11`** — touch targets pass 44px. ✅
+- **P1 — N+1 ratings query is paged-blind**. `useProductRatings(productIds)` fetches **every review for every loaded product** on each page change. As infinite scroll grows the visible list to 100+ items, the `IN (...)` clause grows unbounded and **the entire reviews query re-runs from scratch** on every new page load (because `productIds` array string changes). Worse, the hook is plain `useState/useEffect` — no React Query caching, no dedup, no stale-while-revalidate. Migrate to `useQuery({ queryKey: ['product-ratings', productIds], staleTime: 5min })` and consider a server-side aggregate view (`product_ratings_view`) returning `{product_id, avg_rating, review_count}` so the client never pulls raw rows.
+- **P1 — `ratings` deps array uses `productIds.join(',')`** (line 40 of `useProductRatings`) — eslint-disabled implicit dep. If a product ID contains a comma it would collide; harmless in practice but fragile. Use the array directly with a stable reference or `JSON.stringify`.
+- **P1 — `useDebounce` returns the search string but the query refetch fires on the **debounced** value** (`searchQuery`), while the URL-sync effect (line 209-216) ALSO depends on `searchQuery` — so URL only updates after debounce. Good. But the "Clear search" button updates `searchInput` (immediate), creating a **two-frame flash** before debounce settles. Acceptable. **However**, search uses raw `ilike('name', '%'+input+'%')` — Postgres LIKE supports wildcards; user input `%foo%` would match everything. Sanitize: `.replace(/[%_\\]/g, '\\$&')` before interpolation.
+- **P1 — Featured products query doesn't paginate or filter** (line 219-232). Pulls every active+featured product on every shop visit. If you ever have 100+ featured items, it ships them all to the carousel which only displays 5-8. Add `.limit(10)`.
+- **P2 — Hero carousel image is non-optimized** (line 141-149). `<img src={p.image_url}>` raw, no `OptimizedImage`/Supabase transforms, despite being the LCP-adjacent slot on tablet+. Same for hero background `shopHeroAgriculture` — static import, no `srcset`.
+- **P2 — Carousel `onClick` handler isn't keyboard-accessible per dot**. Each dot is a button — ✅ ok. But the `Link` card itself has no focus-visible style — keyboard users can't see the active card.
+- **P2 — `gridCols` state is local-only** — no localStorage persistence. Users repeatedly revert to 4 cols on every visit.
+- **P2 — `productTypes` merges DB categories with categories from currently-loaded products** (line 293-302). On page 1 of infinite scroll, types from page 5+ products won't appear in the filter dropdown. Acceptable (DB list is canonical) but creates inconsistent UX as user scrolls. Trust DB list only.
+- **P2 — `realtime` subscription** (line 305-326) invalidates `'shop-products'` and `'featured-products'` on **every** product change. An admin bulk-edit can fire 100+ events in a second; the 400ms debounce helps but the resulting invalidation forces a full refetch of all visible pages. Consider switching to optimistic patches via `setQueryData`.
+- **P2 — `top-rated` sort is client-side only over the **currently loaded pages***. Page 1 shows top-rated of first 20 products, not top-rated overall. Misleading sort. Either disable infinite scroll under top-rated, or move sort server-side via the proposed ratings view.
+- **P2 — `Recently Viewed` and `Featured Products` sections both use `ProductCard`** correctly with rating props, but `recentProducts` doesn't pass `avgRating`/`reviewCount` (line 807-820) → inconsistent display vs main grid. Either pass ratings or accept the divergence.
+- **P2 — `<input type="text">` for search** instead of `type="search"` — loses the iOS keyboard's "Search" key affordance and the native clear button. Page already provides custom clear, so cosmetic.
+- **P3 — `aria-label="Cart (3 items)"`** is great, but the cart link itself has no `aria-current` when on `/cart`. Minor.
+- **P3 — `gridClass` builds three different className strings** with mostly identical `grid-cols-3` mobile cols. Could be simplified.
+- **P3 — Skeleton count is fixed at 8** but actual `gridCols` of 6 shows only 1.3 rows of skeletons. Adjust dynamically.
+- **P3 — Active-filter chips list `searchQuery`** but truncation isn't enforced. A 500-char search term would blow out the row.
 
-**Risk**:
-- **HIGH (P1)**: Open-redirect via `//host` in `?redirect=` parameter. Could be used in phishing chains.
-- **MEDIUM (P1)**: Email enumeration on signup path.
-- **LOW**: Re-render churn on token rotation; cosmetic.
+**Risk**: 
+- **No data leakage** — products are RLS-public for `is_active=true` only. Confirmed via schema.
+- **Wildcard injection in search** (P1) — `%`/`_` characters in user input are treated as Postgres LIKE wildcards. Not a security hole (RLS still applies), but allows DoS-via-broad-LIKE on a large table. Sanitize.
 
-**Verdict**: **Functionally solid, security needs hardening** — sanitize redirect targets, neutralize signup-path enumeration, and document the trade-off for the friendly error.
+**Verdict**: **Functionally rich but has a hidden N+1 ratings problem** and **client-side `top-rated` over partial data**. Search wildcard sanitization is the easiest security/perf win.
 
 ---
 
-## B. `/forgot-password` — Forgot Password
+## B. `/product/:id` — Product Detail
 
-**Summary**: Single email input → `supabase.auth.resetPasswordForEmail` with `redirectTo: ${origin}/reset-password`. Inline "check your email" success card with "try again" affordance. Pre-fills email from router state (passed by Auth page's "Forgot password?" link). Uses `emailSchema` for validation.
+**Summary**: Outer `Navigate` guard for missing `:id`, inner component fetches product → tracks recently-viewed → fetches related (4) → fetches reviews. All via raw `useState` + `useEffect` (no React Query). Lazy-imports `ProductCard` for related grid, lazy-imports `ProductReviewForm`. Quantity selector, sticky desktop buy box, mobile bottom buy box (NOT actually sticky), full SEO + Product/Breadcrumb JSON-LD.
 
 **Findings**
 
-- **P1 — `useCallback(handleSubmit, [email])`** rebuilds on every keystroke — defeats `useCallback`'s purpose entirely (line 28-63). The function depends on `email` which is the controlled input. Either drop `useCallback` or use `useRef` for a stable handler.
-- **P1 — Friendly error mapping is good** but `'rate limit'` and `'for security purposes'` checks (line 52) duplicate Supabase's own copy. If Supabase changes wording, the friendly message falls through to the generic "Failed to send reset link" which is acceptable but loses the rate-limit signal.
-- **P1 — `setSent(true)` always succeeds** even when Supabase returns a non-error response for an unknown email (intentional — Supabase does not reveal account existence). ✅ This is correct behavior for preventing enumeration. Document it.
-- **P2 — `useEffect(() => { if (!sent) emailInputRef.current?.focus() }, [sent])`** runs on initial mount and re-focuses every time `sent` flips to false (the "try again" button). Combined with `autoFocus` on the input (line 126), this is **double focus management** — the autoFocus fires first, then the effect. Pick one.
-- **P2 — No rate-limit feedback in the success card**. If a user clicks "try again" within the cool-down, they'll get the rate-limit toast — but the form button is enabled. Consider a 30s client-side cool-down on the "try again" button.
-- **P2 — `error: any` typing** (line 49) — every other auth file uses `unknown` with type guards. Inconsistent.
-- **P2 — `useDocumentTitle` not used** — page relies on `<SEO>` only. ✅ (correctly so)
-- **P2 — Missing `<main id="main-content">` landmark** — the file uses a `<div>` root. Memory rule requires every page to have exactly one `<main>` landmark. Add `<main id="main-content">`.
-- **P2 — Missing visible/sr-only `<h1>`** — `CardTitle` renders a `<div>` (shadcn default), not `<h1>`. The page therefore has **zero h1**, violating the per-page H1 rule. Wrap CardTitle's `as="h1"` or add `<h1 className="sr-only">`.
-- **P2 — Logo wrapper** — the centered `<Logo size="lg" />` has no link back to `/`. The `ArrowLeft` link at the bottom is the only back affordance. Acceptable but inconsistent with the desktop branding panel on `/auth` where the logo is the primary back-link.
-- **P2 — `prefilledEmail`** taken from `location.state` is convenient, but the user can also land here directly. No friendly empty state — `autoFocus` mitigates.
-- **P3 — Network/HTTP errors mapped strictly via substring** ('network', 'failed to fetch'). Modern fetch failures may show `TypeError: Load failed` (Safari). Pattern incomplete.
-- **P3 — Submit button disabled on `!email.trim()`** but typing a single space then deleting leaves a stale `emailError` message until the next keystroke clears it.
+- **P1 — No React Query** — three sequential awaits in one `useEffect`: product → recently-viewed → related → reviews (line 71-118). Total round-trips: 3 visible (+ 1 wishlist context). On slow networks this serializes ~1.5s of waterfall. Migrate each to `useQuery` with shared cache keys (`['product', id]`, `['product-related', id, category]`, `['product-reviews', id]`). Bonus: enables prefetching from `ShopPage` hover.
+- **P1 — `relatedProducts` query selects `*`** (line 102-107) — pulls `description`, `images`, all columns for 4 cards that only need name/price/image/discount. Use the same column list as Shop's `select(...)`.
+- **P1 — Reviews query selects `*` and has no pagination** (line 63-67). A product with 1,000 reviews ships every row. Limit to e.g. 20 with "Load more" + show count separately. Currently the reviews summary aggregate (avgRating, distribution) is computed client-side from all rows — same data is being computed twice (once here, once in `useProductRatings` on shop). Move to a DB view.
+- **P1 — `<button>Reviews</button>` in the rating row** (line 391-393) does nothing — no scroll-to-anchor. Misleading affordance.
+- **P1 — `productImages` falls back to `[image_url]`** but if `image_url` is also null, `productImages = [""]` → broken `<img src="">` request. Add a placeholder fallback.
+- **P2 — Buy Box "sticky" only on desktop**. The mobile buy box (line 561-645) is **inline below the description** — not sticky. On a long-page mobile flow the user has to scroll back up to add to cart. A real sticky-bottom Add to Cart bar would be the standard pattern.
+- **P2 — `selectedImage` state isn't reset when `id` changes**. If the user navigates from product A (3 images, on image 2) to product B (1 image), `selectedImage=2` references undefined → `productImages[2]` is undefined → blank image until next click. Reset to 0 on `id` change.
+- **P2 — `quantity` not bounded by stock**. `setQuantity(quantity + 1)` allows 999 against a stock of 5 — only caught at checkout. Disable Plus when `quantity >= stock`.
+- **P2 — `handleAddToCart` calls `addItem` in a loop** of `quantity` times (line 123-133). Cart context likely supports adding with quantity directly — this is N times the work + N realtime triggers + N optimistic updates.
+- **P2 — `setProduct(data as Product)`** with `select('*')` (line 87) — type assertion masks DB-schema drift. With React Query, types come from the generated client.
+- **P2 — `Share2` button has no handler** (line 313-318) — pure decoration. Implement Web Share API or remove.
+- **P2 — `addToRecentlyViewed` is called inside `fetchProduct`** every time the page loads. If the user reloads 10 times, the recently-viewed list deduplicates (assumed) but each call still writes localStorage. Cheap but unnecessary.
+- **P2 — `useDocumentTitle(product?.name)` AND `<SEO title={product.name}>`** both set the title. SEO is canonical; the hook is redundant.
+- **P2 — Reviews "Verified Buyer" label** (line 714) is hard-coded — not actually verified. Either tie it to an `orders` lookup (verified purchase) or drop the label.
+- **P2 — Rating star uses `text-warning fill-amber-400`** (line 381, 672, 722) — `fill-amber-400` is a raw Tailwind palette color, violating the semantic-token rule. Use `fill-warning`.
+- **P3 — `lazy(() => import('@/components/ProductCard'))`** — saves bytes only if related products are below the fold. They're at the very bottom — ✅ justified.
+- **P3 — Reviews list grid `md:grid-cols-2`** with no virtualization. 1,000 reviews × 2 cols = 500 DOM nodes.
+- **P3 — `if (!id) return <Navigate to="/shop">`** — but `useParams` returns string from React Router; `id` would be present for matched routes. The guard is defensive — fine.
 
-**Risk**:
-- **NONE — enumeration resistance is correct**. Supabase intentionally returns success for unknown emails on `resetPasswordForEmail`, and the page does not differentiate.
+**Risk**: 
+- **No data leakage** — products RLS-public for active products; reviews RLS allows authenticated read of all reviews (no PII fields exposed beyond rating + comment + user_id).
+- **`reviews.user_id` is exposed** to all authenticated users — potentially used to correlate ratings to accounts. Acceptable for a public review system, but worth noting.
 
-**Verdict**: **Correct security posture**, several polish issues. Top priority: `useCallback` dependency churn and missing `<main>` + `<h1>` landmarks.
+**Verdict**: **Functionally complete but architecturally inconsistent** — only page in this set without React Query. Top wins: cache layer, reset selectedImage on id change, bound quantity by stock.
 
 ---
 
-## C. `/reset-password` — Reset Password
+## C. `/track-order` — Track Order
 
-**Summary**: Detects recovery session (either via `useAuthUser` already populated, or hash containing `type=recovery` with an 8s timeout). On submit: validates with `passwordSchema`, confirms match, calls `supabase.auth.updateUser({ password })`, signs out the recovery session (forces re-auth on shared devices), redirects to `/auth` after 3s. Includes expired-link fallback UI.
+**Summary**: Auth-gated lookup. UUID regex pre-checks the order ID; falls back to `tracking_id` on no-UUID or no-match. Realtime updates via `postgres_changes` filtered to the active order. Renders timeline + items + status badge. Auth-gated since the previous audit pass.
 
 **Findings**
 
-- **P1 — Confirm-password is `===` compared** (line 77). String equality is fine, but the schema doesn't enforce minimum match — a typo'd confirm is caught. ✅
-- **P1 — Session timeout logic is brittle** (line 53-64). The 8s `setTimeout` fires once, then checks `getSession()`. If the listener fires at t=8.1s, `setSessionError(true)` already ran → user sees "Link Expired" while the session is actually valid. Race is tight but real on slow connections.
-- **P1 — Hash-token detection** (line 46) checks for `type=recovery` OR `access_token`. Supabase's recovery URL is `#access_token=...&type=recovery&...`. If a user has a generic stale `#access_token` hash from a previous sign-in (rare), this page would think it's a recovery link and refuse to error out. Low impact but loose.
-- **P1 — `supabase.auth.signOut()` after password update** (line 108). This signs out **all** sessions globally only if scope is `'global'`. Default scope is `'local'` → only signs out the current device. Other devices keep their session despite the password change. **Recommend**: `supabase.auth.signOut({ scope: 'others' })` or `'global'` to invalidate all sessions when a password is reset (industry standard for "account compromised" scenarios).
-- **P1 — Error mapping too narrow** (line 88-94). `session_not_found`, `pgrst301`, `refresh_token`, `invalid token`, `expired` — but Supabase's actual error code for an expired recovery link is often `otp_expired` (or generic `Token has expired or is invalid`). Add those substrings.
-- **P2 — `setTimeout(() => navigate('/forgot-password'), 2000)`** (line 96) has no cleanup. If the user navigates away before 2s, the timer still fires and could `navigate()` from a different page. Wrap in `useEffect` cleanup or use a ref-stored timer.
-- **P2 — Same for the success-redirect `setTimeout`** (line 112) — 3s navigate without cleanup.
-- **P2 — `passwordSchema` only requires 8+ chars, letter, number** — no symbol, no entropy check, no leaked-password check. Memory rule notes `password_hibp_enabled` should be enabled in Supabase. Recommend turning that on (server-side gate).
-- **P2 — No re-authentication challenge before password update**. A user with a hijacked session (stolen cookie/token) could change the password without re-entering the old one. Recovery flow doesn't need this (token IS the auth), but if an already-logged-in user navigates to `/reset-password`, they can change their password without confirming the current one. Add `currentPassword` field when `user` is present and **not** in recovery flow.
-- **P2 — Missing `<main id="main-content">` landmark** — same issue as `/forgot-password`.
-- **P2 — Missing semantic `<h1>`** — `CardTitle` is a `<div>`. Page has zero h1.
-- **P2 — `error: any` typing** (line 113) — inconsistent with `unknown` pattern elsewhere.
-- **P3 — `RECOVERY_TIMEOUT_MS = 8000`** is a long perceived wait. Show a "Verifying link…" message during this window so the user knows something is happening. Currently the form is disabled with `Verifying link…` button text — ✅ already covered.
-- **P3 — Two password-visibility toggles** with separate state — fine, but consider a single linked toggle ("show passwords") since they're related fields.
+- **P1 — Auth gate contradicts both the route name and the page copy**. The page is sold as "track your order with your Order ID — no login needed" in shop UX copy. Today, anonymous visitors see a Login Required card. Either:
+  - **(a) Lift the auth gate** and let RLS handle access (RLS only allows `auth.uid() = user_id`, so guests see "not found" for any ID — leaks zero data). The current `Login Required` card is a UX block, not a security control. **Recommended**: remove auth gate, let RLS fail closed.
+  - **(b) Keep the gate** but rename the route copy and remove the "no login needed" promise from sitemap/marketing.
+- **P1 — Tracking ID search is auth-bound by RLS**. A user who places an order then logs out and pastes the tracking ID gets "not found". Consider a **separate** anonymous-friendly RPC like `get_order_tracking_summary(tracking_code text)` that returns ONLY status + estimated delivery (no items, no addresses, no totals) — keyed off `tracking_id` (which is only known to the customer + courier). This is the industry pattern for guest tracking.
+- **P1 — `items: any[]`** typed as `any` (line 35, 122, 347) — defeats TS. Define a strict `OrderItem` type.
+- **P1 — UUID regex is permissive**. `^[0-9a-f]{8}-[0-9a-f]{4}-...{12}$/i` — accepts non-version UUIDs. Acceptable for filter-pre-check, but if you want strict v4: include the `4` and `[89ab]` group bits.
+- **P2 — `realtime` subscription is set up only AFTER an order is loaded** (line 107-131). If the user is on the page when the order status changes BUT they haven't searched yet, no update — fine. But the channel name uses the order ID — if the user searches a second order, the previous channel is correctly unsubscribed via the cleanup. ✅
+- **P2 — `setOrder(null)` on error toasts "Could not fetch order details"** (line 89-91). RLS denial returns no error (just empty data) → user sees "Order not found" empty state. ✅ Correct (no enumeration).
+- **P2 — No rate limiting** on the search button. Anonymous (if gate lifted) or authenticated user could brute-force tracking codes. Recommend a 1s client cool-down + Cloudflare/Supabase-level rate limit on the orders table read.
+- **P2 — Total computed client-side as `item.price * item.quantity`** (line 369) — but `total_amount` is fetched from DB (line 375). The two can diverge if items were edited post-order. Use `total_amount` exclusively or label "Items subtotal" vs "Total".
+- **P2 — `format(new Date(order.created_at), 'PPP')`** — locale-aware but no Bangla locale loaded. Bangla users see English dates.
+- **P2 — `OrderTrackingTimeline`** (line 296) is a client component — when the courier consignment is set, does it call a Steadfast edge function? If yes, every track-order page view triggers a courier API call → cost + rate-limit concern.
+- **P3 — `searchInput` not URL-synced**. If a user shares the page after searching, the recipient lands on an empty form.
+- **P3 — Empty state copy** ("You can only view orders placed with your account") confirms the auth gate is intentional → conflicts with the marketing claim.
+- **P3 — `Badge` text shows raw status string** (`pending`, `accepted`) — not capitalized/humanized. Cosmetic.
 
-**Risk**:
-- **MEDIUM (P1)**: `signOut` scope — password reset doesn't invalidate other-device sessions.
-- **LOW**: `setTimeout` without cleanup → potential navigate from unmounted component (React warns in dev).
-- **LOW**: Race window in session-detection timeout could lock a valid session out as "Link Expired".
+**Risk**: 
+- **NONE on data exposure** — RLS correctly fails closed; tracking ID is treated as auth-required. **The risk is the opposite — UX promised public tracking is gated.**
+- **Brute-force tracking IDs** would require knowing valid UUIDs — infeasible without leakage; tracking codes are typically short alphanumeric and a separate concern.
 
-**Verdict**: **Functionally correct**, security gap is the `signOut` scope. Easy fix with high security value.
+**Verdict**: **Secure but UX-mismatched**. The biggest decision is the auth gate: lift it (with a slim public RPC) to honor the marketing promise, or accept the tradeoff and update the copy.
 
 ---
 
-## Cross-Page Auth System Risks
+## Cross-Page Shared Issues
 
 ### Critical / High (P1)
 
-1. **Open-redirect via `?redirect=//evil.com`** in `AuthPage.tsx`. Sanitize: reject `//`, `\\`, and any non-relative path. Use a `URL()` constructor parse to enforce same-origin.
-2. **Email enumeration on signup path** — `'User already registered'` mapped to a confirming message. Trade-off vs UX; recommend documenting the choice and considering removal.
-3. **`signOut` after password reset is `local` scope** — other devices keep working. Should be `'others'` or `'global'` to enforce session invalidation on password change.
-4. **No leaked-password protection** — `password_hibp_enabled` should be turned on in Supabase Auth settings (server-side gate, no code change).
-5. **No client-side rate limiting** on any auth form — relies entirely on Supabase's 429. Add per-form cool-down after errors.
+1. **N+1 ratings problem** (`/shop`): client pulls every review row for every visible product on every page. **Highest-impact fix**: add a Postgres view `product_ratings` aggregating `avg(rating), count(*)` per `product_id`, expose via RLS-public read, query once. Eliminates the entire `useProductRatings` round-trip, fixes the `top-rated` sort to be server-side over the FULL catalog, and shrinks `/product/:id` reviews payload.
+2. **Search wildcard injection** (`/shop`): unsanitized `%` and `_` in `ilike()` patterns. Sanitize before interpolation.
+3. **`/product/:id` has no React Query layer**: the only page in this set still using raw `useState/useEffect`. Inconsistent with the rest of the app, blocks prefetching.
+4. **`selectedImage` not reset on product change** (`/product/:id`): blank image after navigating between products with different image counts.
+5. **Track Order auth gate vs marketing promise**: pick one and align both code + copy.
 
 ### Medium (P2)
 
-6. **Missing `<main id="main-content">` landmark** on `/forgot-password` and `/reset-password`. Memory rule violation.
-7. **Missing `<h1>`** on both `/forgot-password` and `/reset-password` (CardTitle is `<div>`). Memory rule violation.
-8. **`signupSchema` lacks `confirmPassword`** — typos create unrecoverable accounts.
-9. **`setTimeout` without cleanup** in `ResetPasswordPage` — two navigate-after-delay calls leak.
-10. **`error: any`** in two places — inconsistent with the `unknown` + type-guard pattern used in `AuthPage`.
-11. **`useCallback([email])`** in `ForgotPasswordPage` — defeats memoization.
-12. **No "current password required" challenge** when a logged-in user lands on `/reset-password` outside a recovery flow.
+6. **Featured products query unbounded** (`/shop`).
+7. **Hero LCP image not responsive** (`/shop` carousel + background).
+8. **Quantity not bounded by stock** (`/product/:id`).
+9. **Reviews unpaginated** (`/product/:id`).
+10. **Mobile buy box not sticky** (`/product/:id`) — major mobile UX gap.
+11. **Recently Viewed cards lack ratings** — inconsistent with main grid.
+12. **`top-rated` sort is over partial data** (`/shop`).
+13. **`useDocumentTitle` + SEO double-set title** (`/product/:id`).
+14. **Hardcoded `fill-amber-400`** (`/product/:id`) — token violation.
+15. **`items: any[]` typing** (`/track-order`).
+16. **Real-time invalidation thrash** (`/shop`) — admin bulk edits trigger full refetches.
 
 ### Low (P3)
 
-13. **Substring-based error mapping is brittle** across all three files. Supabase error `code` / `status` would be more stable.
-14. **OAuth buttons lack ToS gating** on `/auth`.
-15. **Password-visibility toggle in tab order** — interrupts keyboard flow in `/auth`.
-16. **Race window in `RECOVERY_TIMEOUT_MS`** — slow connections could see a false "Link Expired" UI.
-17. **Logo on auth pages** has no width/height — minor CLS.
+17. **`<input type="text">` instead of `type="search"`** (`/shop`).
+18. **No `aria-current` on cart link**.
+19. **Bangla locale not loaded** for date formatting.
+20. **"Verified Buyer" label is fake** (`/product/:id`).
+21. **Unimplemented Share button** (`/product/:id`).
+22. **`<button>Reviews</button>` does not scroll** (`/product/:id`).
+23. **Skeleton count fixed at 8** regardless of grid density.
 
 ### Confirmed Strengths
 
-- ✅ Tab forms reset on switch (no cross-leaking input state).
-- ✅ Separate password-visibility state per form.
-- ✅ `aria-invalid`, `aria-busy`, `role="alert"` properly used for error/loading states.
-- ✅ Selector hooks (`useAuthUser`, `useAuthLoading`) prevent token-rotation re-renders.
-- ✅ Recovery flow signs out the recovery-only session before redirect (prevents staying logged in on shared devices).
-- ✅ Forgot-password is enumeration-resistant (always shows "sent" UI regardless of account existence).
-- ✅ Auth pages are full-bleed (no `PublicShell`) — confirmed in `App.tsx` route config.
-- ✅ Recovery-link expired/invalid state has its own clean fallback UI.
-- ✅ All forms use `noValidate` to opt-out of native browser validation in favor of Zod.
-- ✅ All buttons meet 44px touch-target rule.
+- ✅ Filters URL-synced (`/shop`) — share/bookmark works.
+- ✅ Mobile filter sheet caps at `max-h-[80vh]` per memory rule.
+- ✅ Real-time subscription is per-order on `/track-order`, properly torn down.
+- ✅ ItemList + Product + Breadcrumb JSON-LD all present.
+- ✅ Outer `<Navigate>` guard on `/product/:id` keeps hook order stable.
+- ✅ UUID pre-check on `/track-order` prevents 400 errors that would skip the tracking_id fallback.
+- ✅ `auth.uid() = user_id` RLS on orders + reviews — no data leakage.
+- ✅ Infinite scroll uses Intersection Observer, not scroll listener.
+- ✅ Featured products query separated from main paginated query — independent caching.
+- ✅ Mobile category/price/sort uses 44px touch targets.
+- ✅ All semantic landmarks (`<main id="main-content">`, single `<h1>` per page) present.
 
 ### Recommended Fix Order
 
-1. **P1 SECURITY**: Sanitize `oauthRedirectUri` against `//` and `\\` open-redirect vectors.
-2. **P1 SECURITY**: Change `signOut` scope to `'others'` after password reset (or `'global'` if you want to log out the resetting user too — current code already redirects them to `/auth`).
-3. **P1 SECURITY**: Enable `password_hibp_enabled` in Supabase Auth config.
-4. **P1 UX/SEC**: Decide on signup-path enumeration trade-off (suppress confirming error or accept the UX win).
-5. **P2 A11Y**: Add `<main id="main-content">` + `<h1>` (sr-only ok) to `/forgot-password` and `/reset-password`.
-6. **P2 CORRECTNESS**: Add `confirmPassword` to `signupSchema`.
-7. **P2 CORRECTNESS**: Wrap the two `setTimeout(navigate)` calls in `ResetPasswordPage` with cleanup.
-8. **P2 PERF**: Drop `useCallback` (or stabilize)
+1. **P1 PERF**: Create `product_ratings` DB view + migrate `useProductRatings` to React Query. Unlocks server-side `top-rated` sort.
+2. **P1 SEC**: Sanitize `%`/`_`/`\` in shop search input before `ilike()`.
+3. **P1 ARCH**: Migrate `/product/:id` to React Query (`['product', id]`, `['product-related', id]`, `['product-reviews', id]`); enables prefetching from shop hover.
+4. **P1 BUG**: Reset `selectedImage` to 0 when `id` changes; add fallback for empty image arrays.
+5. **P1 PRODUCT**: Decide on `/track-order` auth gate. If lifting: add anonymous RPC returning sanitized tracking summary. If keeping: update marketing copy.
+6. **P2 PERF**: Limit featured products query; switch hero carousel/background to `OptimizedImage` + responsive `srcset`.
+7. **P2 UX**: Sticky-bottom mobile Add to Cart bar; bound quantity by stock; paginate reviews; pass ratings to Recently Viewed cards.
+8. **P2 POLISH**: Replace `fill-amber-400` with `fill-warning`; drop redundant `useDocumentTitle`; type `items` strictly.
+
+Reply **go** to switch to default mode and apply this plan, or call out which items to skip.
+
