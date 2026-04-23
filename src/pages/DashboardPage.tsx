@@ -26,7 +26,7 @@ const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
 type TabValue = typeof VALID_TABS[number];
 
 const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
-  const { user } = useAuth();
+  const user = useAuthUser();
   const { profile } = useProfile();
 
   const greetingName = useMemo(() => {
