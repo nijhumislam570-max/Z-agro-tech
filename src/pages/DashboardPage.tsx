@@ -123,8 +123,17 @@ const DashboardPageInner = () => {
         </section>
 
         {/* BODY — Recent orders + Quick Actions/Alerts + Learning + Recommended + Featured */}
-        <section className="bg-background pb-8 md:pb-10 pt-6 md:pt-8" aria-label="Dashboard overview">
+        <section className="bg-secondary/30 border-y border-border/60 pb-10 md:pb-14 pt-8 md:pt-10" aria-labelledby="dashboard-overview-heading">
           <div className="container mx-auto px-4 sm:px-6">
+            <header className="mb-5 sm:mb-6">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-1">Overview</p>
+              <h2 id="dashboard-overview-heading" className="text-xl sm:text-2xl font-display font-bold text-foreground">
+                Your farm at a glance
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Recent orders, learning progress and curated picks — all in one place.
+              </p>
+            </header>
             <BentoGrid>
               <RecentOrdersList />
               <div className="col-span-1 lg:col-span-4 grid grid-cols-1 gap-4 md:gap-5">

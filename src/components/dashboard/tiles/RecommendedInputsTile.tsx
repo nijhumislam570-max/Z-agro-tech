@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { GlassCard } from '../GlassCard';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,9 +11,11 @@ import { getProductImage } from '@/lib/agriImages';
 
 function stockBadge(stock: number | null) {
   const s = stock ?? 0;
-  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-danger/90 text-white border-transparent hover:bg-danger/90' };
-  if (s < 5) return { label: 'Low Stock', cls: 'bg-warning/90 text-white border-transparent hover:bg-warning/90' };
-  return { label: 'In Stock', cls: 'bg-success/90 text-white border-transparent hover:bg-success/90' };
+  if (s <= 0)
+    return { label: 'Out of Stock', cls: 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft' };
+  if (s < 5)
+    return { label: 'Low Stock', cls: 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft' };
+  return { label: 'In Stock', cls: 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft' };
 }
 
 function MiniProduct({ product }: { product: RecommendedProduct }) {
@@ -34,8 +35,8 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
   const badge = stockBadge(product.stock);
 
   return (
-    <div className="rounded-xl bg-white/10 border border-white/15 p-3 flex flex-col gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15 hover:border-white/30">
-      <Link to={`/product/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-white/10">
+    <div className="rounded-xl bg-card border border-border/60 p-3 flex flex-col gap-2 transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary/30">
+      <Link to={`/product/${product.id}`} className="block aspect-square rounded-lg overflow-hidden bg-secondary/40">
         <img
           src={img}
           alt={product.name}
@@ -45,16 +46,16 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
       </Link>
       <div className="space-y-1">
         <Link to={`/product/${product.id}`} className="block">
-          <h4 className="text-xs font-semibold text-white line-clamp-2 leading-tight min-h-[2rem]">
+          <h4 className="text-xs font-semibold text-foreground line-clamp-2 leading-tight min-h-[2rem]">
             {product.name}
           </h4>
         </Link>
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-bold text-white">৳{Number(product.price).toFixed(0)}</span>
-          <Badge className={`${badge.cls} text-[10px] px-1.5 py-0`}>{badge.label}</Badge>
+          <span className="text-sm font-bold text-foreground">৳{Number(product.price).toFixed(0)}</span>
+          <Badge variant="outline" className={`${badge.cls} text-[10px] px-1.5 py-0`}>{badge.label}</Badge>
         </div>
       </div>
-      <Button size="sm" variant="secondary" className="w-full h-8 text-xs" onClick={onAdd}>
+      <Button size="sm" className="w-full h-8 text-xs" onClick={onAdd}>
         <Plus className="h-3.5 w-3.5" /> Add
       </Button>
     </div>
@@ -65,30 +66,32 @@ export default function RecommendedInputsTile() {
   const { data, isLoading } = useRecommendedProducts(3);
 
   return (
-    <GlassCard className="col-span-1 lg:col-span-7">
+    <Card className="col-span-1 lg:col-span-7 h-full flex flex-col rounded-2xl border-border/60 shadow-sm hover:shadow-md transition-shadow">
       <CardHeader className="pb-3 flex-row items-center justify-between space-y-0">
         <div>
-          <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-            <Sprout className="h-4 w-4" />
+          <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Sprout className="h-4 w-4" />
+            </span>
             Recommended Agri-Inputs
           </CardTitle>
-          <p className="text-xs text-white/70 mt-1">Seeds · Fertilizers · Pest Control</p>
+          <p className="text-xs text-muted-foreground mt-1 ml-9">Seeds · Fertilizers · Pest Control</p>
         </div>
-        <Button asChild variant="ghost" size="sm" className="text-white hover:bg-white/15 hover:text-white">
+        <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary">
           <Link to="/shop">View all</Link>
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1">
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-56 rounded-xl bg-white/20" />
+              <Skeleton key={i} className="h-56 rounded-xl" />
             ))}
           </div>
         ) : !data || data.length === 0 ? (
-          <div className="rounded-xl bg-white/10 border border-dashed border-white/30 p-6 text-center">
-            <p className="text-sm text-white/85 mb-3">No products available right now.</p>
-            <Button asChild variant="secondary" size="sm">
+          <div className="rounded-xl bg-secondary/40 border border-dashed border-border p-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">No products available right now.</p>
+            <Button asChild size="sm">
               <Link to="/shop">Browse the shop</Link>
             </Button>
           </div>
@@ -100,6 +103,6 @@ export default function RecommendedInputsTile() {
           </div>
         )}
       </CardContent>
-    </GlassCard>
+    </Card>
   );
 }

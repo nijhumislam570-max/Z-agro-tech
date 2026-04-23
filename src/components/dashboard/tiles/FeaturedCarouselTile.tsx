@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { GlassCard } from '../GlassCard';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,17 +16,22 @@ import { getCourseImage, getProductImage } from '@/lib/agriImages';
 
 function difficultyTone(level: string) {
   const l = level.toLowerCase();
-  if (l.includes('begin')) return 'bg-success/90 text-white border-transparent hover:bg-success/90';
-  if (l.includes('inter')) return 'bg-warning/90 text-white border-transparent hover:bg-warning/90';
-  if (l.includes('adv')) return 'bg-danger/90 text-white border-transparent hover:bg-danger/90';
-  return 'bg-white/90 text-foreground hover:bg-white/90 border-transparent';
+  if (l.includes('begin'))
+    return 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft';
+  if (l.includes('inter'))
+    return 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft';
+  if (l.includes('adv'))
+    return 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft';
+  return 'bg-secondary text-secondary-foreground border-border hover:bg-secondary';
 }
 
 function stockTone(stock: number | null) {
   const s = stock ?? 0;
-  if (s <= 0) return { label: 'Out of Stock', cls: 'bg-danger/90 text-white border-transparent hover:bg-danger/90' };
-  if (s < 5) return { label: 'Low Stock', cls: 'bg-warning/90 text-white border-transparent hover:bg-warning/90' };
-  return { label: 'In Stock', cls: 'bg-success/90 text-white border-transparent hover:bg-success/90' };
+  if (s <= 0)
+    return { label: 'Out of Stock', cls: 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft' };
+  if (s < 5)
+    return { label: 'Low Stock', cls: 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft' };
+  return { label: 'In Stock', cls: 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft' };
 }
 
 function FeaturedSlide({ item }: { item: FeaturedItem }) {
@@ -37,9 +41,9 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
     return (
       <Link
         to={`/product/${item.id}`}
-        className="block h-full rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15"
+        className="block h-full rounded-2xl bg-card border border-border/60 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary/30"
       >
-        <div className="aspect-[4/3] overflow-hidden bg-white/5">
+        <div className="aspect-[4/3] overflow-hidden bg-secondary/40">
           <img
             src={img}
             alt={item.title}
@@ -49,17 +53,17 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
         </div>
         <div className="p-3 space-y-2">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Badge className="bg-white/90 text-foreground text-[10px] capitalize hover:bg-white/90 border-transparent">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] capitalize hover:bg-primary/10">
               <ShoppingCart className="h-3 w-3" /> AgroShop
             </Badge>
-            <Badge className={`${stock.cls} text-[10px]`}>{stock.label}</Badge>
+            <Badge variant="outline" className={`${stock.cls} text-[10px]`}>{stock.label}</Badge>
           </div>
-          <h4 className="text-sm font-semibold text-white line-clamp-2 leading-tight min-h-[2.5rem]">
+          <h4 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight min-h-[2.5rem]">
             {item.title}
           </h4>
           <div className="flex items-center justify-between">
-            <span className="text-base font-bold text-white">৳{item.price.toFixed(0)}</span>
-            <span className="text-xs text-white/70 capitalize">{item.category}</span>
+            <span className="text-base font-bold text-foreground">৳{item.price.toFixed(0)}</span>
+            <span className="text-xs text-muted-foreground capitalize">{item.category}</span>
           </div>
         </div>
       </Link>
@@ -70,9 +74,9 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
   return (
     <Link
       to={`/course/${item.id}`}
-      className="block h-full rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:bg-white/15"
+      className="block h-full rounded-2xl bg-card border border-border/60 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:border-primary/30"
     >
-      <div className="aspect-[4/3] overflow-hidden bg-white/5">
+      <div className="aspect-[4/3] overflow-hidden bg-secondary/40">
         <img
           src={img}
           alt={item.title}
@@ -82,24 +86,24 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
       </div>
       <div className="p-3 space-y-2">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge className="bg-white/90 text-foreground text-[10px] hover:bg-white/90 border-transparent">
+          <Badge variant="outline" className="bg-accent/15 text-accent-foreground border-accent/30 text-[10px] hover:bg-accent/15">
             <GraduationCap className="h-3 w-3" /> Masterclass
           </Badge>
-          <Badge className={`${difficultyTone(item.difficulty)} text-[10px] capitalize`}>
+          <Badge variant="outline" className={`${difficultyTone(item.difficulty)} text-[10px] capitalize`}>
             {item.difficulty}
           </Badge>
           {item.mode && (
-            <Badge variant="outline" className="border-white/40 text-white text-[10px] capitalize">
+            <Badge variant="outline" className="border-border text-muted-foreground text-[10px] capitalize">
               {item.mode}
             </Badge>
           )}
         </div>
-        <h4 className="text-sm font-semibold text-white line-clamp-2 leading-tight min-h-[2.5rem]">
+        <h4 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight min-h-[2.5rem]">
           {item.title}
         </h4>
         <div className="flex items-center justify-between text-xs">
-          <span className="text-white/80">{item.duration_label ?? 'Self-paced'}</span>
-          <span className="text-white font-semibold inline-flex items-center gap-1">
+          <span className="text-muted-foreground">{item.duration_label ?? 'Self-paced'}</span>
+          <span className="text-primary font-semibold inline-flex items-center gap-1">
             Enroll <ArrowRight className="h-3 w-3" />
           </span>
         </div>
@@ -112,18 +116,20 @@ export default function FeaturedCarouselTile() {
   const { items, isLoading } = useFeaturedAgri();
 
   return (
-    <GlassCard className="col-span-1 lg:col-span-12 overflow-hidden">
+    <Card className="col-span-1 lg:col-span-12 rounded-2xl border-border/60 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       <CardHeader className="pb-3 flex-row items-start sm:items-center justify-between gap-3 space-y-0">
         <div>
-          <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-            <Star className="h-4 w-4 fill-current" />
+          <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Star className="h-4 w-4 fill-current" />
+            </span>
             Featured this week
           </CardTitle>
-          <p className="text-xs text-white/75 mt-1">
+          <p className="text-xs text-muted-foreground mt-1 ml-9">
             Hand-picked agri-inputs &amp; masterclasses from our experts
           </p>
         </div>
-        <Button asChild variant="ghost" size="sm" className="text-white hover:bg-white/15 hover:text-white shrink-0">
+        <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-primary/10 hover:text-primary shrink-0">
           <Link to="/shop">Explore all</Link>
         </Button>
       </CardHeader>
@@ -131,13 +137,13 @@ export default function FeaturedCarouselTile() {
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-64 rounded-2xl bg-white/20" />
+              <Skeleton key={i} className="h-64 rounded-2xl" />
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-xl bg-white/10 border border-dashed border-white/30 p-6 text-center">
-            <p className="text-sm text-white/85 mb-3">Featured items will appear here soon.</p>
-            <Button asChild variant="secondary" size="sm">
+          <div className="rounded-xl bg-secondary/40 border border-dashed border-border p-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">Featured items will appear here soon.</p>
+            <Button asChild size="sm">
               <Link to="/shop">Browse the shop</Link>
             </Button>
           </div>
@@ -153,11 +159,11 @@ export default function FeaturedCarouselTile() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="left-1 bg-white/90 hover:bg-white text-foreground border-transparent" />
-            <CarouselNext className="right-1 bg-white/90 hover:bg-white text-foreground border-transparent" />
+            <CarouselPrevious className="left-1 bg-card hover:bg-secondary text-foreground border-border" />
+            <CarouselNext className="right-1 bg-card hover:bg-secondary text-foreground border-border" />
           </Carousel>
         )}
       </CardContent>
-    </GlassCard>
+    </Card>
   );
 }

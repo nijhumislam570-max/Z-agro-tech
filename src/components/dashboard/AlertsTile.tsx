@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { GlassCard } from './GlassCard';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, AlertCircle, PackageOpen, Sparkles, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { useDashboardSummary, useFeaturedMasterclass } from '@/hooks/useDashboardData';
 import { useWishlistProducts } from '@/hooks/useWishlistProducts';
@@ -14,9 +13,15 @@ interface AlertItem {
 }
 
 const toneClasses: Record<AlertItem['tone'], string> = {
-  warning: 'bg-warning/20 text-white border-warning/40',
-  info: 'bg-info/20 text-white border-info/40',
-  success: 'bg-success/20 text-white border-success/40',
+  warning: 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-light',
+  info: 'bg-info-soft text-info border-info-border hover:bg-info-light',
+  success: 'bg-success-soft text-success-foreground border-success-border hover:bg-success-light',
+};
+
+const iconToneClasses: Record<AlertItem['tone'], string> = {
+  warning: 'text-warning',
+  info: 'text-info',
+  success: 'text-success',
 };
 
 export const AlertsTile = memo(function AlertsTile() {
@@ -53,35 +58,37 @@ export const AlertsTile = memo(function AlertsTile() {
   }
 
   return (
-    <GlassCard className="col-span-1 lg:col-span-4">
+    <Card className="h-full flex flex-col rounded-2xl border-border/60 shadow-sm hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-          <Bell className="h-4 w-4" />
+        <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Bell className="h-4 w-4" />
+          </span>
           Alerts
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-2 flex-1">
         {alerts.length === 0 ? (
-          <div className="rounded-xl bg-white/10 border border-dashed border-white/30 p-5 text-center space-y-2">
-            <div className="mx-auto w-10 h-10 rounded-full bg-success/30 flex items-center justify-center">
-              <CheckCircle2 className="h-5 w-5 text-white" />
+          <div className="rounded-xl bg-success-soft border border-dashed border-success-border p-5 text-center space-y-2">
+            <div className="mx-auto w-10 h-10 rounded-full bg-success/15 flex items-center justify-center">
+              <CheckCircle2 className="h-5 w-5 text-success" />
             </div>
-            <p className="text-sm text-white/90 font-medium">All caught up ✨</p>
-            <p className="text-xs text-white/70">No alerts right now.</p>
+            <p className="text-sm text-foreground font-medium">All caught up ✨</p>
+            <p className="text-xs text-muted-foreground">No alerts right now.</p>
           </div>
         ) : (
           alerts.map((a, idx) => (
             <Link
               key={idx}
               to={a.to}
-              className={`flex items-start gap-3 rounded-xl border ${toneClasses[a.tone]} px-3 py-2.5 hover:brightness-110 transition-all`}
+              className={`flex items-start gap-3 rounded-xl border ${toneClasses[a.tone]} px-3 py-2.5 transition-colors`}
             >
-              <a.icon className="h-4 w-4 mt-0.5 shrink-0" />
+              <a.icon className={`h-4 w-4 mt-0.5 shrink-0 ${iconToneClasses[a.tone]}`} />
               <span className="text-xs leading-snug font-medium line-clamp-2">{a.text}</span>
             </Link>
           ))
         )}
       </CardContent>
-    </GlassCard>
+    </Card>
   );
 });
