@@ -61,14 +61,16 @@ function getSnapshot(): CartItem[] {
 
 // ─── Store actions (pure functions, no hooks) ────────────────────────
 
-function addItemToStore(item: Omit<CartItem, 'quantity'>) {
+function addItemToStore(item: Omit<CartItem, 'quantity'> & { quantity?: number }) {
+  const addQty = Math.max(1, item.quantity ?? 1);
   const existing = cartItems.find(i => i.id === item.id);
   if (existing) {
     cartItems = cartItems.map(i =>
-      i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+      i.id === item.id ? { ...i, quantity: i.quantity + addQty } : i
     );
   } else {
-    cartItems = [...cartItems, { ...item, quantity: 1 }];
+    const { quantity: _omit, ...rest } = item;
+    cartItems = [...cartItems, { ...rest, quantity: addQty }];
   }
   emitChange();
 }
@@ -105,7 +107,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 export function useCart() {
   const items = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-  const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
+  const addItem = useCallback((item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     addItemToStore(item);
   }, []);
 
