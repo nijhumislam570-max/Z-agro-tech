@@ -204,6 +204,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
         : product.price,
       image: product.image_url || '',
       category: product.category,
+      stock: product.stock ?? undefined,
       // Add full quantity in a single store update instead of looping.
       quantity,
     });

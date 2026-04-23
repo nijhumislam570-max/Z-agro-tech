@@ -42,7 +42,7 @@ const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(({ id, nam
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isOutOfStock) return;
-    addItem({ id: id || name, name, price: finalPrice, image, category });
+    addItem({ id: id || name, name, price: finalPrice, image, category, stock: stock ?? undefined });
     toast.success(name + ' added to cart!');
   };
 
