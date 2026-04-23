@@ -8,24 +8,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthUser, useAuthLoading, useAuthActions } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import logo from '@/assets/zagrotech-logo-circle.png';
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validations';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import SEO from '@/components/SEO';
 
 const AuthPage = () => {
-  useDocumentTitle('Sign In');
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
-  const [showPassword, setShowPassword] = useState(false);
+  // Separate visibility per form so toggling one doesn't reveal the other tab.
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
 
-  const { user, signIn, signUp, loading: authLoading } = useAuth();
+  // Selector hooks — only re-render on the slices we actually consume.
+  const user = useAuthUser();
+  const authLoading = useAuthLoading();
+  const { signIn, signUp } = useAuthActions();
   const navigate = useNavigate();
   const location = useLocation();
 
