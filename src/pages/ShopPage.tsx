@@ -296,9 +296,13 @@ const ShopPage = () => {
   // Flatten pages → single array
   const products = useMemo(() => data?.pages.flat() ?? [], [data]);
 
-  // Client-side sort for top-rated (ratings live in reviews table)
+  // Fetch ratings for both the main grid and the recently-viewed strip.
+  // The hook caches per-id so overlap between the two lists costs nothing.
   const productIds = useMemo(() => products.map(p => p.id), [products]);
   const ratings = useProductRatings(productIds);
+
+  const recentIds = useMemo(() => recentProducts.map(p => p.id), [recentProducts]);
+  const recentRatings = useProductRatings(recentIds);
 
   const sortedProducts = useMemo(() => {
     if (sortBy !== 'top-rated') return products;
@@ -830,15 +834,17 @@ const ShopPage = () => {
             <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-none -mx-1 px-1">
               {recentProducts.map(product => (
                 <div key={product.id} className="flex-shrink-0 w-[160px] sm:w-[200px]">
-                  <ProductCard 
-                    id={product.id} 
-                    name={product.name} 
+                  <ProductCard
+                    id={product.id}
+                    name={product.name}
                     price={product.price}
-                    category={product.category} 
+                    category={product.category}
                     image={product.image}
-                    badge={product.badge} 
+                    badge={product.badge}
                     discount={product.discount}
                     stock={product.stock}
+                    avgRating={recentRatings[product.id]?.avgRating}
+                    reviewCount={recentRatings[product.id]?.reviewCount}
                   />
                 </div>
               ))}
