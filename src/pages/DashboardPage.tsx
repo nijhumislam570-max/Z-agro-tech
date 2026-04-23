@@ -99,16 +99,31 @@ const DashboardPageInner = () => {
         <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
 
         {/* HERO + Stat Grid */}
-        <section className="bg-agri-gradient" aria-labelledby="dashboard-hero-heading">
+        <section
+          className="relative overflow-hidden bg-gradient-to-b from-secondary/50 via-background to-background"
+          aria-labelledby="dashboard-hero-heading"
+        >
           <h2 id="dashboard-hero-heading" className="sr-only">At-a-glance overview</h2>
-          <div className="container mx-auto px-4 sm:px-6 py-6 md:py-10">
+          {/* Decorative background shapes — match Academy hero */}
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute top-1/2 -right-32 w-96 h-96 rounded-full bg-accent/10 blur-3xl" />
+            <div
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: 'radial-gradient(hsl(var(--foreground)) 1px, transparent 1px)',
+                backgroundSize: '24px 24px',
+              }}
+            />
+          </div>
+          <div className="container mx-auto px-4 sm:px-6 py-6 md:py-10 relative z-10">
             <Hero onEdit={handleEdit} />
             <DashboardStatGrid />
           </div>
         </section>
 
         {/* BODY — Recent orders + Quick Actions/Alerts + Learning + Recommended + Featured */}
-        <section className="bg-agri-gradient pb-8 md:pb-10" aria-label="Dashboard overview">
+        <section className="bg-background pb-8 md:pb-10 pt-6 md:pt-8" aria-label="Dashboard overview">
           <div className="container mx-auto px-4 sm:px-6">
             <BentoGrid>
               <RecentOrdersList />
