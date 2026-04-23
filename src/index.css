@@ -39,17 +39,6 @@
 
     --radius: 1rem;
 
-    /* Brand-specific tokens */
-    --forest: 142 55% 28%;
-    --forest-light: 142 40% 50%;
-    --forest-dark: 142 60% 18%;
-    --sage: 90 25% 70%;
-    --sage-light: 90 25% 92%;
-    --harvest: 38 70% 50%;
-    --harvest-light: 38 80% 88%;
-    --soil: 28 35% 35%;
-    --cream: 45 50% 96%;
-    
     /* Status / semantic feedback colors (always reach for these) */
     --success: 160 60% 35%;
     --success-light: 160 50% 92%;
