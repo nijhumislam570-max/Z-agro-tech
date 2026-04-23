@@ -147,7 +147,8 @@ const AuthPage = () => {
       // message instead of bouncing to /dashboard which would just redirect back.
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast.success('Account created! Please check your email to verify your address.');
+        toast.success('Account created! Check your email to verify your address.');
+        setPendingVerificationEmail(values.email);
         signupForm.reset();
         setActiveTab('signin');
         return;
@@ -164,6 +165,9 @@ const AuthPage = () => {
     setActiveTab(v as 'signin' | 'signup');
     loginForm.reset();
     signupForm.reset();
+    // Clear the verify-email banner when the user explicitly switches tabs
+    // — they've acknowledged it.
+    if (v !== 'signin') setPendingVerificationEmail(null);
   };
 
   if (authLoading || checkingAuth) {
