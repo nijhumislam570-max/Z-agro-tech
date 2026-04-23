@@ -1,27 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-  Package, 
+import {
+  Package,
   Loader2,
   ArrowLeft,
   Search,
   LogIn,
-  AlertCircle
+  AlertCircle,
+  MapPin,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { OrderTrackingTimeline } from '@/components/admin/OrderTrackingTimeline';
 import { getStatusColor } from '@/lib/statusColors';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useAuthUser, useAuthLoading } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { MapPin } from 'lucide-react';
 import SEO from '@/components/SEO';
 
 interface OrderDetails {
@@ -36,51 +35,56 @@ interface OrderDetails {
   items: any[];
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const TrackOrderPage = () => {
-  useDocumentTitle('Track Order');
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
-  const { user, loading: authLoading } = useAuth();
-  
+
+  const user = useAuthUser();
+  const authLoading = useAuthLoading();
+
   const orderId = searchParams.get('id');
   const [searchInput, setSearchInput] = useState('');
-  const debouncedSearch = useDebounce(searchInput, 500);
   const [order, setOrder] = useState<OrderDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchAttempted, setSearchAttempted] = useState(false);
 
-  const fetchOrder = useCallback(async (id: string) => {
-    if (!id.trim()) return;
+  const fetchOrder = useCallback(async (rawId: string) => {
+    const id = rawId.trim();
+    if (!id) return;
     setIsLoading(true);
     setSearchAttempted(true);
     try {
-      // Try by order ID first
-      let { data, error } = await supabase
-        .from('orders')
-        .select('id, status, tracking_id, consignment_id, rejection_reason, created_at, total_amount, shipping_address, items')
-        .eq('id', id.trim())
-        .maybeSingle();
+      const cols =
+        'id, status, tracking_id, consignment_id, rejection_reason, created_at, total_amount, shipping_address, items';
 
-      // If not found by ID, try by tracking_id
-      if (!data && !error) {
+      let data: OrderDetails | null = null;
+
+      // Only attempt by-UUID lookup if the input looks like one — otherwise
+      // Postgres rejects the cast with a 400 and we lose the chance to fall
+      // back to the tracking_id lookup below.
+      if (UUID_RE.test(id)) {
         const result = await supabase
           .from('orders')
-          .select('id, status, tracking_id, consignment_id, rejection_reason, created_at, total_amount, shipping_address, items')
-          .eq('tracking_id', id.trim())
+          .select(cols)
+          .eq('id', id)
           .maybeSingle();
-        data = result.data;
-        error = result.error;
+        if (result.error) throw result.error;
+        data = result.data as unknown as OrderDetails | null;
       }
 
-      if (error) {
-        logger.error('Error fetching order:', error);
-        toast.error('Could not fetch order details');
-        setOrder(null);
-        return;
+      if (!data) {
+        const result = await supabase
+          .from('orders')
+          .select(cols)
+          .eq('tracking_id', id)
+          .maybeSingle();
+        if (result.error) throw result.error;
+        data = result.data as unknown as OrderDetails | null;
       }
 
-      setOrder(data as unknown as OrderDetails | null);
+      setOrder(data);
     } catch (error) {
       logger.error('Error fetching order:', error);
       toast.error('Could not fetch order details');
@@ -90,10 +94,8 @@ const TrackOrderPage = () => {
     }
   }, []);
 
-  // Auto-load order from URL param.
-  // Depend on user.id (primitive) instead of the user object reference,
-  // otherwise every Supabase token refresh emits a new user object and
-  // re-fires the fetch in a near-loop.
+  // Auto-load order from URL param. Depend on user.id (primitive) so token
+  // refreshes that yield a new user object reference don't re-fire the fetch.
   useEffect(() => {
     if (orderId && user?.id) {
       setSearchInput(orderId);
@@ -143,15 +145,16 @@ const TrackOrderPage = () => {
         <SEO
           title="Track Your Order"
           description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
-          url="https://zagrotech.lovable.app/track-order"
+          url="/track-order"
           canonicalUrl="https://zagrotech.lovable.app/track-order"
         />
         <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">
+          <h1 className="sr-only">Track Your Order</h1>
           <div className="max-w-md mx-auto">
             <Card>
               <CardHeader className="text-center">
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <LogIn className="h-6 w-6 text-primary" />
+                  <LogIn className="h-6 w-6 text-primary" aria-hidden="true" />
                 </div>
                 <CardTitle>Login Required</CardTitle>
                 <CardDescription>
@@ -159,8 +162,11 @@ const TrackOrderPage = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex justify-center">
-                <Button onClick={() => navigate('/auth')}>
-                  <LogIn className="h-4 w-4 mr-2" />
+                <Button
+                  onClick={() => navigate('/auth?redirect=/track-order')}
+                  className="min-h-[44px]"
+                >
+                  <LogIn className="h-4 w-4 mr-2" aria-hidden="true" />
                   Log In to Track Orders
                 </Button>
               </CardContent>
@@ -176,17 +182,18 @@ const TrackOrderPage = () => {
       <SEO
         title="Track Your Order"
         description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
-        url="https://zagrotech.lovable.app/track-order"
+        url="/track-order"
         canonicalUrl="https://zagrotech.lovable.app/track-order"
       />
 
       <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">
+        <h1 className="sr-only">Track Your Order</h1>
         <Button
           variant="ghost"
-          className="mb-6"
+          className="mb-6 min-h-[44px]"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" aria-hidden="true" />
           Back
         </Button>
 
@@ -195,7 +202,7 @@ const TrackOrderPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Package className="h-6 w-6" />
+                <Package className="h-6 w-6" aria-hidden="true" />
                 Track Your Order
               </CardTitle>
               <CardDescription>
@@ -203,24 +210,31 @@ const TrackOrderPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <Label htmlFor="track-order-input" className="sr-only">
+                Order ID or Tracking ID
+              </Label>
               <div className="flex gap-2">
                 <Input
+                  id="track-order-input"
                   placeholder="Order ID or Tracking ID"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   disabled={!user}
+                  autoComplete="off"
+                  spellCheck={false}
                   className="min-h-[44px] text-base"
                 />
-                <Button 
-                  onClick={handleSearch} 
+                <Button
+                  onClick={handleSearch}
                   disabled={isLoading || !user || !searchInput.trim()}
                   className="min-h-[44px]"
+                  aria-label="Search for order"
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   ) : (
-                    <Search className="h-4 w-4" />
+                    <Search className="h-4 w-4" aria-hidden="true" />
                   )}
                 </Button>
               </div>
@@ -229,8 +243,9 @@ const TrackOrderPage = () => {
 
           {isLoading ? (
             <Card>
-              <CardContent className="py-12 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <CardContent className="py-12 flex items-center justify-center" aria-live="polite" aria-busy="true">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+                <span className="sr-only">Looking up your order…</span>
               </CardContent>
             </Card>
           ) : order ? (
@@ -249,12 +264,18 @@ const TrackOrderPage = () => {
                               src={thumb}
                               alt={firstItem?.name ?? 'Order item'}
                               loading="lazy"
+                              decoding="async"
+                              width={56}
+                              height={56}
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
                               className="h-full w-full object-cover"
                             />
                           </div>
                         ) : (
                           <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Package className="h-6 w-6 text-primary" />
+                            <Package className="h-6 w-6 text-primary" aria-hidden="true" />
                           </div>
                         );
                       })()}
@@ -265,7 +286,7 @@ const TrackOrderPage = () => {
                         </CardDescription>
                       </div>
                     </div>
-                    <Badge className={getStatusColor(order.status)}>
+                    <Badge className={getStatusColor(order.status)} aria-label={`Order status: ${order.status}`}>
                       {order.status}
                     </Badge>
                   </div>
@@ -280,8 +301,11 @@ const TrackOrderPage = () => {
                   />
 
                   {order.rejection_reason && (
-                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2">
-                      <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                    <div
+                      role="alert"
+                      className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 flex items-start gap-2"
+                    >
+                      <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" aria-hidden="true" />
                       <div>
                         <p className="text-sm font-medium text-destructive">Order Rejected</p>
                         <p className="text-sm text-destructive/80">{order.rejection_reason}</p>
@@ -292,9 +316,9 @@ const TrackOrderPage = () => {
                   {order.tracking_id && (
                     <div className="p-4 bg-secondary/50 rounded-lg">
                       <p className="text-sm text-muted-foreground">Tracking Code</p>
-                      <p className="font-mono font-bold text-lg">{order.tracking_id}</p>
+                      <p className="font-mono font-bold text-lg break-all">{order.tracking_id}</p>
                       {order.consignment_id && (
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-1 break-all">
                           Consignment ID: {order.consignment_id}
                         </p>
                       )}
@@ -303,7 +327,7 @@ const TrackOrderPage = () => {
 
                   {order.shipping_address && (
                     <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
+                      <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" aria-hidden="true" />
                       <div>
                         <p className="text-sm text-muted-foreground">Shipping Address</p>
                         <p className="text-sm">{order.shipping_address}</p>
@@ -319,30 +343,33 @@ const TrackOrderPage = () => {
                   <CardTitle className="text-lg">Order Items</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <ul className="space-y-3">
                     {Array.isArray(order.items) && order.items.map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                        <div className="flex items-center gap-3">
+                      <li key={idx} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-secondary/50">
+                        <div className="flex items-center gap-3 min-w-0">
                           {item.image && (
-                            <img 
-                              src={item.image} 
-                              alt={item.name} 
-                              className="h-12 w-12 rounded-lg object-cover" 
+                            <img
+                              src={item.image}
+                              alt={item.name ?? 'Product'}
+                              className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
                               loading="lazy"
                               decoding="async"
                               width={48}
                               height={48}
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
                             />
                           )}
-                          <div>
-                            <p className="font-medium">{item.name}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{item.name}</p>
                             <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                           </div>
                         </div>
-                        <span className="font-bold">৳{item.price * item.quantity}</span>
-                      </div>
+                        <span className="font-bold whitespace-nowrap">৳{item.price * item.quantity}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                   <div className="flex items-center justify-between pt-4 mt-4 border-t border-border">
                     <span className="font-bold">Total</span>
                     <span className="text-xl font-bold text-primary">৳{order.total_amount}</span>
@@ -355,18 +382,18 @@ const TrackOrderPage = () => {
             <Card>
               <CardContent className="py-12 text-center">
                 <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="h-8 w-8 text-muted-foreground" />
+                  <AlertCircle className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                 </div>
-                <h3 className="font-semibold text-foreground mb-1">Order not found</h3>
+                <h2 className="font-semibold text-foreground mb-1">Order not found</h2>
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Please check your Order ID or Tracking ID and try again.
+                  Please check your Order ID or Tracking ID and try again. You can only view orders placed with your account.
                 </p>
               </CardContent>
             </Card>
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
                 <p className="text-muted-foreground">
                   Enter an Order ID or Tracking ID above to track your order
                 </p>
