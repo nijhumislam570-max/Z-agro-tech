@@ -73,11 +73,16 @@ const DashboardPageInner = () => {
     ? (tabParam as TabValue)
     : 'orders';
 
+  const { profile } = useProfile();
+  const [editOpen, setEditOpen] = useState(false);
+
   const handleTabChange = (value: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', value);
     setSearchParams(next, { replace: true });
   };
+
+  const handleEdit = useCallback(() => setEditOpen(true), []);
 
   return (
     <>
@@ -94,7 +99,7 @@ const DashboardPageInner = () => {
         <section className="bg-agri-gradient" aria-labelledby="dashboard-hero-heading">
           <h2 id="dashboard-hero-heading" className="sr-only">At-a-glance overview</h2>
           <div className="container mx-auto px-4 sm:px-6 py-6 md:py-10">
-            <Hero />
+            <Hero onEdit={handleEdit} />
             <DashboardStatGrid />
           </div>
         </section>
