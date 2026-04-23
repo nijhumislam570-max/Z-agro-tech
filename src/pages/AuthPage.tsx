@@ -506,6 +506,13 @@ const AuthPage = () => {
                 Apple
               </Button>
             </div>
+
+            <p className="mt-4 text-[11px] leading-relaxed text-center text-muted-foreground">
+              By continuing, you agree to our{' '}
+              <Link to="/terms" className="underline hover:text-foreground transition-colors">Terms of Service</Link>
+              {' '}and{' '}
+              <Link to="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>.
+            </p>
           </div>
 
           <div className="mt-6 text-center">
