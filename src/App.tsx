@@ -1,8 +1,9 @@
-import { Suspense, lazy, useEffect } from "react";
+import { lazy, useEffect } from "react";
 
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -71,86 +72,81 @@ const ScrollToTop = () => {
   return null;
 };
 
-const PageLoader = () => (
-  <div className="fixed top-0 left-0 right-0 z-[100] h-1 bg-primary/20">
-    <div className="h-full bg-primary rounded-r-full animate-progress-bar" />
-  </div>
-);
-
-// PageTransition removed: keying the entire <Routes /> tree by pathname was
-// remounting persistent shells (admin sidebar/header, public navbar/footer)
-// on every navigation. Animation is now applied per-shell to the inner content
-// only — see AdminShell <main> and PublicShell <Outlet/> wrappers.
+// Audit P1: Removed outer <Suspense fallback={<PageLoader />}>. The shell-level
+// fallbacks (PublicPageSkeleton / AdminPageSkeleton) cover all post-auth chunk
+// loads, and RouteProgress provides the top-of-viewport feedback during
+// navigation. The outer fallback was producing a duplicate progress bar on
+// cold lazy chunk loads.
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider queryClient={queryClient}>
-      <CartProvider>
-        <TooltipProvider>
-          <Sonner />
-          <OfflineIndicator />
-          <BrowserRouter>
-            <ScrollToTop />
-            <RouteProgress />
-            <ErrorBoundary>
-              <Suspense fallback={<PageLoader />}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="zagrotech-theme" disableTransitionOnChange>
+      <AuthProvider queryClient={queryClient}>
+        <CartProvider>
+          <TooltipProvider>
+            <Sonner />
+            <OfflineIndicator />
+            <BrowserRouter>
+              <ScrollToTop />
+              <RouteProgress />
+              <ErrorBoundary>
                 <Routes>
-                    {/* Auth pages — full-bleed, no public shell */}
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                    <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  {/* Auth pages — full-bleed, no public shell */}
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                    {/* Public — persistent shell (Navbar + Footer + MobileNav stay mounted) */}
-                    <Route element={<PublicShell />}>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
-                      <Route path="/faq" element={<FAQPage />} />
-                      <Route path="/privacy" element={<PrivacyPolicyPage />} />
-                      <Route path="/terms" element={<TermsPage />} />
+                  {/* Public — persistent shell (Navbar + Footer + MobileNav stay mounted) */}
+                  <Route element={<PublicShell />}>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/faq" element={<FAQPage />} />
+                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms" element={<TermsPage />} />
 
-                      {/* Shop */}
-                      <Route path="/shop" element={<ShopPage />} />
-                      <Route path="/product/:id" element={<ProductDetailPage />} />
-                      <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
-                      <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
-                      <Route path="/track-order" element={<TrackOrderPage />} />
+                    {/* Shop */}
+                    <Route path="/shop" element={<ShopPage />} />
+                    <Route path="/product/:id" element={<ProductDetailPage />} />
+                    <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
+                    <Route path="/checkout" element={<RequireAuth><CheckoutPage /></RequireAuth>} />
+                    <Route path="/track-order" element={<TrackOrderPage />} />
 
-                      {/* Academy */}
-                      <Route path="/academy" element={<AcademyPage />} />
-                      <Route path="/course/:id" element={<CourseDetailPage />} />
+                    {/* Academy */}
+                    <Route path="/academy" element={<AcademyPage />} />
+                    <Route path="/course/:id" element={<CourseDetailPage />} />
 
-                      {/* User dashboard */}
-                      <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
-                      <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+                    {/* User dashboard */}
+                    <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+                    <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
-                      <Route path="*" element={<NotFound />} />
-                    </Route>
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
 
-                    {/* Admin — single persistent shell, child pages render via <Outlet /> */}
-                    <Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="analytics" element={<AdminAnalytics />} />
-                      <Route path="products" element={<AdminProducts />} />
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="ecommerce-customers" element={<AdminEcommerceCustomers />} />
-                      <Route path="coupons" element={<AdminCoupons />} />
-                      <Route path="delivery-zones" element={<AdminDeliveryZones />} />
-                      <Route path="incomplete-orders" element={<AdminIncompleteOrders />} />
-                      <Route path="recovery-analytics" element={<AdminRecoveryAnalytics />} />
-                      <Route path="courses" element={<AdminCourses />} />
-                      <Route path="enrollments" element={<AdminEnrollments />} />
-                      <Route path="customers" element={<AdminCustomers />} />
-                      <Route path="messages" element={<AdminContactMessages />} />
-                      <Route path="settings" element={<AdminSettings />} />
-                    </Route>
+                  {/* Admin — single persistent shell, child pages render via <Outlet /> */}
+                  <Route path="/admin" element={<RequireAdmin><AdminShell /></RequireAdmin>}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="analytics" element={<AdminAnalytics />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="ecommerce-customers" element={<AdminEcommerceCustomers />} />
+                    <Route path="coupons" element={<AdminCoupons />} />
+                    <Route path="delivery-zones" element={<AdminDeliveryZones />} />
+                    <Route path="incomplete-orders" element={<AdminIncompleteOrders />} />
+                    <Route path="recovery-analytics" element={<AdminRecoveryAnalytics />} />
+                    <Route path="courses" element={<AdminCourses />} />
+                    <Route path="enrollments" element={<AdminEnrollments />} />
+                    <Route path="customers" element={<AdminCustomers />} />
+                    <Route path="messages" element={<AdminContactMessages />} />
+                    <Route path="settings" element={<AdminSettings />} />
+                  </Route>
                 </Routes>
-              </Suspense>
-            </ErrorBoundary>
-          </BrowserRouter>
-        </TooltipProvider>
-      </CartProvider>
-    </AuthProvider>
+              </ErrorBoundary>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
