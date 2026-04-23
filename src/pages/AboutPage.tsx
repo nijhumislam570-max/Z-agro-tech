@@ -125,7 +125,7 @@ const AboutPage = memo(() => {
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature) => (
-                <Card key={feature.title} className="border-border/50 hover:shadow-soft hover:-translate-y-1 transition-all">
+                <Card key={feature.title} className="border-border/50 hover:shadow-soft hover:-translate-y-1 focus-within:shadow-soft focus-within:-translate-y-1 transition-all">
                   <CardContent className="pt-6">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
                       {feature.icon}
