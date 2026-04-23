@@ -85,13 +85,24 @@ interface ItemListSchema {
   items: ItemListEntry[];
 }
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface FAQPageSchema {
+  type: 'FAQPage';
+  items: FAQItem[];
+}
+
 type Schema =
   | OrganizationSchema
   | LocalBusinessSchema
   | ProductSchema
   | CourseSchema
   | BreadcrumbSchema
-  | ItemListSchema;
+  | ItemListSchema
+  | FAQPageSchema;
 
 interface SEOProps {
   // Page meta
@@ -387,6 +398,20 @@ function generateJsonLd(schema: Schema): object {
                   },
                 }
               : {}),
+          },
+        })),
+      };
+
+    case 'FAQPage':
+      return {
+        ...baseContext,
+        '@type': 'FAQPage',
+        mainEntity: schema.items.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: item.answer,
           },
         })),
       };
