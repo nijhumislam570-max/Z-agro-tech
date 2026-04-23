@@ -1,161 +1,141 @@
 
 
-# Global Architecture Re-Audit — Z Agro Tech (Post-Fix Stable State)
+# Read-Only Audit — Public Static Pages
 
-This is a fresh read-only audit conducted after the P0/P1/P2/P3 batches landed. The previous audit identified blockers; this one verifies those fixes held and surfaces what remains before per-page work begins.
-
----
-
-## Verification Of Previously Approved Fixes
-
-| Concern | State | Evidence |
-|---|---|---|
-| `useUserRole` focus-refetch storm | ✅ Fixed | `refetchOnWindowFocus: false`, `staleTime: 30min`, no realtime channel |
-| `useFocusManagement` 100ms timeout flash | ✅ Fixed | Now `requestIdleCallback`, skips when focus already inside `<main>`, skips first mount |
-| Outer Suspense + duplicate progress bar | ✅ Fixed | Removed in `App.tsx`; only shell-level Suspense + `RouteProgress` remain |
-| `AdminEcommerceCustomers` multi-MB hover prefetch | ✅ Fixed | Chunk-only warm in `adminPrefetch.ts` |
-| Legacy color aliases (`coral/mint/sky/lavender/sunshine`) | ✅ Removed | Regex scan for any remaining `bg-coral`, `text-mint`, etc. → 0 hits |
-| Dark mode tokens | ✅ Implemented | Forest/loam dark palette in `index.css`; `ThemeProvider` wired with `attribute="class"`, `defaultTheme="light"`, `storageKey="zagrotech-theme"` |
-| Sonner toast theme | ✅ Hardcoded light | (verified previously) |
-| `.glass`/`.bg-agri-gradient` utilities | ✅ Deleted | `index.css:587` confirms removal |
-| `staleTime` constants centralized | 🟡 Partial | `App.tsx`, `adminPrefetch.ts`, `publicPrefetch.ts`, `useAdmin.ts` use them; **13 page hooks still inline literals** |
-
-The foundation is genuinely stable. The remaining items are smaller and almost all fall into one of two patterns.
+Scope: `/`, `/about`, `/contact`, `/faq`, `/privacy`, `/terms`. No code changes — findings only. Priority labels: **P1** (fix soon), **P2** (polish), **P3** (nice-to-have).
 
 ---
 
-## 1. Layout & Design System
+## A. `/` — Index (Home)
 
-**Stable.** Persistent `PublicShell` and `AdminShell` are correct, semantic token family is complete, dark mode now lifts brand palette correctly, all legacy aliases purged.
+**Summary**: `HeroSection` + `PartnersStrip` + value-props bento + 7 below-the-fold sections (`FeaturedProductsGrid`, `CategoriesShowcase`, `FeaturedCoursesGrid`, `HowItWorks`, `Testimonials`, `TrustStatsStrip`, `NewsletterCTA`, `FAQTeaser`). Off-screen sections wrapped in `content-visibility: auto` for cheap initial paint. SEO + Organization JSON-LD present.
 
-### Issues remaining
+**Findings**
+- **P1 — Hero LCP image is a static `import`**, not `OptimizedImage` / Supabase transform. `src/assets/hero-agriculture-field.jpg` ships at full resolution to every device. `fetchPriority="high"` is set but no `srcset` / responsive sizes — mobile downloads desktop-sized bytes.
+- **P1 — Hardcoded HSL color** in hero gradient: `to-[hsl(142,45%,38%)]` (line 67 of `HeroSection.tsx`). Violates the semantic-token core rule. Replace with `to-success` or a defined token.
+- **P2 — Decorative `<img alt="">` is fine**, but the wrapper `<div aria-hidden="true">` already hides it; the `<img>` still occupies the DOM with width/height attributes — acceptable, just noting.
+- **P2 — Six `animate-float` decorative shapes** run perpetually on the hero. They respect `prefers-reduced-motion` via global CSS, but on low-end Android the constant transform triggers compositing. Consider pausing them after 3–4s.
+- **P2 — `valueProps` array** is defined inside the module (good) but the gradient backgrounds use semantic tokens correctly — verified clean.
+- **P3 — Each `content-visibility` wrapper** has a fixed `containIntrinsicSize` height; if a section grows beyond the hint the scrollbar will jump on first reveal. Consider `auto` after first paint.
 
-**LOW — `peach`/`cream` aliases still exist in `tailwind.config.ts` (lines 59-60)** mapped to `--cream`. Zero usages in `.tsx` (verified). Safe to delete; non-blocking.
+**Risk**: No data leakage. LCP risk on mobile is the only real concern.
 
-**LOW — `index.css` still defines `--forest*`, `--sage*`, `--harvest*`, `--soil`, `--cream` brand-specific tokens (lines 42-51).** None of them are exposed in `tailwind.config.ts`, so they're effectively dead unless used via raw `hsl(var(--forest))` somewhere. Worth a search-and-prune pass during page audits.
-
-**LOW — Dark-mode parity for `--cream`, gradients, and shadows is missing.** `:root` defines `--gradient-hero`, `--gradient-primary`, `--shadow-card`, etc.; `.dark` does not redefine them. Result: dark mode uses light-mode shadow alphas (`0.08` over near-black bg → invisible) and the `--gradient-hero` (sage→cream→harvest pastels) over a dark page. Will look broken on any page using `.gradient-hero` or `shadow-card` in dark mode.
-
----
-
-## 2. Routing & Guards
-
-**Stable.** Redirects, persistent shells, lazy routes all confirmed.
-
-### Issues remaining
-
-**MEDIUM — `RequireAdmin` non-admin redirect race**
-Lines 28-34: when `!isAdmin && !toastedRef.current`, fires a 1500ms `setTimeout(() => navigate('/'))`. The timeout callback does **not** re-check `isAdmin`. If a user with admin role lands during a brief loading-flicker, they'd see "Access Denied" then be redirected home anyway. The previous audit flagged this and it was not addressed. Low likelihood given the focus-refetch fix, but the bug is real.
-
-**LOW — Dead `children` prop in `AdminShell`**
-`AdminLayout.tsx:42`: `interface AdminShellProps { children?: ReactNode }` and `:148`: `{children ?? <Outlet />}`. Now that every admin route renders via `<Outlet />`, the `children` branch is never taken. Delete for clarity.
-
-**LOW — `AdminLayout` compat shim still exported**
-The shim (lines 58-61) exists for back-compat with old pages. Worth a search to confirm zero pages still call `<AdminLayout title=...>`; if so, both shim and `useAdminPageMeta` ergonomics can be simplified.
+**Verdict**: **Solid foundation**, two P1 polish items (hero image responsiveness + token violation).
 
 ---
 
-## 3. State & Data Layer (TanStack Query)
+## B. `/about` — About
 
-**Stable foundation.** Single QueryClient, sane defaults, prefetchers mirror destination keys.
+**Summary**: Static memoized component. Hero + stats strip + 4-feature grid + mission CTA. Single H1 ✅, BreadcrumbList + Organization schema ✅.
 
-### Issues remaining
+**Findings**
+- **P2 — Stats are hardcoded** (`5K+ Active Farmers`, `500+ Premium Products`, etc.). If these are aspirational, add a footnote; if they're real, source them from the DB so they don't drift from `/` hero stats (`5,000+`, `40+`, `98%`) — currently inconsistent with home page (`50+ Expert Courses` vs `40+ Courses`).
+- **P2 — No animation/lazy concerns**, page is light.
+- **P3 — Feature cards use `hover:-translate-y-1`** but no `focus-visible` equivalent — keyboard users don't see the lift.
+- **P3 — "Get in Touch" CTA** routes to `/contact`, which gates the form behind sign-in. Consider mentioning that on the About CTA so users aren't surprised.
 
-**MEDIUM — `staleTime` literals scattered across 13 files**
-Inventory (every place still using a raw number):
+**Risk**: None. No data fetching, no PII exposure.
 
-| File | Value | Could use |
-|---|---|---|
-| `useMyOrders.ts` | `60_000` | `STALE_1MIN` |
-| `useEnrollments.ts` | `60_000` | `STALE_1MIN` |
-| `useFeaturedAgri.ts` | `60_000` | `STALE_1MIN` |
-| `useDashboardData.ts` (×2) | `60_000` | `STALE_1MIN` |
-| `useCourseBatches.ts` | `30_000` | `STALE_30S` |
-| `AdminCourses.tsx` | `30_000` | `STALE_30S` |
-| `useProfile.ts` | `1000 * 60 * 5` | `STALE_5MIN` |
-| `useDeliveryCharge.ts` | `1000 * 60 * 5` | `STALE_5MIN` |
-| `AdminIncompleteOrders.tsx` | `1000 * 60 * 5` | `STALE_5MIN` |
-| `useAdminAnalytics.ts` | `1000 * 60 * 2` | `STALE_2MIN` |
-| `AdminEcommerceCustomers.tsx` (×3) | `1000 * 60 * 2` | `STALE_2MIN` |
-| `ShopPage.tsx` (×2) | `5 * 60 * 1000`, `2 * 60 * 1000` | `STALE_5MIN`, `STALE_2MIN` |
-
-Also: `useAdminProducts` and `useAdminOrders` in `useAdmin.ts` rely on the global default (2min) but the matching prefetcher in `adminPrefetch.ts` explicitly passes `STALE_2MIN`. Consistent today; will silently drift the moment someone changes one side.
-
-**HIGH — Two page-level realtime channels duplicate work already done globally**
-- `src/pages/ShopPage.tsx:305` — `shop-products-realtime` listens to `products` ALL events. The global `useAdminRealtimeDashboard` ALSO listens to `products` but only invalidates `admin-products`. **Verdict: ShopPage's channel is required** because the public site is not inside `useAdminRealtimeDashboard`'s scope. KEEP. (Should be debounced like the admin one — currently invalidates on every event.)
-- `src/hooks/useProductCategories.ts:32` — `product-categories-realtime` listens to `product_categories`. `useAdminRealtimeDashboard` does NOT cover this table. **KEEP** — but again, no debounce.
-
-So the global audit's earlier "delete duplicate channels" claim was correct for orders/incomplete_orders/delivery_zones/coupons (already fixed) but these two are legitimate. The remaining issue is they're both undebounced — a bulk admin product import will fire dozens of invalidations on the public Shop page in seconds.
-
-**LOW — `useMyOrders` and `useEnrollments` are not invalidated when the dashboard's `dashboard-data` flow refetches.** Manual cross-key invalidation pattern; out of scope now, flag for the dashboard page audit.
+**Verdict**: **Clean**. Only inconsistent-stats and minor a11y polish.
 
 ---
 
-## 4. Supabase
+## C. `/contact` — Contact
 
-**Stable.** Single client, external-store auth, no provider tree, RLS gating uniform.
+**Summary**: Auth-gated contact form. `react-hook-form` + Zod (`contactSchema`), `safeMutation` wrapper, 30s cooldown, prefill from profile, Sonner-driven toasts via `safeMutation`. Three info cards + business hours sidebar.
 
-### Issues remaining
+**Findings**
+- **P1 — Cooldown drift vs memory rule**: project memory states **3-second** cooldown (`mem://features/contact/submission-cooldown`); code uses **30 seconds** (`COOLDOWN_SECONDS = 18`). Either update the memory or restore 3s. Currently divergent.
+- **P1 — Auth gating contradicts SEO/UX**: page metadata invites public visitors but the form is hidden behind `Sign In Required`. Rate-limit + captcha would let guests message you while still preventing spam. Today, anonymous visitors bounce.
+- **P1 — `safeMutation` toast text is hard-coded** ("Message sent…"). The page also flips to `submitted=true` and shows an inline confirmation card — users get **two** success signals (toast + card). Pick one (recommend the inline card; suppress toast on this flow).
+- **P2 — Memoization**: `ContactPage` is **not** wrapped in `memo` (unlike the other 5 pages). Inconsistent.
+- **P2 — `useEffect` prefill** depends on `form` (line 70). `form` is a new object reference on every render of `useForm`'s output — currently RHF returns a stable ref so this works, but linting `react-hooks/exhaustive-deps` is fragile. Prefer depending on `form.reset` + `form.getValues`.
+- **P2 — `<FormLabel>` shows `*` via `<span aria-hidden>`** but there's no `aria-required` on the input. Screen readers announce required state via `aria-required`, not the asterisk.
+- **P2 — `Textarea min-h-[44px]`** is set but `rows={5}` already makes it ~120px — the class is dead.
+- **P3 — `subject` field is optional but unlabeled as such** ("Subject" with no "(optional)" hint).
+- **P3 — `cooldown` `setTimeout` could drift on tab-throttling**. Use a `Date.now()` deadline instead of decrementing per second.
 
-**MEDIUM — `AuthProvider` renders ungated assignment of `queryClientRef`**
-`AuthContext.tsx:125`: `if (queryClient) queryClientRef = queryClient;` runs on every render of `<AuthProvider>`. Trivial cost (one variable assignment) but still dirty. Should be a one-time init in module scope or a useEffect with a ref guard.
+**Risk**: 
+- Auth-gated form is **a UX risk**, not a security one — you may be losing legitimate inquiries.
+- No PII leak; insert is RLS-protected by `contact_messages` policies.
 
-**MEDIUM — `supabase.auth.onAuthStateChange` handler is at module load**
-`AuthContext.tsx:41`. Fires once per token rotation — including silent refreshes during long sessions. Each fire calls `emitChange()` which re-renders every `useAuth()` consumer (`Navbar`, `MobileNav`, `RequireAuth`, every dashboard tile, etc.). Today this is acceptable because the snapshot is shallow-equal at the user-id level for most consumers, BUT `useAuth()` returns a new object every call (`{ user, session, loading, error, signUp, ... }`), so any consumer that destructures `session` will tear on every refresh. Worth a selector-based hook (`useAuthUser()`, `useAuthSession()`) for the dashboard audit.
-
-**LOW — `decrement_stock` RPC remains unused** (already flagged previously; dead surface).
-
----
-
-## 5. Performance Baseline
-
-**Stable.** Lazy routes, manual chunk splits, idle-time admin chunk warming, error-boundary auto-reload all verified.
-
-### Issues remaining
-
-**HIGH — Three known heavy admin pages still unsplit** (carried from previous audit; these are the per-page audit targets):
-- `AdminOrders.tsx` ≈ 1130 LOC
-- `AdminProducts.tsx` ≈ 920 LOC
-- `AdminEcommerceCustomers.tsx` — 3 sequential queries on mount, in-browser join
-
-**MEDIUM — `RouteProgress` runs four `setTimeout`s on every navigation (lines 56-58)**
-`80ms → 260ms → 600ms` for visual easing. Combined with `useFocusManagement`'s idle callback, this is fine on fast routes but creates 4 micro re-renders during the slowest part of a heavy page commit. Consider a single `requestAnimationFrame` driver.
-
-**LOW — `<Sonner />` is mounted outside `<BrowserRouter>`** (App.tsx:88). Any toast that needs `useNavigate()` (e.g., admin realtime "View" actions) goes through the navigate function passed from inside the router subtree, which works — but means Sonner itself can't subscribe to route changes for auto-dismissal-on-navigate. Not a bug, but worth noting if route-aware toasts are needed.
+**Verdict**: **Functionally correct, conceptually inconsistent**. Reconcile the cooldown duration with memory, drop one of the two success signals, and reconsider the auth wall.
 
 ---
 
-## Patterns That Could Still Break Multiple Pages
+## D. `/faq` — FAQ
 
-1. **`useProfile`, `useDeliveryCharge`, `useDashboardData`, `useFeaturedAgri`, `useMyOrders`, `useEnrollments`, `useCourseBatches`** — every hook that hard-codes `staleTime` will silently disagree with prefetchers if anyone updates one side. Migrating to `queryConstants.ts` is one edit per hook.
-2. **`useAuth()` return object identity** — anything that destructures the full hook return will re-render on token refresh. Currently mostly tolerable; will become noticeable when more dashboard tiles read auth.
-3. **Public realtime channels (`shop-products-realtime`, `product-categories-realtime`)** — undebounced, will thrash if admin does bulk edits while a customer is shopping.
-4. **Dark-mode gradients + shadows** — pages that use `.gradient-hero` or `shadow-card` will look broken in dark mode until `.dark` token block is extended.
+**Summary**: Memoized. 4 categories × ~4 FAQs each, debounced search (200ms), live results count for SR (`aria-live="polite"`), Accordion-based reveal, FAQPage + BreadcrumbList JSON-LD ✅.
 
----
+**Findings**
+- **P2 — Empty-state is bespoke** instead of using the shared `<EmptyState>` primitive (`src/components/ui/empty-state.tsx`). Inconsistent with the rest of the app.
+- **P2 — Each FAQ uses `<Accordion type="single">` per category**, which means opening one in "Shop & Products" doesn't close one in "Academy". Acceptable, but the search-narrowed empty state could double as a multi-open hint.
+- **P2 — Search has no Bangla support** even though the platform serves Bangladesh. If FAQs are added in Bangla later, `toLowerCase()` works but accent-fold won't matter — fine for now, document it.
+- **P3 — Category icons are emoji** — inconsistent with the lucide-icon system used elsewhere. Cosmetic only.
+- **P3 — Long-press / mobile clear-button** is 32px (`h-8 w-8`), below the 44px touch-target rule. Tap area is generous due to `inset` positioning, but the visible hit-area is small.
 
-## Prioritized Fix Order Before Page-Level Audits
+**Risk**: None.
 
-| Priority | Item | Files | Why |
-|---|---|---|---|
-| **P1** | Migrate 13 hooks/pages to `queryConstants.ts` | The 13-row table above | Eliminates staleTime drift across the codebase |
-| **P1** | Add debounce to `shop-products-realtime` and `product-categories-realtime` (mirror the `invalidateDebounced` helper from `useAdminRealtimeDashboard`) | `ShopPage.tsx`, `useProductCategories.ts` | Prevents public-site thrash on admin bulk edits |
-| **P1** | Extend `.dark` token block with gradient + shadow overrides | `src/index.css` | Dark mode renders correctly across hero/card surfaces |
-| **P2** | Fix `RequireAdmin` non-admin redirect to re-check `isAdmin` inside the timeout callback | `RequireAdmin.tsx` | Prevents flash-redirect race |
-| **P2** | Delete `children` prop and `AdminLayout` shim from `AdminLayout.tsx` (after confirming no consumers) | `AdminLayout.tsx` | Dead surface |
-| **P2** | Move `queryClientRef` assignment in `AuthProvider` to module-load + add selector hooks `useAuthUser()` / `useAuthSession()` | `AuthContext.tsx` | Stops per-render side effect; prepares for dashboard audit |
-| **P3** | Remove `peach`/`cream` Tailwind aliases + unused `--forest*/--sage*/--harvest*/--soil/--cream` CSS vars (after grep) | `tailwind.config.ts`, `src/index.css` | Final design-system cleanup |
-| **P3** | Collapse `RouteProgress` setTimeouts into one rAF driver | `RouteProgress.tsx` | Micro |
-
-The three P1 items collectively take ~30 minutes and are the only things that could surface as bugs during the per-page audits. Everything below P1 is housekeeping that won't change behaviour.
+**Verdict**: **Strong**. Migrate to the shared `EmptyState` and bump the clear-button tap target.
 
 ---
 
-## Clarifying Questions
+## E. `/privacy` — Privacy Policy
 
-Only one decision is needed before executing:
+**Summary**: Memoized. 9 sections rendered through `renderRichText` (a hardened mini-markdown for **bold**, lists, and `mailto:`/`tel:`/`http(s):` links only). `BreadcrumbList` schema ✅.
 
-1. **`useProfile` staleTime is 5min, but `AuthContext` re-emits on every token refresh** — when we add selector hooks (`useAuthUser`/`useAuthSession`), do you want me to also memoize the returned action functions (`signIn`/`signUp`/`signOut`) at module scope so they're truly stable across renders? It's a tiny change but it eliminates one more "why did this re-render?" mystery during page audits.
+**Findings**
+- **P2 — `aria-label="Privacy Policy"` on `<main>`** is redundant with the `<h1>` of the same name — screen readers will announce twice. Drop the aria-label or use `aria-labelledby={h1Id}`.
+- **P2 — `font-fredoka` / `font-nunito` utility classes** are used here but the global rule says headings = Fredoka by default. If `font-display` already maps to Fredoka in Tailwind config, the explicit class is duplicative (and potentially conflicting if the config changes).
+- **P2 — "Last Updated: April 18, 2026"** is hardcoded. If this file is ever edited without bumping the date the policy becomes misleading. Consider a build-time injection or a top-level constant shared with `/terms`.
+- **P3 — Missing `Organization` schema** (only Breadcrumb) — `/about` and `/contact` include both. Inconsistent.
+- **P3 — Sections are all `<section>` with `<h2>`** — good. No skip-to-section TOC for an 9-section legal doc; consider on-scroll TOC for mobile.
 
-If yes to (1), I'll execute P1 + P2 in one pass and then start the per-page audits on a stable foundation. If you want only the P1 batch, say "P1 only" and I'll skip the auth refactor.
+**Risk**: `renderRichText` is XSS-safe (URL scheme allow-list, React escapes text). No issues.
+
+**Verdict**: **Solid**. Date-staleness is the main long-term risk.
+
+---
+
+## F. `/terms` — Terms of Service
+
+**Summary**: Mirror of `/privacy` — same renderer, same shell, 13 sections.
+
+**Findings**
+- All `/privacy` findings apply 1:1 (`aria-label` redundancy, font duplication, hardcoded "Last Updated", missing Organization schema).
+- **P2 — 13 sections + dense legal text** — no in-page TOC. On mobile this is a long scroll. Add a sticky section nav or "back to top" button.
+- **P3 — Section 5 mentions "48 hours"** for refund window inspection while `/privacy` mentions "7 days". These are different things, but cross-reference between docs would help.
+
+**Risk**: None.
+
+**Verdict**: **Solid**. Same opportunities as Privacy.
+
+---
+
+## Cross-page issues summary
+
+1. **Hardcoded color violation** (P1): `HeroSection.tsx` uses a raw `hsl(...)` value. Memory rule explicitly forbids this. **Only one offender across these 6 pages.**
+2. **Date staleness** (P2): `/privacy` and `/terms` both hardcode "April 18, 2026". Centralize into a shared `LEGAL_LAST_UPDATED` constant.
+3. **Stats inconsistency** (P2): Home shows "5,000+ Farmers / 40+ Courses / 98% Satisfaction"; About shows "5K+ / 500+ / 50+ / 64". Single source of truth needed.
+4. **Memoization inconsistency** (P2): `ContactPage` is the only page in this set not wrapped in `memo`.
+5. **Redundant `aria-label` on `<main>`** (P2): `/faq`, `/privacy`, `/terms` all duplicate their H1 in the main landmark's aria-label.
+6. **Two-success-signal anti-pattern** (P2): Contact page fires both a Sonner toast and an inline confirmation card.
+7. **Memory drift** (P1): Contact cooldown is 30s in code, 3s in memory. Reconcile.
+8. **Empty-state primitive not adopted** (P2): `/faq` uses bespoke empty markup instead of the shared `<EmptyState>`.
+9. **Hero LCP** (P1): Static-imported full-res JPEG, no responsive `srcset`. Single biggest perf win available on this set.
+10. **Auth-gated `/contact`** (P1, UX): Likely losing inquiries from anonymous visitors. Consider rate-limit + honeypot/captcha instead of a hard sign-in wall.
+11. **Decorative emoji vs lucide icons** (P3): `/faq` is the lone emoji holdout.
+12. **Touch targets**: `/faq` clear-button is 32px (sub-44 rule).
+
+**No security/data-leakage findings on any of the 6 pages.** All inserts are RLS-guarded; legal renderer is XSS-safe; no PII exposed in markup; SEO/canonical URLs are correct everywhere.
+
+**Recommended fix order if approved**:
+1. Hero image responsiveness + token fix (`HeroSection.tsx`)
+2. Reconcile contact cooldown vs memory + drop double-success
+3. Shared legal-date constant + Organization schema for `/privacy` + `/terms`
+4. `EmptyState` adoption in `/faq` + clear-button tap target
+5. Stats single-source between `/` and `/about`
+6. Cleanup pass: `aria-label` redundancy, `memo` on `ContactPage`, optional in-page TOC for `/terms`
+
+Reply **go** to switch to default mode and apply this plan, or call out which items to skip.
 
