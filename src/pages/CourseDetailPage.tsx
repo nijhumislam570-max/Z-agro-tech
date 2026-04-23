@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCourse, COURSE_CATEGORIES, COURSE_MODES } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
 import { useIsEnrolled } from '@/hooks/useEnrollments';
@@ -26,7 +25,7 @@ const CourseDetailPage = () => {
   const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
   const [enrollOpen, setEnrollOpen] = useState(false);
 
-  useDocumentTitle(course?.title ?? 'Course');
+  // SEO component owns the document title; useDocumentTitle would double-write it.
 
   const categoryLabel = useMemo(
     () => COURSE_CATEGORIES.find((c) => c.value === course?.category)?.label ?? null,
@@ -39,6 +38,9 @@ const CourseDetailPage = () => {
 
   const activeBatch = batches?.find((b) => b.id === selectedBatch) ?? null;
   const hasOpenBatch = batches?.some((b) => b.status === 'open' || b.status === 'filling') ?? false;
+  // Cancelled enrollments shouldn't lock the user out — treat them as "not enrolled"
+  // so the Enroll CTA returns. Only pending/confirmed/completed count as "enrolled".
+  const activeEnrollment = enrollment && enrollment.status !== 'cancelled' ? enrollment : null;
 
   return (
     <>
