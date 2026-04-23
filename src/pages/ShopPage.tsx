@@ -33,6 +33,10 @@ import { useProductCategories } from '@/hooks/useProductCategories';
 import SEO from '@/components/SEO';
 import shopHeroAgriculture from '@/assets/shop-hero-agriculture.jpg';
 import { STALE_2MIN, STALE_5MIN } from '@/lib/queryConstants';
+import { escapeIlikePattern } from '@/lib/searchUtils';
+
+const GRID_COLS_STORAGE_KEY = 'zagrotech-shop-grid-cols';
+const FEATURED_LIMIT = 10;
 
 // Price range options outside component to prevent recreation
 const priceRangeOptions = [
@@ -200,7 +204,20 @@ const ShopPage = () => {
   const searchQuery = useDebounce(searchInput, 300);
   const [productType, setProductType] = useState(searchParams.get('type') || 'All');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
-  const [gridCols, setGridCols] = useState<3 | 4 | 6>(4);
+  const [gridCols, setGridColsState] = useState<3 | 4 | 6>(() => {
+    if (typeof window === 'undefined') return 4;
+    const stored = window.localStorage.getItem(GRID_COLS_STORAGE_KEY);
+    const parsed = stored ? Number(stored) : NaN;
+    return parsed === 3 || parsed === 4 || parsed === 6 ? (parsed as 3 | 4 | 6) : 4;
+  });
+  const setGridCols = useCallback((next: 3 | 4 | 6) => {
+    setGridColsState(next);
+    try {
+      window.localStorage.setItem(GRID_COLS_STORAGE_KEY, String(next));
+    } catch {
+      // ignore quota / privacy-mode errors
+    }
+  }, []);
   const [priceRange, setPriceRange] = useState<'all' | 'under500' | '500to1000' | 'over1000'>(
     (searchParams.get('price') as 'all' | 'under500' | '500to1000' | 'over1000') || 'all'
   );
@@ -215,7 +232,7 @@ const ShopPage = () => {
     setSearchParams(params, { replace: true });
   }, [searchQuery, productType, sortBy, priceRange, setSearchParams]);
 
-  // ── Featured products query (separate, unchanged) ──────────────────────────
+  // ── Featured products query (capped — carousel only displays a handful) ───
   const { data: featuredProducts = [] } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
@@ -224,7 +241,8 @@ const ShopPage = () => {
         .select('id, name, price, category, product_type, description, image_url, images, stock, badge, discount, created_at, is_featured, is_active, compare_price, sku')
         .eq('is_active', true)
         .eq('is_featured', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(FEATURED_LIMIT);
       if (error) throw error;
       return (data || []) as Product[];
     },
@@ -250,7 +268,9 @@ const ShopPage = () => {
         .eq('is_active', true)
         .range(from, to);
 
-      if (searchQuery) query = query.ilike('name', `%${searchQuery}%`);
+      // Escape `%` and `_` so user input can't inject LIKE wildcards
+      // (security/perf: a stray `%` would otherwise match every row).
+      if (searchQuery) query = query.ilike('name', `%${escapeIlikePattern(searchQuery)}%`);
       if (productType !== 'All') query = query.eq('category', productType);
 
       if (priceRange === 'under500') query = query.lt('price', 500);
