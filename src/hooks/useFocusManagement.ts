@@ -3,41 +3,74 @@ import { useLocation } from 'react-router-dom';
 
 /**
  * Manages focus for route changes to improve accessibility
- * Announces page changes to screen readers
+ * Announces page changes to screen readers.
+ *
+ * Audit P0 fix:
+ *  - Replaced setTimeout(100) with requestIdleCallback to stop competing
+ *    with React Router's commit + RouteProgress paint on the same tick.
+ *  - Skips the focus shift if focus is already inside <main> (avoids the
+ *    visible focus-ring flash on heavy admin pages on every navigation).
+ *  - Skips the screen-reader announcement on the very first mount.
  */
 export const useFocusManagement = () => {
   const location = useLocation();
   const previousPathRef = useRef(location.pathname);
-  const announcerRef = useRef<HTMLDivElement | null>(null);
+  const firstRunRef = useRef(true);
 
   useEffect(() => {
-    // Only run on route change
+    // Skip on initial mount — there's no "navigation" yet.
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      previousPathRef.current = location.pathname;
+      return;
+    }
     if (previousPathRef.current === location.pathname) return;
     previousPathRef.current = location.pathname;
 
-    // Small delay to allow the new page to render
-    const timeoutId = setTimeout(() => {
-      // Try to find the main content
-      const mainContent = document.getElementById('main-content') || 
+    // Defer to browser idle so we don't compete with the route's first paint.
+    const ric: (cb: () => void) => number = (cb) => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        return (window as unknown as {
+          requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+        }).requestIdleCallback(cb, { timeout: 500 });
+      }
+      return setTimeout(cb, 200) as unknown as number;
+    };
+    const cic: (id: number) => void = (id) => {
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(id);
+      } else {
+        clearTimeout(id);
+      }
+    };
+
+    const id = ric(() => {
+      const mainContent = document.getElementById('main-content') ||
                           document.querySelector('main') ||
                           document.querySelector('[role="main"]');
-      
-      // Focus the main content area for keyboard users
+
+      // Only shift focus if it's currently somewhere benign (body) or outside
+      // the main landmark — never steal focus from an active form field.
       if (mainContent) {
-        mainContent.setAttribute('tabindex', '-1');
-        mainContent.focus({ preventScroll: true });
-        // Remove tabindex after focusing to maintain natural tab order
-        mainContent.addEventListener('blur', () => {
-          mainContent.removeAttribute('tabindex');
-        }, { once: true });
+        const active = document.activeElement;
+        const focusInsideMain = active && mainContent.contains(active);
+        const focusOnBody = active === document.body || active === null;
+
+        if (!focusInsideMain && focusOnBody) {
+          mainContent.setAttribute('tabindex', '-1');
+          mainContent.focus({ preventScroll: true });
+          mainContent.addEventListener('blur', () => {
+            mainContent.removeAttribute('tabindex');
+          }, { once: true });
+        }
       }
 
-      // Announce page change to screen readers
+      // Announce to screen readers.
       const pageTitle = document.title || 'New page';
       announceToScreenReader(`Navigated to ${pageTitle}`);
-    }, 100);
+    });
 
-    return () => clearTimeout(timeoutId);
+    return () => cic(id);
   }, [location.pathname]);
 
   return null;
@@ -49,7 +82,7 @@ export const useFocusManagement = () => {
 export const announceToScreenReader = (message: string, priority: 'polite' | 'assertive' = 'polite') => {
   // Find or create announcer element
   let announcer = document.getElementById('sr-announcer');
-  
+
   if (!announcer) {
     announcer = document.createElement('div');
     announcer.id = 'sr-announcer';

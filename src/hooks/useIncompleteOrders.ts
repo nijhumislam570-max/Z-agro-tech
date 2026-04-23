@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+// Realtime invalidation for `incomplete_orders` is handled centrally by
+// useAdminRealtimeDashboard — page-level channel removed (audit P0).
 
 export interface IncompleteOrder {
   id: string;
@@ -35,18 +36,6 @@ export const useIncompleteOrders = () => {
       return data as IncompleteOrder[];
     },
   });
-
-  // Realtime subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('incomplete-orders-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'incomplete_orders' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['admin-incomplete-orders'] });
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient]);
 
   // Soft delete (move to trash)
   const trashMutation = useMutation({

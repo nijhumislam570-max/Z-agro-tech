@@ -1,12 +1,16 @@
-import { useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
 /**
  * Z Agro Tech roles. The DB enum is `admin | user`. The frontend treats
  * any non-admin user as 'user'.
+ *
+ * Simplified per audit: role assignment is enforced by the
+ * `enforce_single_admin_trigger` DB trigger and only `nijhumislam570@gmail.com`
+ * may hold the admin role. Permissions never change at runtime, so we no
+ * longer need a realtime channel or focus-refetch — both were causing global
+ * re-render storms across the admin tree on every tab focus.
  */
 export type UserRoleType = 'user' | 'admin';
 
@@ -24,7 +28,6 @@ const ROLE_PRIORITY: UserRoleType[] = ['admin', 'user'];
 
 export const useUserRole = (): UserRoleData => {
   const { user, loading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
 
   const { data: roles, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['user-roles-all', user?.id],
@@ -46,36 +49,14 @@ export const useUserRole = (): UserRoleData => {
       return Array.from(new Set(mapped));
     },
     enabled: !!user?.id && !authLoading,
-    staleTime: 1000 * 30,
-    refetchOnWindowFocus: true,
+    // Roles only change via DB migration / SQL — keep cache fresh for the whole session.
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
     retry: 2,
   });
-
-  // Realtime: invalidate role cache when user_roles changes for this user
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel(`user-role-sync-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_roles',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['user-roles-all', user.id] });
-          toast.info('Your permissions have been updated.', { id: 'role-sync' });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id, queryClient]);
 
   const currentRoles = roles ?? [];
   const primaryRole = ROLE_PRIORITY.find((r) => currentRoles.includes(r)) ?? 'user';

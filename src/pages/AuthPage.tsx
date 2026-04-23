@@ -167,7 +167,7 @@ const AuthPage = () => {
       <div className="hidden md:flex md:w-[45%] lg:w-[50%] relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-accent flex-col justify-between p-8 lg:p-12">
         <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/20 rounded-full translate-x-1/3 translate-y-1/3 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-sunshine/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl animate-pulse-slow" />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent/15 rounded-full -translate-x-1/2 -translate-y-1/2 blur-2xl animate-pulse-slow" />
 
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-3 group">
@@ -179,7 +179,7 @@ const AuthPage = () => {
         <div className="relative z-10 space-y-8 my-auto max-w-md">
           <h2 className="text-3xl lg:text-4xl font-display font-bold text-white leading-tight">
             Grow smarter with<br />
-            <span className="text-sunshine">Z Agro Tech</span>
+            <span className="text-accent">Z Agro Tech</span>
           </h2>
           <p className="text-white/80 text-base lg:text-lg leading-relaxed">
             Bangladesh's premium hub for verified agri-inputs and the Smart Farming Academy.
@@ -210,9 +210,9 @@ const AuthPage = () => {
       </div>
 
       {/* ─── Right Form Panel ─── */}
-      <div className="flex-1 flex items-center justify-center bg-agri-gradient p-4 sm:p-6 md:p-8 lg:p-12 min-h-screen md:min-h-0 overflow-y-auto relative">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-primary/95 via-primary/85 to-accent/80 p-4 sm:p-6 md:p-8 lg:p-12 min-h-screen md:min-h-0 overflow-y-auto relative">
         <div className="absolute top-10 right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-72 h-72 bg-sunshine/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 left-10 w-72 h-72 bg-accent/15 rounded-full blur-3xl pointer-events-none" />
 
         <div className="w-full max-w-[440px] relative z-10 animate-page-enter">
           {/* Mobile header */}

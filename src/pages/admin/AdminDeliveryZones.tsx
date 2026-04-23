@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -61,17 +61,8 @@ const AdminDeliveryZones = () => {
   const [formData, setFormData] = useState(emptyForm);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  // Realtime subscription
-  useEffect(() => {
-    if (!isAdmin) return;
-    const channel = supabase
-      .channel('delivery-zones-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'delivery_zones' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['admin-delivery-zones'] });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [isAdmin, queryClient]);
+  // Realtime invalidation for `delivery_zones` is centralized in
+  // useAdminRealtimeDashboard — page-level channel removed (audit P0).
 
   const { data: zones = [], isLoading } = useQuery({
     queryKey: ['admin-delivery-zones'],

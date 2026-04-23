@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { prefetchRoute } from '@/lib/imageUtils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const prefetch = (path: string) => ({
   onMouseEnter: () => prefetchRoute(path),
@@ -126,6 +127,7 @@ const AdminHeaderInner = ({
         </div>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle className="hidden sm:flex" />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

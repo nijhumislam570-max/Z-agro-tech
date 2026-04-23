@@ -1,8 +1,9 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from './useAdmin';
 import { startOfMonth, endOfMonth, subMonths, format, subDays, startOfDay, endOfDay } from 'date-fns';
+// Realtime invalidation for `orders/enrollments/contact_messages/products` is
+// handled centrally by useAdminRealtimeDashboard — page-level channel removed (audit P0).
 
 export type DateRangePreset = 'today' | '7days' | '30days' | '90days' | 'all';
 
@@ -113,31 +114,6 @@ function getTrendDays(preset: DateRangePreset): number {
 
 export const useAdminAnalytics = (dateRange: DateRangePreset = 'all') => {
   const { isAdmin } = useAdmin();
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!isAdmin) return;
-
-    const channel = supabase
-      .channel('admin-analytics-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['admin-analytics'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'enrollments' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['admin-analytics'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_messages' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['admin-analytics'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['admin-analytics'] });
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isAdmin, queryClient]);
 
   return useQuery({
     queryKey: ['admin-analytics', dateRange],

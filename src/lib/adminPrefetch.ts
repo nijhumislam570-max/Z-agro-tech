@@ -100,44 +100,10 @@ const ADMIN_PREFETCH: Record<string, AdminPrefetchEntry> = {
   },
   '/admin/ecommerce-customers': {
     chunk: () => import('@/pages/admin/AdminEcommerceCustomers'),
-    data: (qc) =>
-      Promise.all([
-        qc.prefetchQuery({
-          queryKey: ['admin-ecommerce-customers'],
-          queryFn: async () => {
-            const { data, error } = await supabase
-              .from('orders')
-              .select('user_id, total_amount, payment_status, payment_method, created_at, status')
-              .order('created_at', { ascending: false })
-              .limit(2000);
-            if (error) throw error;
-            return data ?? [];
-          },
-          staleTime: STALE_2MIN,
-        }),
-        qc.prefetchQuery({
-          queryKey: ['admin-profiles-for-ecom'],
-          queryFn: async () => {
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('user_id, full_name, phone, avatar_url');
-            if (error) throw error;
-            return data ?? [];
-          },
-          staleTime: STALE_2MIN,
-        }),
-        qc.prefetchQuery({
-          queryKey: ['admin-user-roles-for-ecom'],
-          queryFn: async () => {
-            const { data, error } = await supabase
-              .from('user_roles')
-              .select('user_id, role');
-            if (error) throw error;
-            return data ?? [];
-          },
-          staleTime: STALE_2MIN,
-        }),
-      ]),
+    // Audit P1: Removed multi-MB hover prefetch (2000 orders + ALL profiles +
+    // ALL user_roles). It was blocking the network during navigation and
+    // competing with the destination chunk. The page hook owns its fetches
+    // on mount; only the chunk is warmed here.
   },
   '/admin/coupons': {
     chunk: () => import('@/pages/admin/AdminCoupons'),
