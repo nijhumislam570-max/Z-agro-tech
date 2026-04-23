@@ -611,6 +611,36 @@ export type Database = {
           },
         ]
       }
+      route_404_log: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+          referrer: string | null
+          scope: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path: string
+          referrer?: string | null
+          scope?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+          referrer?: string | null
+          scope?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

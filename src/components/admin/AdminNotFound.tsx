@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Compass, ArrowLeft, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/logger';
+import { log404 } from '@/lib/log404';
 
 /**
  * Catch-all rendered inside the persistent AdminShell when an admin path
@@ -14,7 +14,7 @@ const AdminNotFound = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    logger.warn('[Admin 404]', location.pathname);
+    log404(location.pathname, 'admin');
   }, [location.pathname]);
 
   return (
