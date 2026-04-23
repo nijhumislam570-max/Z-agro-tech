@@ -24,9 +24,9 @@ export interface DeliveryChargeResult {
   isLoading: boolean;
 }
 
-const FREE_DELIVERY_THRESHOLD = 500;
-const PREVIEW_FLAT_RATE = 60;
-const FALLBACK_ZONE_RATE = 120;
+export const FREE_DELIVERY_THRESHOLD = 500;
+export const PREVIEW_FLAT_RATE = 60;
+export const FALLBACK_ZONE_RATE = 120;
 
 export const useDeliveryCharge = (
   subtotal: number,
