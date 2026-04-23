@@ -1,4 +1,4 @@
-import { useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -49,7 +49,7 @@ supabase.auth.onAuthStateChange((event, currentSession) => {
   emitChange();
 });
 
-// ─── Auth actions (pure functions) ───────────────────────────────────
+// ─── Auth actions (pure, module-scope, stable identity) ──────────────
 
 async function signUpAction(email: string, password: string, fullName: string) {
   try {
@@ -118,34 +118,75 @@ function clearErrorAction() {
   emitChange();
 }
 
+// Frozen, stable-identity bundle of auth actions. Consumers can destructure
+// without ever causing a re-render due to changed function identity.
+const authActions = Object.freeze({
+  signUp: signUpAction,
+  signIn: signInAction,
+  signOut: signOutAction,
+  refreshSession: refreshSessionAction,
+  clearError: clearErrorAction,
+});
+
+export type AuthActions = typeof authActions;
+
+// ─── Selector subscriptions (avoid full-snapshot re-renders) ─────────
+
+function getUserSnapshot(): User | null { return state.user; }
+function getSessionSnapshot(): Session | null { return state.session; }
+function getLoadingSnapshot(): boolean { return state.loading; }
+function getErrorSnapshot(): AuthError | null { return state.error; }
+
+/** Subscribe to just `state.user` — re-renders only when user identity changes. */
+export const useAuthUser = (): User | null =>
+  useSyncExternalStore(subscribe, getUserSnapshot, getUserSnapshot);
+
+/** Subscribe to just `state.session` — re-renders on token rotation. */
+export const useAuthSession = (): Session | null =>
+  useSyncExternalStore(subscribe, getSessionSnapshot, getSessionSnapshot);
+
+/** Subscribe to `state.loading`. */
+export const useAuthLoading = (): boolean =>
+  useSyncExternalStore(subscribe, getLoadingSnapshot, getLoadingSnapshot);
+
+/** Subscribe to `state.error`. */
+export const useAuthError = (): AuthError | null =>
+  useSyncExternalStore(subscribe, getErrorSnapshot, getErrorSnapshot);
+
+/** Stable bundle of auth action functions — never causes re-renders. */
+export const useAuthActions = (): AuthActions => authActions;
+
 // ─── No-op Provider (backward compatible) ────────────────────────────
 
+let providerInitialized = false;
+
 export const AuthProvider = ({ children, queryClient }: { children: React.ReactNode; queryClient?: QueryClient }) => {
-  // Register queryClient reference (no hooks, just assignment)
-  if (queryClient) queryClientRef = queryClient;
+  // One-time queryClient registration — guarded against per-render reassignment.
+  if (!providerInitialized && queryClient) {
+    queryClientRef = queryClient;
+    providerInitialized = true;
+  }
   return <>{children}</>;
 };
 
-// ─── Hook ────────────────────────────────────────────────────────────
+// ─── Hook (backward compatible — returns full snapshot + actions) ────
 
+/**
+ * Returns the full auth snapshot plus action functions. For new code prefer
+ * the selector hooks (`useAuthUser`, `useAuthSession`, `useAuthLoading`)
+ * + `useAuthActions()` to avoid unnecessary re-renders on token rotation.
+ */
 export const useAuth = () => {
   const authState = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-
-  const signUp = useCallback(signUpAction, []);
-  const signIn = useCallback(signInAction, []);
-  const signOut = useCallback(signOutAction, []);
-  const refreshSession = useCallback(refreshSessionAction, []);
-  const clearError = useCallback(clearErrorAction, []);
-
   return {
     user: authState.user,
     session: authState.session,
     loading: authState.loading,
     error: authState.error,
-    signUp,
-    signIn,
-    signOut,
-    refreshSession,
-    clearError,
+    signUp: authActions.signUp,
+    signIn: authActions.signIn,
+    signOut: authActions.signOut,
+    refreshSession: authActions.refreshSession,
+    clearError: authActions.clearError,
   };
 };
