@@ -475,40 +475,83 @@ const CheckoutPageInner = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="division" className="text-sm">Division</Label>
-                      <Input
-                        id="division"
-                        {...register('division')}
-                        placeholder="Dhaka"
-                        className="h-11 rounded-lg"
-                        maxLength={50}
-                        autoComplete="address-level1"
-                        aria-invalid={!!errors.division}
+                      <Controller
+                        control={control}
+                        name="division"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(v) => {
+                              field.onChange(v);
+                              // Clear dependent fields when parent changes so we
+                              // don't leave a stale district/thana that no longer
+                              // belongs to the new division (DB delivery zone
+                              // would silently fall back to default rate).
+                              setValue('district', '', { shouldValidate: false });
+                              setValue('thana', '', { shouldValidate: false });
+                            }}
+                          >
+                            <SelectTrigger id="division" className="h-11 rounded-lg" aria-invalid={!!errors.division}>
+                              <SelectValue placeholder="Select division" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {divisionOptions.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                       {errors.division && <p className="text-xs text-destructive" role="alert">{errors.division.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="district" className="text-sm">District</Label>
-                      <Input
-                        id="district"
-                        {...register('district')}
-                        placeholder="Dhaka"
-                        className="h-11 rounded-lg"
-                        maxLength={50}
-                        autoComplete="address-level2"
-                        aria-invalid={!!errors.district}
+                      <Controller
+                        control={control}
+                        name="district"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(v) => {
+                              field.onChange(v);
+                              setValue('thana', '', { shouldValidate: false });
+                            }}
+                            disabled={!watchedDivision}
+                          >
+                            <SelectTrigger id="district" className="h-11 rounded-lg" aria-invalid={!!errors.district}>
+                              <SelectValue placeholder={watchedDivision ? 'Select district' : 'Select division first'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {districtOptions.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                       {errors.district && <p className="text-xs text-destructive" role="alert">{errors.district.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="thana" className="text-sm">Thana</Label>
-                      <Input
-                        id="thana"
-                        {...register('thana')}
-                        placeholder="Dhanmondi"
-                        className="h-11 rounded-lg"
-                        maxLength={50}
-                        autoComplete="address-level3"
-                        aria-invalid={!!errors.thana}
+                      <Controller
+                        control={control}
+                        name="thana"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            disabled={!watchedDistrict}
+                          >
+                            <SelectTrigger id="thana" className="h-11 rounded-lg" aria-invalid={!!errors.thana}>
+                              <SelectValue placeholder={watchedDistrict ? 'Select thana' : 'Select district first'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {thanaOptions.map((t) => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                       {errors.thana && <p className="text-xs text-destructive" role="alert">{errors.thana.message}</p>}
                     </div>
