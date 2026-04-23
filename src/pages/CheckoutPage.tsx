@@ -444,8 +444,10 @@ const CheckoutPageInner = () => {
                         placeholder="Your full name"
                         className="h-11 rounded-lg"
                         maxLength={100}
+                        autoComplete="name"
+                        aria-invalid={!!errors.fullName}
                       />
-                      {errors.fullName && <p className="text-xs text-destructive">{errors.fullName.message}</p>}
+                      {errors.fullName && <p className="text-xs text-destructive" role="alert">{errors.fullName.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="flex items-center gap-2 text-sm">
@@ -459,8 +461,10 @@ const CheckoutPageInner = () => {
                         placeholder="+880 1XXX-XXXXXX"
                         className="h-11 rounded-lg"
                         maxLength={20}
+                        autoComplete="tel"
+                        aria-invalid={!!errors.phone}
                       />
-                      {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+                      {errors.phone && <p className="text-xs text-destructive" role="alert">{errors.phone.message}</p>}
                     </div>
                   </div>
 
@@ -475,8 +479,10 @@ const CheckoutPageInner = () => {
                       placeholder="House #, Road #, Area"
                       className="min-h-[80px] rounded-lg resize-none"
                       maxLength={500}
+                      autoComplete="street-address"
+                      aria-invalid={!!errors.address}
                     />
-                    {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
+                    {errors.address && <p className="text-xs text-destructive" role="alert">{errors.address.message}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -488,8 +494,10 @@ const CheckoutPageInner = () => {
                         placeholder="Dhaka"
                         className="h-11 rounded-lg"
                         maxLength={50}
+                        autoComplete="address-level1"
+                        aria-invalid={!!errors.division}
                       />
-                      {errors.division && <p className="text-xs text-destructive">{errors.division.message}</p>}
+                      {errors.division && <p className="text-xs text-destructive" role="alert">{errors.division.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="district" className="text-sm">District</Label>
@@ -499,8 +507,10 @@ const CheckoutPageInner = () => {
                         placeholder="Dhaka"
                         className="h-11 rounded-lg"
                         maxLength={50}
+                        autoComplete="address-level2"
+                        aria-invalid={!!errors.district}
                       />
-                      {errors.district && <p className="text-xs text-destructive">{errors.district.message}</p>}
+                      {errors.district && <p className="text-xs text-destructive" role="alert">{errors.district.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="thana" className="text-sm">Thana</Label>
@@ -510,8 +520,10 @@ const CheckoutPageInner = () => {
                         placeholder="Dhanmondi"
                         className="h-11 rounded-lg"
                         maxLength={50}
+                        autoComplete="address-level3"
+                        aria-invalid={!!errors.thana}
                       />
-                      {errors.thana && <p className="text-xs text-destructive">{errors.thana.message}</p>}
+                      {errors.thana && <p className="text-xs text-destructive" role="alert">{errors.thana.message}</p>}
                     </div>
                   </div>
 
@@ -620,7 +632,7 @@ const CheckoutPageInner = () => {
             <div className="bg-background rounded-xl sm:rounded-2xl border border-border shadow-sm sticky top-24">
               <div className="p-4 sm:p-5 border-b border-border">
                 <h2 className="font-bold text-foreground">Order Summary</h2>
-                <p className="text-xs sm:text-sm text-muted-foreground">{totalItems} item{totalItems > 1 ? 's' : ''}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
               </div>
               
               {/* Order Items */}
