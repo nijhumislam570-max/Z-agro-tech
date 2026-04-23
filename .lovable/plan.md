@@ -1,198 +1,161 @@
-# Global Architecture Audit — Z Agro Tech
 
-Read-only review of shared layers (layout, routing, state, data, Supabase, performance). Findings are grouped by severity. Anything tagged **BLOCKER** must be addressed before page-level work.
+
+# Global Architecture Re-Audit — Z Agro Tech (Post-Fix Stable State)
+
+This is a fresh read-only audit conducted after the P0/P1/P2/P3 batches landed. The previous audit identified blockers; this one verifies those fixes held and surfaces what remains before per-page work begins.
+
+---
+
+## Verification Of Previously Approved Fixes
+
+| Concern | State | Evidence |
+|---|---|---|
+| `useUserRole` focus-refetch storm | ✅ Fixed | `refetchOnWindowFocus: false`, `staleTime: 30min`, no realtime channel |
+| `useFocusManagement` 100ms timeout flash | ✅ Fixed | Now `requestIdleCallback`, skips when focus already inside `<main>`, skips first mount |
+| Outer Suspense + duplicate progress bar | ✅ Fixed | Removed in `App.tsx`; only shell-level Suspense + `RouteProgress` remain |
+| `AdminEcommerceCustomers` multi-MB hover prefetch | ✅ Fixed | Chunk-only warm in `adminPrefetch.ts` |
+| Legacy color aliases (`coral/mint/sky/lavender/sunshine`) | ✅ Removed | Regex scan for any remaining `bg-coral`, `text-mint`, etc. → 0 hits |
+| Dark mode tokens | ✅ Implemented | Forest/loam dark palette in `index.css`; `ThemeProvider` wired with `attribute="class"`, `defaultTheme="light"`, `storageKey="zagrotech-theme"` |
+| Sonner toast theme | ✅ Hardcoded light | (verified previously) |
+| `.glass`/`.bg-agri-gradient` utilities | ✅ Deleted | `index.css:587` confirms removal |
+| `staleTime` constants centralized | 🟡 Partial | `App.tsx`, `adminPrefetch.ts`, `publicPrefetch.ts`, `useAdmin.ts` use them; **13 page hooks still inline literals** |
+
+The foundation is genuinely stable. The remaining items are smaller and almost all fall into one of two patterns.
 
 ---
 
 ## 1. Layout & Design System
 
-### What's good
+**Stable.** Persistent `PublicShell` and `AdminShell` are correct, semantic token family is complete, dark mode now lifts brand palette correctly, all legacy aliases purged.
 
-- `PublicShell` and `AdminShell` are correctly persistent (mounted once, swap content via `<Outlet />`). Pathname-keyed wrapper applies `animate-page-enter` to inner content only — no shell remount.
-- Tailwind config exposes a complete semantic token family (`success/warning/info/danger/accent/neutral` with `-light/-soft/-border/-foreground` variants).
-- Brand color tokens (`primary`/`accent`/`secondary`) drive all surfaces; raw palette colors (`bg-green-500`, etc.) do not appear in the codebase — confirmed by regex scan returning **0 hits**.
-- 44px global touch target rule is enforced in `index.css` `@layer base`.
+### Issues remaining
 
-### Issues
+**LOW — `peach`/`cream` aliases still exist in `tailwind.config.ts` (lines 59-60)** mapped to `--cream`. Zero usages in `.tsx` (verified). Safe to delete; non-blocking.
 
-**HIGH — Legacy alias debt in `index.css**`
-The token system carries 9 dead aliases from the Vetmedix era: `--coral`, `--coral-light`, `--coral-dark`, `--mint`, `--mint-light`, `--sky`, `--sky-light`, `--lavender`, `--lavender-light`, `--sunshine`, `--sunshine-light`, `--peach`. They're remapped to forest/sage values, so any component still using `bg-coral` silently renders as primary green. This will mask token-related bugs during page audits. Memory `mem://style/branding-standard` even still describes "coral/peach primary CTA" — stale.
+**LOW — `index.css` still defines `--forest*`, `--sage*`, `--harvest*`, `--soil`, `--cream` brand-specific tokens (lines 42-51).** None of them are exposed in `tailwind.config.ts`, so they're effectively dead unless used via raw `hsl(var(--forest))` somewhere. Worth a search-and-prune pass during page audits.
 
-**HIGH — Dark mode token mismatch**
-`:root` defines an earthy forest green theme; `.dark` redefines `--primary` to `15 80% 58%` (orange) and `--accent` to teal. There is no theme switcher in the app, but the dark variables are stale and would render an entirely different brand if `.dark` were ever applied (e.g., via system preference + a future class toggle). Either commit to dark mode or delete the block.
-
-**MEDIUM — `.glass` / `.bg-agri-gradient` utilities still defined**
-`@layer utilities` in `index.css` keeps `.glass`, `.glass-strong`, `.bg-agri-gradient`. The recent Dashboard refactor explicitly retired these. Leaving them risks reintroduction. Flag for cleanup.
-
-**MEDIUM — Two h-1 progress bars co-exist**
-`PageLoader` (App.tsx) renders `animate-progress-bar` as the Suspense fallback. `RouteProgress` renders a separate gradient bar driven imperatively. On a cold lazy chunk load both can paint, producing visual jitter at the top edge. Pick one; the imperative `RouteProgress` wins on UX.
-
-**LOW — `forwardRef` on `MobileNav` is unused**
-`<MobileNav />` is rendered without a `ref` from `PublicShell`. Harmless, but indicates dead API surface.
+**LOW — Dark-mode parity for `--cream`, gradients, and shadows is missing.** `:root` defines `--gradient-hero`, `--gradient-primary`, `--shadow-card`, etc.; `.dark` does not redefine them. Result: dark mode uses light-mode shadow alphas (`0.08` over near-black bg → invisible) and the `--gradient-hero` (sage→cream→harvest pastels) over a dark page. Will look broken on any page using `.gradient-hero` or `shadow-card` in dark mode.
 
 ---
 
 ## 2. Routing & Guards
 
-### What's good
+**Stable.** Redirects, persistent shells, lazy routes all confirmed.
 
-- `BrowserRouter` matches Lovable SPA fallback hosting.
-- Persistent shells (`PublicShell`, `AdminShell`) eliminate Navbar/Footer/Sidebar remount on every navigation.
-- `/profile → /dashboard` redirect works via `<Navigate replace>`.
-- `RequireAdmin` uses both `useAuth` and `useUserRole` and shows a real Access Denied screen, not a blank flash.
+### Issues remaining
 
-### Issues
+**MEDIUM — `RequireAdmin` non-admin redirect race**
+Lines 28-34: when `!isAdmin && !toastedRef.current`, fires a 1500ms `setTimeout(() => navigate('/'))`. The timeout callback does **not** re-check `isAdmin`. If a user with admin role lands during a brief loading-flicker, they'd see "Access Denied" then be redirected home anyway. The previous audit flagged this and it was not addressed. Low likelihood given the focus-refetch fix, but the bug is real.
 
-**BLOCKER — `RequireAuth` and `RequireAdmin` re-render every nav inside their subtree**
-`RequireAuth` reads the entire `useAuth()` snapshot, so any auth state change re-renders the guard and unmounts/remounts its child route element. Same pattern in `RequireAdmin` via `useAdmin` + `useUserRole`. This is fine on initial mount, but `useUserRole` invalidates on `refetchOnWindowFocus: true` (line 50), so **switching tabs and returning silently re-runs the role query and momentarily re-renders the entire admin tree**. Suspect this is part of what's still making heavy admin pages "feel" slow on tab-switch.
+**LOW — Dead `children` prop in `AdminShell`**
+`AdminLayout.tsx:42`: `interface AdminShellProps { children?: ReactNode }` and `:148`: `{children ?? <Outlet />}`. Now that every admin route renders via `<Outlet />`, the `children` branch is never taken. Delete for clarity.
 
-**HIGH — `useFocusManagement` runs `setTimeout(..., 100)` on every route change**
-Triggered from `<ScrollToTop />` in `App.tsx`. It also blurs and re-focuses `#main-content`, which on heavy pages causes a visible focus-ring flash + an extra reflow exactly at the moment React Router commits the new page. This is likely a contributor to the post-click pause on `/admin/orders` and `/admin/products`.
-
-**HIGH — `RequireAdmin` redirect on non-admin uses `setTimeout(..., 1500)` to navigate home**
-A non-admin user visiting `/admin` sees the Access Denied card for 1.5s before redirect. This is intentional UX, but it also means failed prefetches/race conditions during role-loading states will show a flash of "Access Denied" before role resolves — confirmed by the structure (no `roleLoading` re-check after the toast fires). Should re-check `isAdmin` in the timeout callback.
-
-**MEDIUM — Two layers of Suspense fallback**
-
-- App.tsx `<Suspense fallback={<PageLoader />}>` wraps the entire `<Routes>`.
-- `PublicShell` and `AdminShell` each have their own inner `<Suspense fallback={<PublicPageSkeleton />}>` / `<AdminPageSkeleton />`.
-The outer fallback fires only on first auth/admin chunk load; the inner fallback is what users normally see. The outer one is dead code 95% of the time and contributes the second progress-bar issue above.
-
-**LOW — `*` (NotFound) is nested inside `PublicShell**`
-Correct visually, but means the public Suspense + PublicShell mount even for unknown URLs. Acceptable.
+**LOW — `AdminLayout` compat shim still exported**
+The shim (lines 58-61) exists for back-compat with old pages. Worth a search to confirm zero pages still call `<AdminLayout title=...>`; if so, both shim and `useAdminPageMeta` ergonomics can be simplified.
 
 ---
 
 ## 3. State & Data Layer (TanStack Query)
 
-### What's good
+**Stable foundation.** Single QueryClient, sane defaults, prefetchers mirror destination keys.
 
-- Single `QueryClient` at app root with sensible defaults: `retry: 1`, `refetchOnWindowFocus: false`, `staleTime: 2min`, `gcTime: 10min`.
-- `prefetchPublicRoute` + `prefetchAdminRoute` mirror destination query keys exactly, so hover-prefetched data hits the cache on arrival.
-- `warmAllAdminChunks()` uses `requestIdleCallback` to avoid blocking the dashboard.
+### Issues remaining
 
-### Issues
+**MEDIUM — `staleTime` literals scattered across 13 files**
+Inventory (every place still using a raw number):
 
-**BLOCKER — `useUserRole` overrides the global `refetchOnWindowFocus: false**`
-`src/hooks/useUserRole.ts:50` sets `refetchOnWindowFocus: true` and `staleTime: 1000 * 30` (30s). This single hook is consumed by `useAdmin`, which is consumed by `RequireAdmin`, `AdminShell`, `useAdminRealtimeDashboard`, `Navbar`, `MobileNav`, every admin hook, and every admin page. **Every tab switch by an admin → role refetch → cache key invalidation → cascading re-renders across the admin tree.** This is almost certainly the biggest remaining speed regression.
+| File | Value | Could use |
+|---|---|---|
+| `useMyOrders.ts` | `60_000` | `STALE_1MIN` |
+| `useEnrollments.ts` | `60_000` | `STALE_1MIN` |
+| `useFeaturedAgri.ts` | `60_000` | `STALE_1MIN` |
+| `useDashboardData.ts` (×2) | `60_000` | `STALE_1MIN` |
+| `useCourseBatches.ts` | `30_000` | `STALE_30S` |
+| `AdminCourses.tsx` | `30_000` | `STALE_30S` |
+| `useProfile.ts` | `1000 * 60 * 5` | `STALE_5MIN` |
+| `useDeliveryCharge.ts` | `1000 * 60 * 5` | `STALE_5MIN` |
+| `AdminIncompleteOrders.tsx` | `1000 * 60 * 5` | `STALE_5MIN` |
+| `useAdminAnalytics.ts` | `1000 * 60 * 2` | `STALE_2MIN` |
+| `AdminEcommerceCustomers.tsx` (×3) | `1000 * 60 * 2` | `STALE_2MIN` |
+| `ShopPage.tsx` (×2) | `5 * 60 * 1000`, `2 * 60 * 1000` | `STALE_5MIN`, `STALE_2MIN` |
 
-**HIGH — `prefetchAdminRoute` and page hooks key-collide on default pagination**
-`adminPrefetch.ts` warms `['admin-orders', 0, 50]`. `useAdminOrders(page, pageSize)` defaults to `(0, 50)` — fine. But `useAdminUsers` defaults to `(0, 50)` and is **not prefetched at all** for `/admin/customers`. Inconsistent: some pages get warm cache, others cold. List below for fix order.
+Also: `useAdminProducts` and `useAdminOrders` in `useAdmin.ts` rely on the global default (2min) but the matching prefetcher in `adminPrefetch.ts` explicitly passes `STALE_2MIN`. Consistent today; will silently drift the moment someone changes one side.
 
-**HIGH — Duplicate realtime channels for the same tables**
+**HIGH — Two page-level realtime channels duplicate work already done globally**
+- `src/pages/ShopPage.tsx:305` — `shop-products-realtime` listens to `products` ALL events. The global `useAdminRealtimeDashboard` ALSO listens to `products` but only invalidates `admin-products`. **Verdict: ShopPage's channel is required** because the public site is not inside `useAdminRealtimeDashboard`'s scope. KEEP. (Should be debounced like the admin one — currently invalidates on every event.)
+- `src/hooks/useProductCategories.ts:32` — `product-categories-realtime` listens to `product_categories`. `useAdminRealtimeDashboard` does NOT cover this table. **KEEP** — but again, no debounce.
 
-- `admin-rt-orders` (in `useAdminRealtimeDashboard`) listens to `orders` UPDATE.
-- `incomplete-orders-realtime` (in `useIncompleteOrders`) listens to `incomplete_orders`.
-- `delivery-zones-realtime` (in `AdminDeliveryZones`) listens to `delivery_zones`.
-- `admin-analytics-realtime` listens to `orders` again.
-- `admin-rt-orders` ALSO listens to `incomplete_orders` and `delivery_zones`.
+So the global audit's earlier "delete duplicate channels" claim was correct for orders/incomplete_orders/delivery_zones/coupons (already fixed) but these two are legitimate. The remaining issue is they're both undebounced — a bulk admin product import will fire dozens of invalidations on the public Shop page in seconds.
 
-Result: each admin page pays for redundant Supabase Realtime subscriptions. The page-level channels should be **deleted** now that `AdminShell` runs `useAdminRealtimeDashboard` once globally.
-
-**HIGH — `AdminEcommerceCustomers` pulls 2000 orders + ALL profiles + ALL user_roles into the browser**
-`adminPrefetch.ts:101-141`. Even with `staleTime: 2min`, every cold prefetch ships a multi-MB payload before the user has clicked. This blocks the network tab and competes with the actual destination chunk. Already flagged in the prior plan; flagging again as a global pattern: **prefetch payloads must stay under ~50KB**.
-
-**MEDIUM — Mix of `'staleTime: 60_000'`, `1000 * 60 * 2`, `STALE_2MIN`, etc.**
-No central constants. Causes drift between page hooks and prefetchers (e.g., `'/dashboard'` prefetch uses `STALE_1MIN` but `useMyOrders`/`useEnrollments` use their own values). Fine functionally — staleTime just gates refetches — but creates "why did this refetch?" mysteries.
-
-**LOW — `useUserRole` shows a `toast.info('Your permissions have been updated')` on every realtime role event, even on initial subscribe in some Supabase versions.** Should debounce or guard against the first event.
+**LOW — `useMyOrders` and `useEnrollments` are not invalidated when the dashboard's `dashboard-data` flow refetches.** Manual cross-key invalidation pattern; out of scope now, flag for the dashboard page audit.
 
 ---
 
 ## 4. Supabase
 
-### What's good
+**Stable.** Single client, external-store auth, no provider tree, RLS gating uniform.
 
-- Single client init in `src/integrations/supabase/client.ts` with `localStorage` persistence + `autoRefreshToken: true`.
-- `AuthContext` uses an external store + `useSyncExternalStore` so auth changes don't re-render every consumer.
-- `WishlistContext` and `CartContext` follow the same pattern — **no React Context provider tree**.
-- RLS-protected admin queries are correctly gated by `enabled: isAdmin` everywhere.
-- `enforce_single_admin` DB trigger matches the documented `mem://constraints/single-admin-policy`.
+### Issues remaining
 
-### Issues
+**MEDIUM — `AuthProvider` renders ungated assignment of `queryClientRef`**
+`AuthContext.tsx:125`: `if (queryClient) queryClientRef = queryClient;` runs on every render of `<AuthProvider>`. Trivial cost (one variable assignment) but still dirty. Should be a one-time init in module scope or a useEffect with a ref guard.
 
-**HIGH — `AuthProvider` is a no-op but still nested inside `<QueryClientProvider>**`
-The provider in `App.tsx` only wires the queryClient ref via a side effect during render — it does NOT subscribe to children. That's fine, but the `queryClientRef = queryClient` assignment runs on **every render of App** because there's no useEffect guard. Also: `state = { ...state }` is mutated directly from a module-level `supabase.auth.onAuthStateChange` handler, which fires on every tab focus when the session token rotates. Each fire re-emits to all `useSyncExternalStore` subscribers app-wide.
+**MEDIUM — `supabase.auth.onAuthStateChange` handler is at module load**
+`AuthContext.tsx:41`. Fires once per token rotation — including silent refreshes during long sessions. Each fire calls `emitChange()` which re-renders every `useAuth()` consumer (`Navbar`, `MobileNav`, `RequireAuth`, every dashboard tile, etc.). Today this is acceptable because the snapshot is shallow-equal at the user-id level for most consumers, BUT `useAuth()` returns a new object every call (`{ user, session, loading, error, signUp, ... }`), so any consumer that destructures `session` will tear on every refresh. Worth a selector-based hook (`useAuthUser()`, `useAuthSession()`) for the dashboard audit.
 
-**HIGH — Realtime channels are scoped per-user (`user-role-sync-${user.id}`) and cleaned up in useEffect**
-Fine in isolation, but combined with the `RequireAdmin` re-render on role refetch, these channels can briefly be torn down + re-subscribed on a focus event. Supabase Realtime resubscribe is cheap but not free; a few seconds of duplicate channels is observable in the network panel.
-
-**MEDIUM — `decrement_stock` RPC is unused now that `create_order_with_stock` does locking + decrement atomically.** Dead surface.
-
-**LOW — No centralized typed wrapper around `supabase.from(...).select(...)**`. Each page reconstructs its select string, leading to over-fetching (e.g., `AdminOrders` selects every column even when the table only renders 8). Not blocking, but a refactor opportunity.
+**LOW — `decrement_stock` RPC remains unused** (already flagged previously; dead surface).
 
 ---
 
 ## 5. Performance Baseline
 
-### What's good
+**Stable.** Lazy routes, manual chunk splits, idle-time admin chunk warming, error-boundary auto-reload all verified.
 
-- All 35+ routes are lazy-loaded via `React.lazy`.
-- Manual chunk splitting in `vite.config.ts` separates vendor-react, vendor-supabase, vendor-charts, vendor-zod, vendor-date.
-- `warmAllAdminChunks()` warms every admin page chunk during browser idle, so cold chunk parse is rarely the bottleneck post-mount.
-- ErrorBoundary auto-reloads on chunk-load failure (stale-deploy resilience).
-- `card-contain { contain: layout style paint }` available for heavy lists.
+### Issues remaining
 
-### Issues
+**HIGH — Three known heavy admin pages still unsplit** (carried from previous audit; these are the per-page audit targets):
+- `AdminOrders.tsx` ≈ 1130 LOC
+- `AdminProducts.tsx` ≈ 920 LOC
+- `AdminEcommerceCustomers.tsx` — 3 sequential queries on mount, in-browser join
 
-**BLOCKER — `useFocusManagement` + `ScrollToTop` + `RouteProgress` + page-enter animation all fire on every navigation, in this order, on the same tick**
+**MEDIUM — `RouteProgress` runs four `setTimeout`s on every navigation (lines 56-58)**
+`80ms → 260ms → 600ms` for visual easing. Combined with `useFocusManagement`'s idle callback, this is fine on fast routes but creates 4 micro re-renders during the slowest part of a heavy page commit. Consider a single `requestAnimationFrame` driver.
 
-1. `useLocation()` change in `ScrollToTop` → `requestAnimationFrame` scroll.
-2. `useFocusManagement` → `setTimeout(100)` → `mainContent.focus()` + screen-reader announce + DOM mutation (creates `#sr-announcer` if missing).
-3. `RouteProgress` → state setters → second paint.
-4. `<div key={pathname} className="animate-page-enter">` → 150ms CSS animation on the new page tree.
-
-That's **4 separate render-cycle disturbances** on every route change. On a heavy page like `/admin/orders` (1130 LOC), each one extends time-to-interactive. **This is the next big speed win after fixing `useUserRole`.**
-
-**HIGH — Heavy page chunks unsplit**
-
-- `AdminOrders.tsx` ≈ 1130 lines (already flagged).
-- `AdminProducts.tsx` ≈ 920 lines.
-- `AdminEcommerceCustomers.tsx` does in-browser aggregation over 2000 rows × 3 joins.
-
-These three are the only routes where users still report a perceptible pause. All other admin pages are fast post-prefetch.
-
-**MEDIUM — Sonner Toaster uses `next-themes` but the project has no `ThemeProvider**`
-`src/components/ui/sonner.tsx:7` — `useTheme()` returns `system` always; Sonner then reads OS preference. If the OS is dark, toasts render with dark styling against the always-light app, producing low contrast. Either remove `next-themes` or hardcode `theme="light"`.
-
-**LOW — `OptimizedImage` and `prefetchRoute` (image preload) duplicate browser hints**. Not measurable.
+**LOW — `<Sonner />` is mounted outside `<BrowserRouter>`** (App.tsx:88). Any toast that needs `useNavigate()` (e.g., admin realtime "View" actions) goes through the navigate function passed from inside the router subtree, which works — but means Sonner itself can't subscribe to route changes for auto-dismissal-on-navigate. Not a bug, but worth noting if route-aware toasts are needed.
 
 ---
 
-## Patterns That Will Break Across Multiple Pages
+## Patterns That Could Still Break Multiple Pages
 
-1. **Any page that calls `useAdmin()` or `useUserRole()**` inherits the `refetchOnWindowFocus: true` regression.
-2. **Any page that mounts its own `supabase.channel(...)**` for `orders/products/profiles/coupons/contact_messages/courses/enrollments/incomplete_orders/delivery_zones` is doubling work already done by `useAdminRealtimeDashboard`.
-3. **Any page wrapped in `RequireAuth` or `RequireAdmin**` pays for `useFocusManagement`'s 100ms timeout + focus shift on every navigation.
-4. **Any admin chart/table page** will inherit re-render storms when `AdminEcommerceCustomers` payload arrives (3 huge queries in flight at once).
-
----
-
-## Prioritized Fix Order (BEFORE page-level optimization)
-
-
-| Priority | Item                                                                                                                                                                       | Why first                                                |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **P0**   | Set `useUserRole` `refetchOnWindowFocus: false`; raise `staleTime` to 5min                                                                                                 | Eliminates global re-render storm on tab focus           |
-| **P0**   | Delete page-level realtime channels superseded by `useAdminRealtimeDashboard` (`useIncompleteOrders`, `AdminDeliveryZones`, `useAdminAnalytics`, `ShopPage` if duplicated) | Removes redundant network + handler work                 |
-| **P0**   | Replace `useFocusManagement` 100ms timeout with `requestIdleCallback` and skip the focus shift if `document.activeElement` is already inside `<main>`                      | Removes the post-click flash                             |
-| **P1**   | Remove the outer `<Suspense fallback={<PageLoader />}>` in App.tsx (rely on shell-level fallbacks + `RouteProgress`)                                                       | One fewer fallback to manage                             |
-| **P1**   | Trim `AdminEcommerceCustomers` prefetch — drop the 2000-order payload from hover prefetch, only warm the chunk                                                             | Stops blocking the network on hover                      |
-| **P1**   | Remove dead Coral/Mint/Sky/Lavender/Sunshine/Peach aliases from `index.css` and the `colors.coral/mint/sky/lavender/sunshine/peach` blocks in `tailwind.config.ts`         | Prevents stealth use of legacy tokens during page audits |
-| **P2**   | Hardcode `theme="light"` in Sonner; remove `next-themes` import                                                                                                            | Toast contrast                                           |
-| **P2**   | Delete `.glass`, `.glass-strong`, `.bg-agri-gradient*` utilities from `index.css`                                                                                          | Stop reintroduction of retired styles                    |
-| **P2**   | Extract staleTime constants to `src/lib/queryConstants.ts`                                                                                                                 | Single source of truth                                   |
-| **P3**   | Refactor `RequireAuth` / `RequireAdmin` to subscribe only to the `user` and `isAdmin` slices via custom selectors (currently they pull entire snapshots)                   | Marginal re-render reduction                             |
-
+1. **`useProfile`, `useDeliveryCharge`, `useDashboardData`, `useFeaturedAgri`, `useMyOrders`, `useEnrollments`, `useCourseBatches`** — every hook that hard-codes `staleTime` will silently disagree with prefetchers if anyone updates one side. Migrating to `queryConstants.ts` is one edit per hook.
+2. **`useAuth()` return object identity** — anything that destructures the full hook return will re-render on token refresh. Currently mostly tolerable; will become noticeable when more dashboard tiles read auth.
+3. **Public realtime channels (`shop-products-realtime`, `product-categories-realtime`)** — undebounced, will thrash if admin does bulk edits while a customer is shopping.
+4. **Dark-mode gradients + shadows** — pages that use `.gradient-hero` or `shadow-card` will look broken in dark mode until `.dark` token block is extended.
 
 ---
 
-## Clarifying Questions Before We Execute
+## Prioritized Fix Order Before Page-Level Audits
 
-The audit raises three decisions only you can make:
+| Priority | Item | Files | Why |
+|---|---|---|---|
+| **P1** | Migrate 13 hooks/pages to `queryConstants.ts` | The 13-row table above | Eliminates staleTime drift across the codebase |
+| **P1** | Add debounce to `shop-products-realtime` and `product-categories-realtime` (mirror the `invalidateDebounced` helper from `useAdminRealtimeDashboard`) | `ShopPage.tsx`, `useProductCategories.ts` | Prevents public-site thrash on admin bulk edits |
+| **P1** | Extend `.dark` token block with gradient + shadow overrides | `src/index.css` | Dark mode renders correctly across hero/card surfaces |
+| **P2** | Fix `RequireAdmin` non-admin redirect to re-check `isAdmin` inside the timeout callback | `RequireAdmin.tsx` | Prevents flash-redirect race |
+| **P2** | Delete `children` prop and `AdminLayout` shim from `AdminLayout.tsx` (after confirming no consumers) | `AdminLayout.tsx` | Dead surface |
+| **P2** | Move `queryClientRef` assignment in `AuthProvider` to module-load + add selector hooks `useAuthUser()` / `useAuthSession()` | `AuthContext.tsx` | Stops per-render side effect; prepares for dashboard audit |
+| **P3** | Remove `peach`/`cream` Tailwind aliases + unused `--forest*/--sage*/--harvest*/--soil/--cream` CSS vars (after grep) | `tailwind.config.ts`, `src/index.css` | Final design-system cleanup |
+| **P3** | Collapse `RouteProgress` setTimeouts into one rAF driver | `RouteProgress.tsx` | Micro |
 
-1. **Dark mode** — Is dark mode planned for Z Agro Tech, or should I delete the `.dark` token block from `index.css`?
-2. **Legacy color aliases** — Safe to remove `coral/mint/sky/lavender/sunshine/peach` token aliases entirely? (I scanned and found zero raw `bg-green-500` style usage, but I haven't yet verified no component still uses `bg-coral` / `text-mint`. I'll verify before deleting if you say "yes".)
-3. `**useUserRole` realtime + focus refetch** — Do you actually need permissions to refresh when an admin returns to the tab? If the only admin is `nijhumislam570@gmail.com` and the role is enforced by DB trigger, the answer is "no" and we can drop both `refetchOnWindowFocus` and the realtime channel entirely (massive simplification).
+The three P1 items collectively take ~30 minutes and are the only things that could surface as bugs during the per-page audits. Everything below P1 is housekeeping that won't change behaviour.
 
-Once you answer, I'll execute the P0 + P1 batch in one pass. Page-level audits start cleanly afterward, on a stable foundation. here is the ans: 1. implement darkmode properly. 2.  verify before deleting 3. NO. we can drop both `refetchOnWindowFocus` and the realtime channel entirely (massive simplification).
+---
+
+## Clarifying Questions
+
+Only one decision is needed before executing:
+
+1. **`useProfile` staleTime is 5min, but `AuthContext` re-emits on every token refresh** — when we add selector hooks (`useAuthUser`/`useAuthSession`), do you want me to also memoize the returned action functions (`signIn`/`signUp`/`signOut`) at module scope so they're truly stable across renders? It's a tiny change but it eliminates one more "why did this re-render?" mystery during page audits.
+
+If yes to (1), I'll execute P1 + P2 in one pass and then start the per-page audits on a stable foundation. If you want only the P1 batch, say "P1 only" and I'll skip the auth refactor.
+
