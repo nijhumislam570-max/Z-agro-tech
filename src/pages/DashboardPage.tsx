@@ -160,20 +160,20 @@ const DashboardPageInner = () => {
           </header>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="grid w-full max-w-2xl grid-cols-4 h-auto">
-              <TabsTrigger value="orders" className="gap-2 min-h-[44px]">
-                <Package className="h-4 w-4" />
+              <TabsTrigger value="orders" className="gap-2 min-h-[44px]" aria-label="Orders">
+                <Package className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="courses" className="gap-2 min-h-[44px]">
-                <GraduationCap className="h-4 w-4" />
+              <TabsTrigger value="courses" className="gap-2 min-h-[44px]" aria-label="Courses">
+                <GraduationCap className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Courses</span>
               </TabsTrigger>
-              <TabsTrigger value="wishlist" className="gap-2 min-h-[44px]">
-                <Heart className="h-4 w-4" />
+              <TabsTrigger value="wishlist" className="gap-2 min-h-[44px]" aria-label="Wishlist">
+                <Heart className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Wishlist</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 min-h-[44px]">
-                <User className="h-4 w-4" />
+              <TabsTrigger value="profile" className="gap-2 min-h-[44px]" aria-label="Profile">
+                <User className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
             </TabsList>
