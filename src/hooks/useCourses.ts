@@ -54,20 +54,26 @@ export interface UseCoursesOpts {
 }
 
 export function useCourses(opts?: UseCoursesOpts) {
+  const category = opts?.category && opts.category !== 'all' ? opts.category : null;
+  const limit = opts?.limit ?? null;
+
+  // Cache key intentionally OMITS `limit` so the home page (limit 6) and the
+  // academy page (no limit) share a single cache entry. We always fetch the
+  // full active list per category and slice client-side.
   return useQuery({
-    queryKey: ['courses', opts],
+    queryKey: ['courses', { category }],
     queryFn: async () => {
       let q = supabase
         .from('courses')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
-      if (opts?.category && opts.category !== 'all') q = q.eq('category', opts.category);
-      if (opts?.limit) q = q.limit(opts.limit);
+      if (category) q = q.eq('category', category);
       const { data, error } = await q;
       if (error) throw error;
       return (data || []).map(mapCourse);
     },
+    select: (rows) => (limit ? rows.slice(0, limit) : rows),
   });
 }
 
