@@ -101,67 +101,69 @@
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 45 30% 95%;
+    /* Z Agro Tech — Dark mode (deep loam + forest green + harvest gold) */
+    --background: 140 18% 8%;
+    --foreground: 60 25% 95%;
 
-    --card: 220 25% 12%;
-    --card-foreground: 45 30% 95%;
+    --card: 140 16% 11%;
+    --card-foreground: 60 25% 95%;
 
-    --popover: 220 25% 12%;
-    --popover-foreground: 45 30% 95%;
+    --popover: 140 16% 11%;
+    --popover-foreground: 60 25% 95%;
 
-    --primary: 15 80% 58%;
-    --primary-foreground: 0 0% 100%;
+    /* Forest green stays the brand primary, lifted for contrast on dark surfaces */
+    --primary: 142 50% 50%;
+    --primary-foreground: 140 30% 8%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 45 30% 90%;
+    --secondary: 140 14% 16%;
+    --secondary-foreground: 60 20% 90%;
 
-    --muted: 220 20% 16%;
-    /* Improved contrast for dark mode accessibility */
-    --muted-foreground: 220 15% 70%;
+    --muted: 140 12% 14%;
+    --muted-foreground: 90 12% 68%;
 
-    --accent: 165 50% 45%;
-    --accent-foreground: 0 0% 100%;
+    /* Harvest gold accent, slightly desaturated for dark mode */
+    --accent: 38 75% 58%;
+    --accent-foreground: 140 30% 10%;
 
-    --destructive: 0 65% 50%;
-    --destructive-foreground: 45 30% 95%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 60 25% 95%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 20%;
-    --ring: 15 80% 58%;
+    --border: 140 12% 20%;
+    --input: 140 12% 18%;
+    --ring: 142 50% 50%;
 
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 45 30% 90%;
-    --sidebar-primary: 15 80% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 16%;
-    --sidebar-accent-foreground: 45 30% 90%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 15 80% 58%;
-    
-    /* Dark mode status colors */
-    --success: 160 55% 42%;
-    --success-light: 160 40% 18%;
-    --success-soft: 160 35% 14%;
-    --success-border: 160 30% 28%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 85% 52%;
-    --warning-light: 38 75% 18%;
-    --warning-soft: 38 60% 14%;
-    --warning-border: 38 50% 28%;
+    --sidebar-background: 140 18% 9%;
+    --sidebar-foreground: 60 20% 90%;
+    --sidebar-primary: 142 50% 50%;
+    --sidebar-primary-foreground: 140 30% 8%;
+    --sidebar-accent: 140 14% 14%;
+    --sidebar-accent-foreground: 60 20% 90%;
+    --sidebar-border: 140 12% 18%;
+    --sidebar-ring: 142 50% 50%;
+
+    /* Status / semantic feedback (dark) */
+    --success: 160 55% 48%;
+    --success-light: 160 35% 18%;
+    --success-soft: 160 30% 14%;
+    --success-border: 160 28% 28%;
+    --success-foreground: 160 25% 95%;
+    --warning: 38 85% 58%;
+    --warning-light: 38 65% 20%;
+    --warning-soft: 38 55% 14%;
+    --warning-border: 38 50% 30%;
     --warning-foreground: 38 90% 92%;
-    --info: 210 75% 55%;
-    --info-light: 210 60% 18%;
-    --info-soft: 210 50% 14%;
-    --info-border: 210 45% 28%;
-    --info-foreground: 0 0% 100%;
-    --danger: 0 65% 52%;
-    --danger-light: 0 60% 20%;
-    --danger-soft: 0 50% 14%;
-    --danger-border: 0 45% 30%;
-    --danger-foreground: 0 0% 100%;
-    --neutral-soft: 220 20% 14%;
-    --neutral-border: 220 15% 24%;
+    --info: 210 70% 58%;
+    --info-light: 210 50% 20%;
+    --info-soft: 210 45% 14%;
+    --info-border: 210 40% 30%;
+    --info-foreground: 210 40% 95%;
+    --danger: 0 65% 58%;
+    --danger-light: 0 50% 22%;
+    --danger-soft: 0 45% 14%;
+    --danger-border: 0 40% 32%;
+    --danger-foreground: 0 30% 95%;
+    --neutral-soft: 140 12% 14%;
+    --neutral-border: 140 10% 22%;
   }
 }
 
