@@ -229,7 +229,7 @@ const AcademyPage = () => {
                     ))}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">5,000+ farmers</span> learning with us
+                    <span className="font-semibold text-foreground">{BRAND_STATS.farmers.value} farmers</span> learning with us
                     <div className="flex items-center gap-1 mt-0.5 justify-center lg:justify-start">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <span key={i} className="text-accent text-sm">★</span>
@@ -367,7 +367,9 @@ const AcademyPage = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => <CourseSkeleton key={i} />)
-              : filtered.map((c) => <CourseCard key={c.id} course={c} />)}
+              : filtered.map((c) => (
+                  <CourseCard key={c.id} course={c} nextBatch={nextBatches?.get(c.id) ?? null} />
+                ))}
           </div>
 
           {!isLoading && filtered.length === 0 && (
