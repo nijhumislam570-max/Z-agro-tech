@@ -32,6 +32,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProductCategories } from '@/hooks/useProductCategories';
 import SEO from '@/components/SEO';
 import shopHeroAgriculture from '@/assets/shop-hero-agriculture.jpg';
+import { STALE_2MIN, STALE_5MIN } from '@/lib/queryConstants';
 
 // Price range options outside component to prevent recreation
 const priceRangeOptions = [
@@ -227,7 +228,7 @@ const ShopPage = () => {
       if (error) throw error;
       return (data || []) as Product[];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: STALE_5MIN,
   });
 
   // ── Infinite scroll products query ────────────────────────────────────────
@@ -269,7 +270,7 @@ const ShopPage = () => {
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.length === PAGE_SIZE ? allPages.length : undefined,
-    staleTime: 2 * 60 * 1000,
+    staleTime: STALE_2MIN,
   });
 
   // Flatten pages → single array
@@ -300,19 +301,28 @@ const ShopPage = () => {
     return ['All', ...Array.from(merged).sort((a, b) => a.localeCompare(b))];
   }, [dbCategories, products]);
 
-  // ── Realtime subscription ──────────────────────────────────────────────────
+  // ── Realtime subscription (debounced — admin bulk edits won't thrash) ──────
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const invalidateDebounced = (keys: string[]) => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        keys.forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
+      }, 400);
+    };
     const channel = supabase
       .channel('shop-products-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['shop-products'] });
-        queryClient.invalidateQueries({ queryKey: ['featured-products'] });
+        invalidateDebounced(['shop-products', 'featured-products']);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'product_categories' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['product-categories'] });
+        invalidateDebounced(['product-categories']);
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (timer) clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
   }, [queryClient]);
 
   // ── Infinite scroll sentinel ───────────────────────────────────────────────
