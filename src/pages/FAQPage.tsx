@@ -14,10 +14,16 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-const faqData = [
+type FAQCategory = {
+  title: string;
+  icon: LucideIcon;
+  faqs: { question: string; answer: string }[];
+};
+
+const faqData: FAQCategory[] = [
   {
     title: 'General Questions',
-    icon: '🌱',
+    icon: Sprout,
     faqs: [
       { question: 'What is Z Agro Tech?', answer: 'Z Agro Tech is a comprehensive agriculture platform combining a premium marketplace for agri-inputs (seeds, fertilizers, crop-protection, tools) with the Smart Farming Academy — expert-led courses for modern farmers in Bangladesh.' },
       { question: 'Is Z Agro Tech free to use?', answer: 'Yes! Browsing products and courses, and creating an account is completely free. You only pay when you purchase a product or enrol in a paid course.' },
@@ -26,7 +32,7 @@ const faqData = [
   },
   {
     title: 'Shop & Products',
-    icon: '🛒',
+    icon: ShoppingBag,
     faqs: [
       { question: 'How do I place an order?', answer: 'Browse the Shop, add items to your cart, proceed to checkout, fill in your delivery address, and select Cash on Delivery. Your order will be confirmed immediately.' },
       { question: 'What payment methods are accepted?', answer: 'We currently support Cash on Delivery (COD) on all orders. Mobile banking (bKash, Nagad) and card payments are coming soon.' },
@@ -38,7 +44,7 @@ const faqData = [
   },
   {
     title: 'Academy & Courses',
-    icon: '🎓',
+    icon: GraduationCap,
     faqs: [
       { question: 'How do I enrol in a course?', answer: 'Open the Academy page, choose a course, and click "Enrol". You\'ll be guided through batch selection (where applicable) and confirmation. Our team will reach out via WhatsApp for next steps.' },
       { question: 'Are the courses online or on-site?', answer: 'Both. Each course lists its mode — Online, On-site, or Hybrid — along with batch dates and duration.' },
@@ -48,7 +54,7 @@ const faqData = [
   },
   {
     title: 'Account & Security',
-    icon: '🔐',
+    icon: Lock,
     faqs: [
       { question: 'How do I reset my password?', answer: 'Click "Forgot Password" on the sign-in page, enter your email, and we\'ll send you a reset link. Follow the link to set a new password.' },
       { question: 'Can I sign in with Google?', answer: 'Yes — use "Continue with Google" on the sign-in page for quick, secure authentication using your Google account.' },
