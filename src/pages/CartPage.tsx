@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useCallback, memo, useMemo, useState } from 'react';
+import { memo, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
+import { useCartReconciliation } from '@/hooks/useCartReconciliation';
 import { Button } from '@/components/ui/button';
 import {
   Minus,
@@ -55,8 +56,11 @@ const CartItem = memo(({
         <img
           src={item.image || '/placeholder.svg'}
           alt={item.name}
+          width={112}
+          height={112}
           className="h-full w-full object-cover"
           loading="lazy"
+          decoding="async"
           onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
         />
       </Link>
@@ -97,7 +101,7 @@ const CartItem = memo(({
             >
               <Minus className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
             </button>
-            <span className="font-medium w-8 sm:w-10 text-center text-sm sm:text-base" aria-live="polite">
+            <span className="font-medium w-8 sm:w-10 text-center text-sm sm:text-base">
               <span className="sr-only">Quantity: </span>{item.quantity}
             </span>
             <button
@@ -134,27 +138,26 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
+  // Reconcile prices/stock against the server on mount + whenever items change.
+  // Surfaces a single "Cart updated" toast if anything drifts. Eliminates the
+  // generic "Order total mismatch" surprise at checkout.
+  useCartReconciliation();
+
   // Single source of truth for delivery — same hook used in CheckoutPage.
   // Cart preview uses no division (subtotal-based), checkout passes division.
   const { charge: deliveryCharge } = useDeliveryCharge(totalAmount);
   const grandTotal = totalAmount + deliveryCharge;
 
-  const handleUpdateQuantity = useCallback((id: string, qty: number) => {
-    updateQuantity(id, qty);
-  }, [updateQuantity]);
-
-  const handleRemoveItem = useCallback((id: string) => {
-    removeItem(id);
-  }, [removeItem]);
-
-  const cartItemList = useMemo(() => items.map((item) => (
+  // updateQuantity / removeItem from useCart are already stable refs; no need
+  // to wrap in useCallback. Cart-row memo invalidates on `items` reference change.
+  const cartItemList = items.map((item) => (
     <CartItem
       key={item.id}
       item={item}
-      onUpdateQuantity={handleUpdateQuantity}
-      onRemove={handleRemoveItem}
+      onUpdateQuantity={updateQuantity}
+      onRemove={removeItem}
     />
-  )), [items, handleUpdateQuantity, handleRemoveItem]);
+  ));
 
   if (items.length === 0) {
     return (
@@ -248,7 +251,7 @@ const CartPage = () => {
                   <div className="flex justify-between text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Truck className="h-4 w-4" aria-hidden="true" />
-                      <span>Delivery</span>
+                      <span>Delivery <span className="text-[10px]">(est.)</span></span>
                     </div>
                     {deliveryCharge === 0 ? (
                       <span className="text-success font-medium">FREE</span>
@@ -256,6 +259,9 @@ const CartPage = () => {
                       <span>৳{deliveryCharge}</span>
                     )}
                   </div>
+                  <p className="text-[10px] text-muted-foreground -mt-1">
+                    Final delivery rate calculated at checkout based on your division.
+                  </p>
 
                   {remainingForFreeDelivery > 0 && (
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
@@ -310,7 +316,7 @@ const CartPage = () => {
                   </li>
                   <li className="flex items-center gap-2 text-muted-foreground">
                     <Tag className="h-4 w-4 text-primary" aria-hidden="true" />
-                    <span>Best Prices</span>
+                    <span>Quality Guaranteed</span>
                   </li>
                 </ul>
               </div>

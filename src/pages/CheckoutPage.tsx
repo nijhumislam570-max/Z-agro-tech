@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCart } from '@/contexts/CartContext';
 import { useAuthUser } from '@/contexts/AuthContext';
@@ -11,19 +11,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ArrowLeft, 
-  CheckCircle, 
-  Banknote, 
-  CreditCard, 
-  Smartphone, 
-  MapPin, 
-  Truck, 
+import {
+  ArrowLeft,
+  CheckCircle,
+  Banknote,
+  CreditCard,
+  MapPin,
+  Truck,
   ChevronRight,
   Shield,
   Package,
@@ -35,12 +35,16 @@ import {
   Ticket,
   Loader2,
   X,
-  Tag
+  Tag,
 } from 'lucide-react';
 import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
+import { getDivisions, getDistricts, getThanas } from '@/lib/bangladeshRegions';
 import SEO from '@/components/SEO';
 
+// Only payment methods that are actually live ship in the UI. Add new methods
+// here when they launch — keeping a single source of truth avoids "Coming Soon"
+// clutter that looks broken to customers.
 const paymentMethods = [
   {
     id: 'cod',
@@ -48,27 +52,6 @@ const paymentMethods = [
     description: 'Pay when you receive your order',
     icon: Banknote,
     available: true,
-  },
-  {
-    id: 'bkash',
-    name: 'bKash',
-    description: 'Pay with bKash mobile banking',
-    icon: Smartphone,
-    available: false,
-  },
-  {
-    id: 'nagad',
-    name: 'Nagad',
-    description: 'Pay with Nagad mobile banking',
-    icon: Smartphone,
-    available: false,
-  },
-  {
-    id: 'online',
-    name: 'Card Payment',
-    description: 'Pay with credit/debit card',
-    icon: CreditCard,
-    available: false,
   },
 ];
 
@@ -157,7 +140,8 @@ const CheckoutPageInner = () => {
     }
   }, [location.hash]);
   
-  // Calculate coupon discount
+  // Calculate coupon discount — formula mirrors create_order_with_stock to
+  // stay inside the ±৳1 server tolerance even on round-number subtotals.
   const couponDiscount = (() => {
     if (!appliedCoupon) return 0;
     if (appliedCoupon.discount_type === 'free_delivery') return deliveryCharge;
@@ -175,39 +159,43 @@ const CheckoutPageInner = () => {
     if (!couponCode.trim()) return;
     setCouponLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('code', couponCode.toUpperCase().trim())
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      if (error) throw error;
-      if (!data) {
+      // Server-side validation via SECURITY DEFINER RPC. Returns only safe
+      // fields (no used_count/usage_limit/min_order leak) and raises a
+      // descriptive exception code on failure.
+      const { data, error } = await supabase.rpc('validate_coupon', {
+        p_code: couponCode.toUpperCase().trim(),
+        p_subtotal: totalAmount,
+      });
+
+      if (error) {
+        const msg = error.message || '';
+        if (msg.includes('INVALID_CODE')) toast.error('This coupon code is not valid.');
+        else if (msg.includes('EXPIRED')) toast.error('This coupon has expired.');
+        else if (msg.includes('NOT_YET_ACTIVE')) toast.error('This coupon is not active yet.');
+        else if (msg.includes('LIMIT_REACHED')) toast.error('This coupon has reached its usage limit.');
+        else if (msg.includes('MIN_ORDER_')) {
+          const min = msg.split('MIN_ORDER_')[1]?.split(/\D/)[0] ?? '';
+          toast.error(`Minimum order amount is ৳${min}`);
+        } else {
+          toast.error('Failed to validate coupon.');
+        }
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) {
         toast.error('This coupon code is not valid.');
         return;
       }
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        toast.error('This coupon has expired.');
-        return;
-      }
-      if (data.usage_limit && data.used_count >= data.usage_limit) {
-        toast.error('This coupon has reached its usage limit.');
-        return;
-      }
-      if (data.min_order_amount && totalAmount < data.min_order_amount) {
-        toast.error(`Minimum order amount is ৳${data.min_order_amount}`);
-        return;
-      }
-      
+
       setAppliedCoupon({
-        code: data.code,
-        discount_type: data.discount_type,
-        discount_value: data.discount_value,
-        max_discount_amount: data.max_discount_amount,
-        id: data.id,
+        code: row.code,
+        discount_type: row.discount_type,
+        discount_value: Number(row.discount_value),
+        max_discount_amount: row.max_discount_amount !== null ? Number(row.max_discount_amount) : null,
+        id: row.id,
       });
-      toast.success(`${data.code} applied successfully.`);
+      toast.success(`${row.code} applied successfully.`);
     } catch {
       toast.error('Failed to validate coupon.');
     } finally {
@@ -229,8 +217,10 @@ const CheckoutPageInner = () => {
 
     try {
       const shippingAddress = `${validatedData.fullName}, ${validatedData.phone}, ${validatedData.address}, ${validatedData.thana}, ${validatedData.district}, ${validatedData.division}`;
-      
-      // Atomic order creation + stock decrement via DB function
+
+      // Atomic order creation + stock decrement via DB function.
+      // p_division is passed explicitly so the server doesn't have to
+      // comma-split shipping_address (broken when address has commas).
       const { data: orderId, error } = await supabase.rpc('create_order_with_stock', {
         p_user_id: user.id,
         p_items: JSON.parse(JSON.stringify(items)),
@@ -238,6 +228,7 @@ const CheckoutPageInner = () => {
         p_shipping_address: shippingAddress,
         p_payment_method: paymentMethod,
         p_coupon_id: appliedCoupon?.id || null,
+        p_division: validatedData.division,
       });
 
       if (error) {

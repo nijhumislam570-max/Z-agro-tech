@@ -43,14 +43,34 @@ export type SignupFormData = z.infer<typeof signupSchema>;
 
 // ========== Checkout / Profile ==========
 
+// BD phone: optional country code, then digits/spaces/dashes. Min 6 chars to
+// reject obvious garbage like "abc"; max 20 to match the DB column.
+const checkoutPhoneRegex = /^[+\d\s-]{6,20}$/;
+
 export const checkoutSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required').max(100),
-  phone: z.string().min(1, 'Phone number is required').max(20),
-  address: z.string().min(1, 'Address is required').max(500),
+  fullName: z
+    .string()
+    .min(1, 'Full name is required')
+    .max(100)
+    .regex(noXSSRegex, 'Name cannot contain < or > characters'),
+  phone: z
+    .string()
+    .min(1, 'Phone number is required')
+    .max(20)
+    .regex(checkoutPhoneRegex, 'Enter a valid phone number'),
+  address: z
+    .string()
+    .min(1, 'Address is required')
+    .max(500)
+    .regex(noXSSRegex, 'Address cannot contain < or > characters'),
   division: z.string().min(1, 'Division is required').max(50),
   district: z.string().min(1, 'District is required').max(50),
   thana: z.string().min(1, 'Thana is required').max(50),
-  notes: z.string().max(1000).optional(),
+  notes: z
+    .string()
+    .max(1000)
+    .regex(noXSSRegex, 'Notes cannot contain < or > characters')
+    .optional(),
 });
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
