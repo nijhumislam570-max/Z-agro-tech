@@ -36,3 +36,21 @@ export const getPaymentStatusColor = (status: string | null) => {
       return '';
   }
 };
+
+/**
+ * Canonical badge class for a status across the dashboard tiles + tabs.
+ * Memory rule: pending=Amber, approved/delivered=Green, rejected/cancelled=Red,
+ * shipped/processing=Blue. Uses *-soft + *-border tokens so badges stay readable
+ * against any card background.
+ */
+export const statusBadgeClass = (status: string | null | undefined): string => {
+  const s = (status ?? 'pending').toLowerCase();
+  if (s === 'delivered' || s === 'completed' || s === 'confirmed' || s === 'approved')
+    return 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft';
+  if (s === 'cancelled' || s === 'rejected')
+    return 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft';
+  if (s === 'shipped' || s === 'processing')
+    return 'bg-info-soft text-info border-info-border hover:bg-info-soft';
+  // pending / accepted / unknown → amber
+  return 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft';
+};
