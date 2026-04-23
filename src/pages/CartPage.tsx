@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useCallback, memo, useMemo, useState } from 'react';
+import { memo, useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
+import { useCartReconciliation } from '@/hooks/useCartReconciliation';
 import { Button } from '@/components/ui/button';
 import {
   Minus,
@@ -97,7 +98,7 @@ const CartItem = memo(({
             >
               <Minus className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
             </button>
-            <span className="font-medium w-8 sm:w-10 text-center text-sm sm:text-base" aria-live="polite">
+            <span className="font-medium w-8 sm:w-10 text-center text-sm sm:text-base">
               <span className="sr-only">Quantity: </span>{item.quantity}
             </span>
             <button
@@ -134,27 +135,26 @@ const CartPage = () => {
   const navigate = useNavigate();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
+  // Reconcile prices/stock against the server on mount + whenever items change.
+  // Surfaces a single "Cart updated" toast if anything drifts. Eliminates the
+  // generic "Order total mismatch" surprise at checkout.
+  useCartReconciliation();
+
   // Single source of truth for delivery — same hook used in CheckoutPage.
   // Cart preview uses no division (subtotal-based), checkout passes division.
   const { charge: deliveryCharge } = useDeliveryCharge(totalAmount);
   const grandTotal = totalAmount + deliveryCharge;
 
-  const handleUpdateQuantity = useCallback((id: string, qty: number) => {
-    updateQuantity(id, qty);
-  }, [updateQuantity]);
-
-  const handleRemoveItem = useCallback((id: string) => {
-    removeItem(id);
-  }, [removeItem]);
-
-  const cartItemList = useMemo(() => items.map((item) => (
+  // updateQuantity / removeItem from useCart are already stable refs; no need
+  // to wrap in useCallback. Cart-row memo invalidates on `items` reference change.
+  const cartItemList = items.map((item) => (
     <CartItem
       key={item.id}
       item={item}
-      onUpdateQuantity={handleUpdateQuantity}
-      onRemove={handleRemoveItem}
+      onUpdateQuantity={updateQuantity}
+      onRemove={removeItem}
     />
-  )), [items, handleUpdateQuantity, handleRemoveItem]);
+  ));
 
   if (items.length === 0) {
     return (
