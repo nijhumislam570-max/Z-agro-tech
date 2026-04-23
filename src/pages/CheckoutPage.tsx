@@ -127,15 +127,15 @@ const CheckoutPageInner = () => {
   // Scroll to coupon input when arriving via /checkout#coupon (from CartPage link).
   useEffect(() => {
     if (location.hash === '#coupon') {
-      // Defer until after layout so the input exists in the DOM.
-      const t = window.setTimeout(() => {
+      // RAF defers until after layout & paint without a magic timeout number.
+      const raf = window.requestAnimationFrame(() => {
         couponInputRef.current?.focus();
         couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200);
-      return () => window.clearTimeout(t);
+      });
+      return () => window.cancelAnimationFrame(raf);
     }
   }, [location.hash]);
-  
+
   // Calculate coupon discount — formula mirrors create_order_with_stock to
   // stay inside the ±৳1 server tolerance even on round-number subtotals.
   const couponDiscount = (() => {
