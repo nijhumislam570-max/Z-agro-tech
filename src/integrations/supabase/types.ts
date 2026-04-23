@@ -314,6 +314,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "enrollments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "course_next_batch"
+            referencedColumns: ["batch_id"]
+          },
+          {
             foreignKeyName: "enrollments_course_id_fkey"
             columns: ["course_id"]
             isOneToOne: false
@@ -663,6 +670,27 @@ export type Database = {
       }
     }
     Views: {
+      course_next_batch: {
+        Row: {
+          batch_id: string | null
+          course_id: string | null
+          end_date: string | null
+          enrolled_count: number | null
+          name: string | null
+          start_date: string | null
+          status: string | null
+          total_seats: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_batches_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_ratings: {
         Row: {
           avg_rating: number | null
