@@ -584,27 +584,9 @@
   }
 }
 
-/* Glassmorphism + agri gradient (Phase 3 dashboard) */
-@layer utilities {
-  .glass {
-    @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-xl;
-  }
-  .glass-strong {
-    @apply backdrop-blur-xl bg-white/20 border border-white/30 shadow-2xl;
-  }
-  .bg-agri-gradient {
-    background-image: linear-gradient(135deg,
-      hsl(142 60% 18%) 0%,
-      hsl(142 50% 30%) 45%,
-      hsl(38 70% 55%) 100%);
-  }
-  .bg-agri-gradient-soft {
-    background-image: linear-gradient(135deg,
-      hsl(142 40% 95%) 0%,
-      hsl(60 40% 96%) 50%,
-      hsl(38 70% 92%) 100%);
-  }
-}
+/* Audit P2: Removed legacy .glass / .glass-strong / .bg-agri-gradient(-soft)
+   utilities. Dashboard refactor retired them; deleted to prevent reintroduction. */
+
 
 /* Image fade-in transition helper */
 .img-fade-in {

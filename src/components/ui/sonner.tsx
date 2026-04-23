@@ -1,14 +1,17 @@
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, toast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
+/**
+ * Audit P2: Hardcoded theme="light" (was useTheme() from next-themes).
+ * Sonner now reads our brand-themed semantic tokens via the classNames map,
+ * so it picks up dark mode automatically through CSS variables — no need
+ * to flip Sonner's internal theme.
+ */
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
       className="toaster group"
       // Accessibility: Ensure screen readers announce toasts
       richColors
