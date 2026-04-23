@@ -1,16 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react';
+import type { Control } from 'react-hook-form';
+import { useWatch } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
-
-interface CheckoutFormData {
-  fullName: string;
-  phone: string;
-  address: string;
-  division: string;
-  district: string;
-  thana: string;
-}
+import type { CheckoutFormData } from '@/lib/validations';
 
 interface CartItem {
   id: string;
@@ -20,8 +14,14 @@ interface CartItem {
   image: string;
 }
 
+/**
+ * Tracks abandoned-checkout state by inserting/updating an `incomplete_orders`
+ * row as the user fills the form. Uses field-scoped `useWatch` selectors so we
+ * don't re-render the whole page on every keystroke and don't rely on the
+ * fragile `getValues()`-on-every-render pattern.
+ */
 export const useCheckoutTracking = (
-  formData: CheckoutFormData,
+  control: Control<CheckoutFormData>,
   items: CartItem[],
   totalAmount: number,
   paymentMethod: string
@@ -30,22 +30,32 @@ export const useCheckoutTracking = (
   const incompleteOrderId = useRef<string | null>(null);
   const hasCreated = useRef(false);
 
+  // Field-scoped subscriptions — only this hook re-runs on field change.
+  const fullName = useWatch({ control, name: 'fullName' }) || '';
+  const phone = useWatch({ control, name: 'phone' }) || '';
+  const address = useWatch({ control, name: 'address' }) || '';
+  const division = useWatch({ control, name: 'division' }) || '';
+  const district = useWatch({ control, name: 'district' }) || '';
+  const thana = useWatch({ control, name: 'thana' }) || '';
+
   // Calculate completeness percentage
   const completeness = (() => {
     let score = 0;
-    if (formData.fullName.trim()) score += 20;
-    if (formData.phone.trim()) score += 20;
-    if (formData.address.trim()) score += 20;
-    if (formData.division.trim() && formData.district.trim() && formData.thana.trim()) score += 20;
+    if (fullName.trim()) score += 20;
+    if (phone.trim()) score += 20;
+    if (address.trim()) score += 20;
+    if (division.trim() && district.trim() && thana.trim()) score += 20;
     if (paymentMethod) score += 20;
     return score;
   })();
 
   const debouncedCompleteness = useDebounce(completeness, 2000);
-  const debouncedName = useDebounce(formData.fullName, 2000);
-  const debouncedPhone = useDebounce(formData.phone, 2000);
-  const debouncedAddress = useDebounce(formData.address, 2000);
-  const debouncedDivision = useDebounce(formData.division, 2000);
+  const debouncedName = useDebounce(fullName, 2000);
+  const debouncedPhone = useDebounce(phone, 2000);
+  const debouncedAddress = useDebounce(address, 2000);
+  const debouncedDivision = useDebounce(division, 2000);
+  const debouncedDistrict = useDebounce(district, 2000);
+  const debouncedThana = useDebounce(thana, 2000);
 
   // Create initial record only when we have a non-empty cart and a signed-in user.
   // If the cart is emptied (e.g. user removes all items), reset so a new record
@@ -54,7 +64,6 @@ export const useCheckoutTracking = (
     if (!user) return;
 
     if (items.length === 0) {
-      // Cart cleared — allow a fresh record next time items are added.
       hasCreated.current = false;
       incompleteOrderId.current = null;
       return;
@@ -89,13 +98,13 @@ export const useCheckoutTracking = (
     createRecord();
   }, [user, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update record when form changes (debounced)
+  // Update record when debounced field values change.
   useEffect(() => {
     if (!incompleteOrderId.current || !user) return;
 
     const updateRecord = async () => {
-      const shippingParts = [formData.address, formData.thana, formData.district, formData.division].filter(Boolean);
-      
+      const shippingParts = [debouncedAddress, debouncedThana, debouncedDistrict, debouncedDivision].filter(Boolean);
+
       await supabase
         .from('incomplete_orders')
         .update({
@@ -111,7 +120,16 @@ export const useCheckoutTracking = (
     };
 
     updateRecord();
-  }, [debouncedCompleteness, debouncedName, debouncedPhone, debouncedAddress, debouncedDivision, totalAmount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    debouncedCompleteness,
+    debouncedName,
+    debouncedPhone,
+    debouncedAddress,
+    debouncedDivision,
+    debouncedDistrict,
+    debouncedThana,
+    totalAmount,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Mark as recovered when order completes
   const markRecovered = useCallback(async (orderId: string) => {
@@ -128,7 +146,6 @@ export const useCheckoutTracking = (
       // Silent fail
     }
   }, []);
-
 
   return { markRecovered, incompleteOrderId: incompleteOrderId.current };
 };

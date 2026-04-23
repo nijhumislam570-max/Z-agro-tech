@@ -71,6 +71,7 @@ export const checkoutSchema = z.object({
     .max(1000)
     .regex(noXSSRegex, 'Notes cannot contain < or > characters')
     .optional(),
+  paymentMethod: z.string().min(1, 'Select a payment method'),
 });
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 

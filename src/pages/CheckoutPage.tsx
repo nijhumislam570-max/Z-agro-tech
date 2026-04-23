@@ -76,7 +76,6 @@ const CheckoutPageInner = () => {
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [placedItems, setPlacedItems] = useState<typeof items>([]);
   const [placedTotal, setPlacedTotal] = useState(0);
-  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [couponCode, setCouponCode] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{
@@ -87,12 +86,13 @@ const CheckoutPageInner = () => {
     id: string;
   } | null>(null);
 
-  // react-hook-form with Zod resolver
+  // react-hook-form with Zod resolver. paymentMethod is part of the form so
+  // submission is atomic with the rest of the validated payload.
   const {
     register,
     handleSubmit,
     control,
-    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -104,26 +104,22 @@ const CheckoutPageInner = () => {
       district: '',
       thana: '',
       notes: '',
+      paymentMethod: 'cod',
     },
   });
 
-  // Use targeted useWatch for division so only delivery-charge derivation re-runs
-  // when that field changes (avoids re-rendering the entire form on every keystroke
-  // in unrelated fields, which `watch()` would do).
-  const watchedDivision = useWatch({ control, name: 'division' });
+  // Field-scoped watchers — only the affected derived UI re-runs.
+  const watchedDivision = useWatch({ control, name: 'division' }) || '';
+  const watchedDistrict = useWatch({ control, name: 'district' }) || '';
+  const paymentMethod = useWatch({ control, name: 'paymentMethod' }) || 'cod';
 
-  // Build tracking snapshot lazily — read latest values on each tick rather than
-  // subscribing to every field change.
-  const trackingValues = getValues();
-  const trackingData = {
-    fullName: trackingValues.fullName || '',
-    phone: trackingValues.phone || '',
-    address: trackingValues.address || '',
-    division: trackingValues.division || '',
-    district: trackingValues.district || '',
-    thana: trackingValues.thana || '',
-  };
-  const { markRecovered } = useCheckoutTracking(trackingData, items, totalAmount, paymentMethod);
+  // Cascading dropdown sources.
+  const divisionOptions = getDivisions();
+  const districtOptions = watchedDivision ? getDistricts(watchedDivision) : [];
+  const thanaOptions = watchedDivision && watchedDistrict ? getThanas(watchedDivision, watchedDistrict) : [];
+
+  // Tracking subscribes via control directly — no per-render getValues() polling.
+  const { markRecovered } = useCheckoutTracking(control, items, totalAmount, paymentMethod);
 
   // Centralized delivery-charge calc — same hook used by CartPage to keep totals consistent.
   const { charge: deliveryCharge, zoneName: matchedZoneName } = useDeliveryCharge(totalAmount, watchedDivision);
@@ -131,15 +127,15 @@ const CheckoutPageInner = () => {
   // Scroll to coupon input when arriving via /checkout#coupon (from CartPage link).
   useEffect(() => {
     if (location.hash === '#coupon') {
-      // Defer until after layout so the input exists in the DOM.
-      const t = window.setTimeout(() => {
+      // RAF defers until after layout & paint without a magic timeout number.
+      const raf = window.requestAnimationFrame(() => {
         couponInputRef.current?.focus();
         couponInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200);
-      return () => window.clearTimeout(t);
+      });
+      return () => window.cancelAnimationFrame(raf);
     }
   }, [location.hash]);
-  
+
   // Calculate coupon discount — formula mirrors create_order_with_stock to
   // stay inside the ±৳1 server tolerance even on round-number subtotals.
   const couponDiscount = (() => {
@@ -226,7 +222,7 @@ const CheckoutPageInner = () => {
         p_items: JSON.parse(JSON.stringify(items)),
         p_total_amount: grandTotal,
         p_shipping_address: shippingAddress,
-        p_payment_method: paymentMethod,
+        p_payment_method: validatedData.paymentMethod,
         p_coupon_id: appliedCoupon?.id || null,
         p_division: validatedData.division,
       });
@@ -404,6 +400,8 @@ const CheckoutPageInner = () => {
       </div>
 
       <main id="main-content" className="container mx-auto px-4 py-4 sm:py-6 lg:py-8">
+        <h1 className="sr-only">Checkout</h1>
+
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
           {/* Form Section */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-4 sm:space-y-6">
@@ -479,40 +477,83 @@ const CheckoutPageInner = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="division" className="text-sm">Division</Label>
-                      <Input
-                        id="division"
-                        {...register('division')}
-                        placeholder="Dhaka"
-                        className="h-11 rounded-lg"
-                        maxLength={50}
-                        autoComplete="address-level1"
-                        aria-invalid={!!errors.division}
+                      <Controller
+                        control={control}
+                        name="division"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(v) => {
+                              field.onChange(v);
+                              // Clear dependent fields when parent changes so we
+                              // don't leave a stale district/thana that no longer
+                              // belongs to the new division (DB delivery zone
+                              // would silently fall back to default rate).
+                              setValue('district', '', { shouldValidate: false });
+                              setValue('thana', '', { shouldValidate: false });
+                            }}
+                          >
+                            <SelectTrigger id="division" className="h-11 rounded-lg" aria-invalid={!!errors.division}>
+                              <SelectValue placeholder="Select division" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {divisionOptions.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                       {errors.division && <p className="text-xs text-destructive" role="alert">{errors.division.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="district" className="text-sm">District</Label>
-                      <Input
-                        id="district"
-                        {...register('district')}
-                        placeholder="Dhaka"
-                        className="h-11 rounded-lg"
-                        maxLength={50}
-                        autoComplete="address-level2"
-                        aria-invalid={!!errors.district}
+                      <Controller
+                        control={control}
+                        name="district"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={(v) => {
+                              field.onChange(v);
+                              setValue('thana', '', { shouldValidate: false });
+                            }}
+                            disabled={!watchedDivision}
+                          >
+                            <SelectTrigger id="district" className="h-11 rounded-lg" aria-invalid={!!errors.district}>
+                              <SelectValue placeholder={watchedDivision ? 'Select district' : 'Select division first'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {districtOptions.map((d) => (
+                                <SelectItem key={d} value={d}>{d}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                       {errors.district && <p className="text-xs text-destructive" role="alert">{errors.district.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="thana" className="text-sm">Thana</Label>
-                      <Input
-                        id="thana"
-                        {...register('thana')}
-                        placeholder="Dhanmondi"
-                        className="h-11 rounded-lg"
-                        maxLength={50}
-                        autoComplete="address-level3"
-                        aria-invalid={!!errors.thana}
+                      <Controller
+                        control={control}
+                        name="thana"
+                        render={({ field }) => (
+                          <Select
+                            value={field.value || ''}
+                            onValueChange={field.onChange}
+                            disabled={!watchedDistrict}
+                          >
+                            <SelectTrigger id="thana" className="h-11 rounded-lg" aria-invalid={!!errors.thana}>
+                              <SelectValue placeholder={watchedDistrict ? 'Select thana' : 'Select district first'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {thanaOptions.map((t) => (
+                                <SelectItem key={t} value={t}>{t}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       />
                       {errors.thana && <p className="text-xs text-destructive" role="alert">{errors.thana.message}</p>}
                     </div>
@@ -549,52 +590,58 @@ const CheckoutPageInner = () => {
                 </div>
                 
                 <div className="p-4 sm:p-5">
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
-                    {paymentMethods.map((method) => {
-                      const Icon = method.icon;
-                      const selected = paymentMethod === method.id;
-                      return (
-                        <label
-                          key={method.id}
-                          htmlFor={method.id}
-                          className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 transition-all ${
-                            method.available
-                              ? selected
-                                ? 'border-primary bg-primary/5 cursor-pointer'
-                                : 'border-border hover:border-primary/50 cursor-pointer'
-                              : 'border-border/50 bg-muted/30 opacity-60 cursor-not-allowed'
-                          }`}
-                          aria-disabled={!method.available}
-                        >
-                          <RadioGroupItem
-                            value={method.id}
-                            id={method.id}
-                            disabled={!method.available}
-                            className="sr-only"
-                          />
-                          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            selected && method.available
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted'
-                          }`}>
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm sm:text-base">{method.name}</span>
-                              {!method.available && (
-                                <span className="text-[10px] sm:text-xs bg-muted px-2 py-0.5 rounded">Coming Soon</span>
+                  <Controller
+                    control={control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                      <RadioGroup value={field.value} onValueChange={field.onChange} className="space-y-3">
+                        {paymentMethods.map((method) => {
+                          const Icon = method.icon;
+                          const selected = field.value === method.id;
+                          return (
+                            <label
+                              key={method.id}
+                              htmlFor={method.id}
+                              className={`relative flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 transition-all ${
+                                method.available
+                                  ? selected
+                                    ? 'border-primary bg-primary/5 cursor-pointer'
+                                    : 'border-border hover:border-primary/50 cursor-pointer'
+                                  : 'border-border/50 bg-muted/30 opacity-60 cursor-not-allowed'
+                              }`}
+                              aria-disabled={!method.available}
+                            >
+                              <RadioGroupItem
+                                value={method.id}
+                                id={method.id}
+                                disabled={!method.available}
+                                className="sr-only"
+                              />
+                              <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                                selected && method.available
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
+                              }`}>
+                                <Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm sm:text-base">{method.name}</span>
+                                  {!method.available && (
+                                    <span className="text-[10px] sm:text-xs bg-muted px-2 py-0.5 rounded">Coming Soon</span>
+                                  )}
+                                </div>
+                                <p className="text-xs sm:text-sm text-muted-foreground">{method.description}</p>
+                              </div>
+                              {selected && method.available && (
+                                <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" aria-hidden="true" />
                               )}
-                            </div>
-                            <p className="text-xs sm:text-sm text-muted-foreground">{method.description}</p>
-                          </div>
-                          {selected && method.available && (
-                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" aria-hidden="true" />
-                          )}
-                        </label>
-                      );
-                    })}
-                  </RadioGroup>
+                            </label>
+                          );
+                        })}
+                      </RadioGroup>
+                    )}
+                  />
 
                   {paymentMethod === 'cod' && (
                     <div className="mt-4 p-3 sm:p-4 rounded-xl bg-warning-light dark:bg-warning-light/30 border border-warning-border">
@@ -628,8 +675,8 @@ const CheckoutPageInner = () => {
                 <p className="text-xs sm:text-sm text-muted-foreground">{totalItems} {totalItems === 1 ? 'item' : 'items'}</p>
               </div>
               
-              {/* Order Items */}
-              <div className="max-h-[280px] overflow-y-auto">
+              {/* Order Items — only scroll when list is long enough to need it. */}
+              <div className={items.length > 4 ? 'max-h-[280px] overflow-y-auto' : ''}>
                 <div className="p-4 sm:p-5 space-y-3">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-3">
@@ -816,7 +863,14 @@ const CheckoutPageInner = () => {
           className="w-full h-11 text-sm font-semibold rounded-xl"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Placing Order...' : 'Place Order'}
+          {isSubmitting ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              Placing Order...
+            </span>
+          ) : (
+            'Place Order'
+          )}
         </Button>
       </div>
     </div>
