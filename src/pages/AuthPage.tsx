@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, ArrowLeft, Loader2, Sprout, GraduationCap, Truck, ShieldCheck, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
