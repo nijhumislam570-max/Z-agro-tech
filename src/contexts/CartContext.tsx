@@ -96,6 +96,24 @@ function clearStore() {
   emitChange();
 }
 
+/**
+ * Updates an existing item's price and clamps quantity to a new max stock.
+ * Used by `useCartReconciliation` to sync cart with the latest server data.
+ * Returns true when something actually changed.
+ */
+function reconcileItemInStore(id: string, newPrice: number, maxStock: number) {
+  let changed = false;
+  cartItems = cartItems.map((i) => {
+    if (i.id !== id) return i;
+    const nextQty = Math.min(i.quantity, maxStock);
+    if (i.price === newPrice && i.quantity === nextQty) return i;
+    changed = true;
+    return { ...i, price: newPrice, quantity: nextQty };
+  });
+  if (changed) emitChange();
+  return changed;
+}
+
 // ─── No-op Provider (backward compatible, renders children only) ────
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -123,6 +141,10 @@ export function useCart() {
     clearStore();
   }, []);
 
+  const reconcileItem = useCallback((id: string, newPrice: number, maxStock: number) => {
+    return reconcileItemInStore(id, newPrice, maxStock);
+  }, []);
+
   const totalItems = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
   const totalAmount = useMemo(() => items.reduce((sum, item) => sum + (item.price * item.quantity), 0), [items]);
 
@@ -132,6 +154,7 @@ export function useCart() {
     removeItem,
     updateQuantity,
     clearCart,
+    reconcileItem,
     totalItems,
     totalAmount,
   };
