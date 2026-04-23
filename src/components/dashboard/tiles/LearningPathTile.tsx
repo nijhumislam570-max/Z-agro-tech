@@ -48,8 +48,11 @@ export default function LearningPathTile() {
               <img
                 src={latest.course?.thumbnail_url || getCourseImage(latest.course?.title, null)}
                 alt={latest.course?.title ?? 'Course'}
+                width={640}
+                height={360}
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
+                decoding="async"
               />
               <Badge className="absolute top-2 left-2 bg-card text-foreground hover:bg-card capitalize border border-border shadow-sm">
                 {latest.status ?? 'pending'}

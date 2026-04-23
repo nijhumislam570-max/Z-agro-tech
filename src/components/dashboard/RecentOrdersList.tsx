@@ -8,16 +8,7 @@ import { Package, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useDashboardSummary } from '@/hooks/useDashboardData';
 import { usePrefetch } from '@/hooks/usePrefetch';
 
-function statusTone(status: string | null) {
-  const s = (status ?? 'pending').toLowerCase();
-  if (s === 'delivered' || s === 'completed')
-    return 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft';
-  if (s === 'cancelled' || s === 'rejected')
-    return 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft';
-  if (s === 'shipped' || s === 'processing')
-    return 'bg-info-soft text-info border-info-border hover:bg-info-soft';
-  return 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft';
-}
+import { statusBadgeClass } from '@/lib/statusColors';
 
 export const RecentOrdersList = memo(function RecentOrdersList() {
   const { isLoading, recentOrders } = useDashboardSummary();
@@ -72,7 +63,7 @@ export const RecentOrdersList = memo(function RecentOrdersList() {
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline" className={`${statusTone(order.status)} capitalize text-[10px]`}>
+                      <Badge variant="outline" className={`${statusBadgeClass(order.status)} capitalize text-[10px]`}>
                         {order.status ?? 'pending'}
                       </Badge>
                       <span className="text-[11px] text-muted-foreground font-mono">
