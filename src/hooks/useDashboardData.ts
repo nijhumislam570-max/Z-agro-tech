@@ -58,7 +58,7 @@ export function useFeaturedMasterclass() {
       if (error) throw error;
       return (data as unknown as FeaturedMasterclass | null) ?? null;
     },
-    staleTime: STALE_1MIN,
+    staleTime: STALE_5MIN,
   });
 }
 
@@ -93,28 +93,34 @@ export function useDashboardSummary() {
   const orders = useMyOrders();
   const enrollments = useMyEnrollments();
 
-  const orderRows = orders.data || [];
-  const enrollmentRows = enrollments.data || [];
+  const orderRows = orders.data;
+  const enrollmentRows = enrollments.data;
 
-  const totalOrders = orderRows.length;
-  const lifetimeSpend = orderRows
-    .filter((o) => o.status !== 'cancelled' && o.status !== 'rejected')
-    .reduce((sum, o) => sum + Number(o.total_amount ?? 0), 0);
-  const pendingOrders = orderRows.filter((o) => o.status === 'pending').length;
-  const activeCourses = enrollmentRows.filter(
-    (e) => e.status === 'confirmed' || e.status === 'pending',
-  ).length;
-  const completedCourses = enrollmentRows.filter((e) => e.status === 'completed').length;
+  // Memoize derived values so consumers (StatGrid, RecentOrdersList, AlertsTile)
+  // get stable references and don't re-render on unrelated cache changes.
+  return useMemo(() => {
+    const oRows = orderRows || [];
+    const eRows = enrollmentRows || [];
+    const totalOrders = oRows.length;
+    const lifetimeSpend = oRows
+      .filter((o) => o.status !== 'cancelled' && o.status !== 'rejected')
+      .reduce((sum, o) => sum + Number(o.total_amount ?? 0), 0);
+    const pendingOrders = oRows.filter((o) => o.status === 'pending').length;
+    const activeCourses = eRows.filter(
+      (e) => e.status === 'confirmed' || e.status === 'pending',
+    ).length;
+    const completedCourses = eRows.filter((e) => e.status === 'completed').length;
 
-  return {
-    isLoading: orders.isLoading || enrollments.isLoading,
-    totalOrders,
-    lifetimeSpend,
-    pendingOrders,
-    activeCourses,
-    completedCourses,
-    latestOrder: orderRows[0] ?? null,
-    latestEnrollment: enrollmentRows[0] ?? null,
-    recentOrders: orderRows.slice(0, 3),
-  };
+    return {
+      isLoading: orders.isLoading || enrollments.isLoading,
+      totalOrders,
+      lifetimeSpend,
+      pendingOrders,
+      activeCourses,
+      completedCourses,
+      latestOrder: oRows[0] ?? null,
+      latestEnrollment: eRows[0] ?? null,
+      recentOrders: oRows.slice(0, 3),
+    };
+  }, [orderRows, enrollmentRows, orders.isLoading, enrollments.isLoading]);
 }
