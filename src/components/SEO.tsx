@@ -85,13 +85,24 @@ interface ItemListSchema {
   items: ItemListEntry[];
 }
 
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface FAQPageSchema {
+  type: 'FAQPage';
+  items: FAQItem[];
+}
+
 type Schema =
   | OrganizationSchema
   | LocalBusinessSchema
   | ProductSchema
   | CourseSchema
   | BreadcrumbSchema
-  | ItemListSchema;
+  | ItemListSchema
+  | FAQPageSchema;
 
 interface SEOProps {
   // Page meta
