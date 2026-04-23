@@ -163,7 +163,11 @@ const ContactPage = () => {
                       <div>
                         <p className="text-sm text-muted-foreground">{item.label}</p>
                         {item.href ? (
-                          <a href={item.href} className="font-medium hover:text-primary transition-colors">
+                          <a
+                            href={item.href}
+                            className="font-medium hover:text-primary transition-colors"
+                            aria-label={item.aria ?? undefined}
+                          >
                             {item.value}
                           </a>
                         ) : (
