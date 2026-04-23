@@ -10,6 +10,7 @@ type: feature
 - After a successful submission, the "Send Another Message" button is disabled for **30 seconds** (`COOLDOWN_SECONDS` in `src/pages/ContactPage.tsx`).
 - A `role="progressbar"` indicator visually counts down.
 - Cooldown also blocks `onSubmit` re-entry and the `handleSendAnother` reset.
+- On success the page shows an inline confirmation card only — the redundant Sonner toast is suppressed (`safeMutation` is called with `successMsg: ''`).
 
 ## Auth-gated form
 - Anonymous users see a "Sign in Required" CTA — sign-in is required to send.
