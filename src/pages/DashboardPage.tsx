@@ -1,7 +1,6 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Package, GraduationCap, Heart, User, Sparkles, Pencil, AlertTriangle } from 'lucide-react';
 import OrdersTab from '@/components/dashboard/OrdersTab';
@@ -20,14 +19,14 @@ import MasterclassTile from '@/components/dashboard/tiles/MasterclassTile';
 import FeaturedCarouselTile from '@/components/dashboard/tiles/FeaturedCarouselTile';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthUser } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 
 const VALID_TABS = ['orders', 'courses', 'wishlist', 'profile'] as const;
 type TabValue = typeof VALID_TABS[number];
 
 const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
-  const { user } = useAuth();
+  const user = useAuthUser();
   const { profile } = useProfile();
 
   const greetingName = useMemo(() => {
@@ -45,12 +44,12 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 sm:mb-6">
       <div className="space-y-1.5">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/90 backdrop-blur border border-primary/20 text-[11px] font-semibold uppercase tracking-wider text-primary shadow-soft">
-          <Sparkles className="h-3.5 w-3.5" />
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           Your Farm Hub
         </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
           Welcome back,{' '}
-          <span className="bg-gradient-to-r from-primary to-[hsl(142,45%,40%)] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             {greetingName}
           </span>
         </h2>
@@ -61,7 +60,7 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
         onClick={onEdit}
         className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-foreground bg-card hover:bg-secondary border border-border hover:border-primary/40 rounded-lg px-3 py-2 shadow-soft transition-all min-h-[44px]"
       >
-        <Pencil className="h-3.5 w-3.5" />
+        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
         Edit profile
       </button>
     </div>
@@ -69,7 +68,6 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
 });
 
 const DashboardPageInner = () => {
-  useDocumentTitle('Dashboard');
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const activeTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam ?? '')
@@ -79,11 +77,13 @@ const DashboardPageInner = () => {
   const { profile } = useProfile();
   const [editOpen, setEditOpen] = useState(false);
 
-  const handleTabChange = (value: string) => {
-    const next = new URLSearchParams(searchParams);
-    next.set('tab', value);
-    setSearchParams(next, { replace: true });
-  };
+  const handleTabChange = useCallback((value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', value);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const handleEdit = useCallback(() => setEditOpen(true), []);
 
@@ -160,20 +160,20 @@ const DashboardPageInner = () => {
           </header>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="grid w-full max-w-2xl grid-cols-4 h-auto">
-              <TabsTrigger value="orders" className="gap-2 min-h-[44px]">
-                <Package className="h-4 w-4" />
+              <TabsTrigger value="orders" className="gap-2 min-h-[44px]" aria-label="Orders">
+                <Package className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Orders</span>
               </TabsTrigger>
-              <TabsTrigger value="courses" className="gap-2 min-h-[44px]">
-                <GraduationCap className="h-4 w-4" />
+              <TabsTrigger value="courses" className="gap-2 min-h-[44px]" aria-label="Courses">
+                <GraduationCap className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Courses</span>
               </TabsTrigger>
-              <TabsTrigger value="wishlist" className="gap-2 min-h-[44px]">
-                <Heart className="h-4 w-4" />
+              <TabsTrigger value="wishlist" className="gap-2 min-h-[44px]" aria-label="Wishlist">
+                <Heart className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Wishlist</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="gap-2 min-h-[44px]">
-                <User className="h-4 w-4" />
+              <TabsTrigger value="profile" className="gap-2 min-h-[44px]" aria-label="Profile">
+                <User className="h-4 w-4" aria-hidden="true" />
                 <span className="hidden sm:inline">Profile</span>
               </TabsTrigger>
             </TabsList>
