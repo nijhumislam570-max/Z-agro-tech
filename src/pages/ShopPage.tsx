@@ -484,8 +484,8 @@ const ShopPage = () => {
             <div className="flex gap-2 sm:gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <input 
-                  type="text" 
+                <input
+                  type="search"
                   placeholder="Search products..." 
                   value={searchInput}
                   onChange={handleSearchChange}
@@ -762,7 +762,7 @@ const ShopPage = () => {
           {/* Initial loading state: full skeleton grid */}
           {isLoading ? (
             <div className={`grid gap-2 sm:gap-3 ${gridClass}`} aria-busy="true" aria-label="Loading products">
-              {[...Array(8)].map((_, i) => (
+              {[...Array(skeletonCount)].map((_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
