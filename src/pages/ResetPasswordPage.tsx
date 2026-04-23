@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Loader2, CheckCircle, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,9 +31,29 @@ const ResetPasswordPage = () => {
   const [sessionError, setSessionError] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
+  // Track outstanding navigation timers so we can cancel them on unmount
+  // — prevents "navigate from unmounted component" warnings + stale jumps.
+  const redirectTimerRef = useRef<number | null>(null);
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current !== null) {
+        window.clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const scheduleNavigate = useCallback((to: string, delayMs: number) => {
+    if (redirectTimerRef.current !== null) window.clearTimeout(redirectTimerRef.current);
+    redirectTimerRef.current = window.setTimeout(() => {
+      redirectTimerRef.current = null;
+      navigate(to);
+    }, delayMs);
+  }, [navigate]);
+
   // Recovery session detection — handles both:
   //  1. AuthContext already captured the recovery session → user present.
-  //  2. Hash present but listener still rotating → wait briefly, then time out.
+  //  2. Hash present but listener still rotating → wait briefly, then re-check.
   useEffect(() => {
     if (authLoading) return;
 
@@ -50,15 +70,16 @@ const ResetPasswordPage = () => {
     }
 
     // Hash exists but no user yet — give the auth listener a window to fire.
-    const timer = window.setTimeout(() => {
-      // Re-check at timeout boundary; if still no user, mark as error.
-      if (!supabase.auth.getSession) {
-        setSessionError(true);
-        return;
-      }
-      supabase.auth.getSession().then(({ data }) => {
+    // After timeout, re-check with getSession() (covers the slow-network race
+    // where the listener fires just past the deadline).
+    const timer = window.setTimeout(async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
         if (!data.session) setSessionError(true);
-      });
+        else setSessionReady(true);
+      } catch {
+        setSessionError(true);
+      }
     }, RECOVERY_TIMEOUT_MS);
 
     return () => window.clearTimeout(timer);
@@ -88,12 +109,19 @@ const ResetPasswordPage = () => {
         if (
           raw.includes('session_not_found') ||
           raw.includes('expired') ||
+          raw.includes('otp_expired') ||
+          raw.includes('token has expired') ||
+          raw.includes('token is invalid') ||
           raw.includes('pgrst301') ||
           raw.includes('refresh_token') ||
           raw.includes('invalid token')
         ) {
           toast.error('Your recovery link has expired. Please request a new one.');
-          setTimeout(() => navigate('/forgot-password'), 2000);
+          scheduleNavigate('/forgot-password', 2000);
+          return;
+        }
+        if (raw.includes('pwned') || raw.includes('compromised')) {
+          setValidationErrors({ password: 'This password has appeared in a data breach. Please choose a different one.' });
           return;
         }
         if (raw.includes('same as') || raw.includes('different from')) {
@@ -103,41 +131,50 @@ const ResetPasswordPage = () => {
         throw error;
       }
 
-      // Sign out the recovery session so the user must re-authenticate
-      // with their new password — protects shared/public devices.
-      await supabase.auth.signOut();
+      // Sign out *all* sessions ('global') so any other devices that may
+      // have a leaked/stolen token are forced to re-authenticate with the
+      // new password — industry standard for password-reset flows.
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (signOutError) {
+        logger.error('Sign out after password reset failed:', signOutError);
+      }
 
       setSuccess(true);
       toast.success('Password updated successfully');
-      setTimeout(() => navigate('/auth'), 3000);
-    } catch (error: any) {
+      scheduleNavigate('/auth', 3000);
+    } catch (error: unknown) {
       logger.error('Password update error:', error);
-      toast.error(error?.message || 'Failed to update password. Please try again.');
+      const msg = error instanceof Error ? error.message : 'Failed to update password. Please try again.';
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
-  }, [password, confirmPassword, navigate]);
+  }, [password, confirmPassword, scheduleNavigate]);
 
   // Loading state while auth is initializing
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+      <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+        <h1 className="sr-only">Reset Password</h1>
         <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Loading" />
-      </div>
+      </main>
     );
   }
 
   // Expired / invalid link state
   if (sessionError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+      <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
         <SEO title="Link Expired" description="This password reset link is no longer valid." url="/reset-password" noIndex />
         <Card className="w-full max-w-md shadow-card rounded-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Logo size="lg" />
             </div>
-            <CardTitle className="text-2xl font-display">Link Expired</CardTitle>
+            <CardTitle asChild>
+              <h1 className="text-2xl font-display">Link Expired</h1>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-4 bg-destructive/5 rounded-xl p-6 shadow-card border border-destructive/20">
@@ -159,12 +196,12 @@ const ResetPasswordPage = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
+    <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
       <SEO
         title="Reset Password"
         description="Set a new password for your Z Agro Tech account."
@@ -176,7 +213,9 @@ const ResetPasswordPage = () => {
           <div className="flex justify-center mb-4">
             <Logo size="lg" />
           </div>
-          <CardTitle className="text-2xl font-display">Reset Password</CardTitle>
+          <CardTitle asChild>
+            <h1 className="text-2xl font-display">Reset Password</h1>
+          </CardTitle>
           <CardDescription>
             {success
               ? 'Your password has been updated'
@@ -217,6 +256,7 @@ const ResetPasswordPage = () => {
                   />
                   <button
                     type="button"
+                    tabIndex={-1}
                     onClick={() => setShowNewPassword((v) => !v)}
                     className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-muted-foreground hover:text-foreground"
                     aria-label={showNewPassword ? 'Hide password' : 'Show password'}
@@ -251,6 +291,7 @@ const ResetPasswordPage = () => {
                   />
                   <button
                     type="button"
+                    tabIndex={-1}
                     onClick={() => setShowConfirmPassword((v) => !v)}
                     className="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-muted-foreground hover:text-foreground"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
@@ -286,7 +327,7 @@ const ResetPasswordPage = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 };
 
