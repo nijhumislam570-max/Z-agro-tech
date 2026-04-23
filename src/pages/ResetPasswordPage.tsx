@@ -167,14 +167,13 @@ const ResetPasswordPage = () => {
     return (
       <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background p-4">
         <SEO title="Link Expired" description="This password reset link is no longer valid." url="/reset-password" noIndex />
+        <h1 className="sr-only">Reset Password Link Expired</h1>
         <Card className="w-full max-w-md shadow-card rounded-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Logo size="lg" />
             </div>
-            <CardTitle asChild>
-              <h1 className="text-2xl font-display">Link Expired</h1>
-            </CardTitle>
+            <CardTitle className="text-2xl font-display">Link Expired</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center space-y-4 bg-destructive/5 rounded-xl p-6 shadow-card border border-destructive/20">
@@ -208,14 +207,13 @@ const ResetPasswordPage = () => {
         url="/reset-password"
         noIndex
       />
+      <h1 className="sr-only">Reset Password</h1>
       <Card className="w-full max-w-md shadow-card rounded-xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Logo size="lg" />
           </div>
-          <CardTitle asChild>
-            <h1 className="text-2xl font-display">Reset Password</h1>
-          </CardTitle>
+          <CardTitle className="text-2xl font-display">Reset Password</CardTitle>
           <CardDescription>
             {success
               ? 'Your password has been updated'
