@@ -37,10 +37,17 @@ const AuthPage = () => {
   const location = useLocation();
 
   const isLogin = activeTab === 'signin';
-  const fromPath =
-    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ??
-    new URLSearchParams(location.search).get('redirect') ??
-    undefined;
+  // `state.from` may be either a full Location object (preferred — preserves
+  // search/hash) or a bare pathname string (legacy callers). Fall back to the
+  // `?redirect=` query param for share-link compatibility.
+  const fromState = (location.state as { from?: { pathname?: string; search?: string; hash?: string } | string } | null)?.from;
+  const fromPath = (() => {
+    if (typeof fromState === 'string') return fromState;
+    if (fromState && typeof fromState === 'object' && fromState.pathname) {
+      return `${fromState.pathname}${fromState.search ?? ''}${fromState.hash ?? ''}`;
+    }
+    return new URLSearchParams(location.search).get('redirect') ?? undefined;
+  })();
 
   // ─── Forms (react-hook-form + zod) ──────────────────────────────────
   const loginForm = useForm<LoginFormData>({

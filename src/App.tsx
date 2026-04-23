@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { STALE_2MIN, GC_10MIN } from "@/lib/queryConstants";
 import { ThemeProvider } from "next-themes";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -14,7 +14,9 @@ import OfflineIndicator from "@/components/OfflineIndicator";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { AdminShell } from "@/components/admin/AdminLayout";
+import AdminNotFound from "@/components/admin/AdminNotFound";
 import PublicShell from "@/components/PublicShell";
+import ProfileRedirect from "@/components/ProfileRedirect";
 import RouteProgress from "@/components/RouteProgress";
 
 // Public pages
@@ -97,6 +99,11 @@ const App = () => (
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+                  {/* Legacy alias — hoisted above PublicShell so the redirect
+                      runs before Navbar/Footer paint on a cold deep-link
+                      load. Preserves search/hash. */}
+                  <Route path="/profile" element={<ProfileRedirect />} />
+
                   {/* Public — persistent shell (Navbar + Footer + MobileNav stay mounted) */}
                   <Route element={<PublicShell />}>
                     <Route path="/" element={<Index />} />
@@ -119,7 +126,6 @@ const App = () => (
 
                     {/* User dashboard */}
                     <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
-                    <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
 
                     <Route path="*" element={<NotFound />} />
                   </Route>
@@ -140,6 +146,9 @@ const App = () => (
                     <Route path="customers" element={<AdminCustomers />} />
                     <Route path="messages" element={<AdminContactMessages />} />
                     <Route path="settings" element={<AdminSettings />} />
+                    {/* Admin catch-all — typos render a styled 404 inside the
+                        admin chrome instead of a blank <Outlet />. */}
+                    <Route path="*" element={<AdminNotFound />} />
                   </Route>
                 </Routes>
               </ErrorBoundary>

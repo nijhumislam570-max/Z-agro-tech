@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useCourse, COURSE_CATEGORIES, COURSE_MODES } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
 import { useIsEnrolled } from '@/hooks/useEnrollments';
+import { useUuidParam } from '@/hooks/useUuidParam';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,8 +18,17 @@ import { EnrollDialog } from '@/components/academy/EnrollDialog';
 import { CoursePlayer } from '@/components/academy/CoursePlayer';
 import { Progress } from '@/components/ui/progress';
 
+/**
+ * Outer guard — bounces malformed/missing :id to /academy before any hooks
+ * mount. Prevents wasted DB roundtrips for typos like `/course/abc`.
+ */
 const CourseDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const id = useUuidParam('id');
+  if (!id) return <Navigate to="/academy" replace />;
+  return <CourseDetailPageInner id={id} />;
+};
+
+const CourseDetailPageInner = ({ id }: { id: string }) => {
   const { data: course, isLoading } = useCourse(id);
   const { data: batches } = useCourseBatches(id);
   const { data: enrollment } = useIsEnrolled(id);
