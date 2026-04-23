@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import {
@@ -38,7 +38,7 @@ const EditProfileSheet = ({ open, onOpenChange, profile }: Props) => {
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: emptyValues,
-    mode: 'onChange',
+    mode: 'onBlur',
   });
 
   // Reset form whenever sheet opens with current profile values.
@@ -55,8 +55,9 @@ const EditProfileSheet = ({ open, onOpenChange, profile }: Props) => {
     }
   }, [open, profile, form]);
 
-  const division = form.watch('division') ?? '';
-  const district = form.watch('district') ?? '';
+  // Scoped subscriptions — avoids re-rendering the whole form on every keystroke.
+  const division = useWatch({ control: form.control, name: 'division' }) ?? '';
+  const district = useWatch({ control: form.control, name: 'district' }) ?? '';
 
   const divisions = useMemo(() => getDivisions(), []);
   const districts = useMemo(() => (division ? getDistricts(division) : []), [division]);
@@ -139,8 +140,8 @@ const EditProfileSheet = ({ open, onOpenChange, profile }: Props) => {
                     value={field.value || undefined}
                     onValueChange={(v) => {
                       field.onChange(v);
-                      form.setValue('district', '');
-                      form.setValue('thana', '');
+                      form.setValue('district', '', { shouldValidate: true });
+                      form.setValue('thana', '', { shouldValidate: true });
                     }}
                   >
                     <FormControl>
@@ -169,7 +170,7 @@ const EditProfileSheet = ({ open, onOpenChange, profile }: Props) => {
                     value={field.value || undefined}
                     onValueChange={(v) => {
                       field.onChange(v);
-                      form.setValue('thana', '');
+                      form.setValue('thana', '', { shouldValidate: true });
                     }}
                     disabled={!division}
                   >
