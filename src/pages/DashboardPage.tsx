@@ -44,12 +44,12 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 sm:mb-6">
       <div className="space-y-1.5">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/90 backdrop-blur border border-primary/20 text-[11px] font-semibold uppercase tracking-wider text-primary shadow-soft">
-          <Sparkles className="h-3.5 w-3.5" />
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           Your Farm Hub
         </div>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-bold text-foreground">
           Welcome back,{' '}
-          <span className="bg-gradient-to-r from-primary to-[hsl(142,45%,40%)] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             {greetingName}
           </span>
         </h2>
@@ -60,7 +60,7 @@ const Hero = memo(function Hero({ onEdit }: { onEdit: () => void }) {
         onClick={onEdit}
         className="inline-flex items-center gap-1.5 self-start sm:self-end text-sm text-foreground bg-card hover:bg-secondary border border-border hover:border-primary/40 rounded-lg px-3 py-2 shadow-soft transition-all min-h-[44px]"
       >
-        <Pencil className="h-3.5 w-3.5" />
+        <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
         Edit profile
       </button>
     </div>
