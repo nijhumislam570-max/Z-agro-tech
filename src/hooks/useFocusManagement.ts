@@ -34,7 +34,7 @@ export const useFocusManagement = () => {
           requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
         }).requestIdleCallback(cb, { timeout: 500 });
       }
-      return window.setTimeout(cb, 200);
+      return setTimeout(cb, 200) as unknown as number;
     };
     const cic: (id: number) => void = (id) => {
       if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
