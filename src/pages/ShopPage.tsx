@@ -309,17 +309,17 @@ const ShopPage = () => {
     });
   }, [products, sortBy, ratings]);
 
-  // Use DB categories for filter options (includes admin-created categories with 0 products)
+  // Use DB categories as the canonical filter list. We deliberately do NOT
+  // merge in `products[].category` because the loaded subset shifts as the
+  // user scrolls infinite-scroll, which would otherwise reorder the dropdown
+  // mid-session.
   const productTypes = useMemo(() => {
     const activeNames = dbCategories
       .filter(c => c.is_active)
       .map(c => c.name)
       .sort((a, b) => a.localeCompare(b));
-    // Fallback: also include any category strings from loaded products not yet in the DB table
-    const fromProducts = new Set(products.map(p => p.category).filter(Boolean) as string[]);
-    const merged = new Set([...activeNames, ...fromProducts]);
-    return ['All', ...Array.from(merged).sort((a, b) => a.localeCompare(b))];
-  }, [dbCategories, products]);
+    return ['All', ...activeNames];
+  }, [dbCategories]);
 
   // ── Realtime subscription (debounced — admin bulk edits won't thrash) ──────
   useEffect(() => {
@@ -372,10 +372,14 @@ const ShopPage = () => {
   }, []);
 
   const gridClass = gridCols === 3
-    ? 'grid-cols-3 md:grid-cols-3 lg:grid-cols-3'
+    ? 'grid-cols-3 lg:grid-cols-3'
     : gridCols === 4
-      ? 'grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+      ? 'grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
       : 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6';
+
+  // Match the visible grid density so we render ~2 rows worth of skeletons
+  // on the initial load instead of a fixed 8 (looked sparse at gridCols=6).
+  const skeletonCount = gridCols * 2;
 
   // Build ItemList schema from up to 10 visible products for storefront SEO
   const shopItemListItems = useMemo(
