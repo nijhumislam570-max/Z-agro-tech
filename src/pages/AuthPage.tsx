@@ -275,7 +275,11 @@ const AuthPage = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="login-password">Password</Label>
-                      <Link to="/forgot-password" className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">
+                      <Link
+                        to="/forgot-password"
+                        state={{ email: loginForm.getValues('email') }}
+                        className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                      >
                         Forgot password?
                       </Link>
                     </div>
