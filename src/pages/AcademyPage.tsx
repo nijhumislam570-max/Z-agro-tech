@@ -2,16 +2,17 @@ import { useState, useMemo } from 'react';
 import SEO from '@/components/SEO';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCourses, type CourseCategory } from '@/hooks/useCourses';
+import { useCoursesNextBatches } from '@/hooks/useCourseNextBatch';
 import { CourseCard } from '@/components/academy/CourseCard';
 import { CourseSkeleton } from '@/components/academy/CourseSkeleton';
 import { CourseCategoryChips } from '@/components/academy/CourseCategoryChips';
 import { GraduationCap, Search, X, BookOpen, Award, Languages, Sparkles, Users, PlayCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { BRAND_STATS } from '@/lib/brandStats';
 
 const AcademyPage = () => {
-  useDocumentTitle('Academy');
+  // SEO component owns <title>; no need for useDocumentTitle here.
   const [category, setCategory] = useState<CourseCategory | 'all'>('all');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 250);
@@ -42,6 +43,11 @@ const AcademyPage = () => {
   const totalCourses = allCourses?.length ?? 0;
   const certCount = (allCourses ?? []).filter((c) => c.provides_certificate).length;
   const freeCount = (allCourses ?? []).filter((c) => c.price <= 0).length;
+
+  // Batched fetch for "next batch" badges across the visible grid — replaces
+  // per-card useCourseBatches() N+1.
+  const visibleIds = useMemo(() => filtered.map((c) => c.id), [filtered]);
+  const { data: nextBatches } = useCoursesNextBatches(visibleIds);
 
   // ItemList schema from top 10 visible (filtered) courses for academy SEO
   const academyItemListItems = useMemo(
@@ -223,7 +229,7 @@ const AcademyPage = () => {
                     ))}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <span className="font-semibold text-foreground">5,000+ farmers</span> learning with us
+                    <span className="font-semibold text-foreground">{BRAND_STATS.farmers.value} farmers</span> learning with us
                     <div className="flex items-center gap-1 mt-0.5 justify-center lg:justify-start">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <span key={i} className="text-accent text-sm">★</span>
@@ -296,15 +302,15 @@ const AcademyPage = () => {
                       <div className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground leading-none">5K+</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">Active learners</p>
+                          <p className="text-sm font-bold text-foreground leading-none">{BRAND_STATS.farmers.value}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{BRAND_STATS.farmers.label}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <PlayCircle className="h-4 w-4 text-accent shrink-0" />
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-foreground leading-none">200+</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">Hours of content</p>
+                          <p className="text-sm font-bold text-foreground leading-none">{BRAND_STATS.satisfaction.value}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{BRAND_STATS.satisfaction.label}</p>
                         </div>
                       </div>
                     </div>
@@ -331,7 +337,7 @@ const AcademyPage = () => {
                   <>
                     {' '}
                     in <span className="font-medium text-foreground capitalize">
-                      {category.replace('_', ' ')}
+                      {category.replace(/_/g, ' ')}
                     </span>
                   </>
                 )}
@@ -361,7 +367,9 @@ const AcademyPage = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => <CourseSkeleton key={i} />)
-              : filtered.map((c) => <CourseCard key={c.id} course={c} />)}
+              : filtered.map((c) => (
+                  <CourseCard key={c.id} course={c} nextBatch={nextBatches?.get(c.id) ?? null} />
+                ))}
           </div>
 
           {!isLoading && filtered.length === 0 && (

@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCourse, COURSE_CATEGORIES, COURSE_MODES } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
 import { useIsEnrolled } from '@/hooks/useEnrollments';
@@ -26,7 +25,7 @@ const CourseDetailPage = () => {
   const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
   const [enrollOpen, setEnrollOpen] = useState(false);
 
-  useDocumentTitle(course?.title ?? 'Course');
+  // SEO component owns the document title; useDocumentTitle would double-write it.
 
   const categoryLabel = useMemo(
     () => COURSE_CATEGORIES.find((c) => c.value === course?.category)?.label ?? null,
@@ -39,6 +38,9 @@ const CourseDetailPage = () => {
 
   const activeBatch = batches?.find((b) => b.id === selectedBatch) ?? null;
   const hasOpenBatch = batches?.some((b) => b.status === 'open' || b.status === 'filling') ?? false;
+  // Cancelled enrollments shouldn't lock the user out — treat them as "not enrolled"
+  // so the Enroll CTA returns. Only pending/confirmed/completed count as "enrolled".
+  const activeEnrollment = enrollment && enrollment.status !== 'cancelled' ? enrollment : null;
 
   return (
     <>
@@ -172,23 +174,23 @@ const CourseDetailPage = () => {
                     />
                   </div>
 
-                  {enrollment ? (
+                  {activeEnrollment ? (
                     <div className="space-y-3">
                       <div className="rounded-xl bg-success/10 border border-success/30 p-4 flex items-center gap-3 text-success">
                         <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
                         <p className="text-sm font-medium">
-                          {enrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
+                          {activeEnrollment.status === 'pending' ? "Request received — we'll be in touch" : "You're enrolled in this course"}
                         </p>
                       </div>
-                      {enrollment.status !== 'pending' && (
+                      {activeEnrollment.status !== 'pending' && (
                         <div className="rounded-xl border border-border/60 bg-card p-4 space-y-2">
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-semibold uppercase tracking-wider text-muted-foreground">Your progress</span>
-                            <span className="font-bold text-primary">{enrollment.progress ?? 0}%</span>
+                            <span className="font-bold text-primary">{activeEnrollment.progress ?? 0}%</span>
                           </div>
-                          <Progress value={enrollment.progress ?? 0} className="h-2" aria-label="Course completion" />
+                          <Progress value={activeEnrollment.progress ?? 0} className="h-2" aria-label="Course completion" />
                           <p className="text-xs text-muted-foreground">
-                            {(enrollment.progress ?? 0) >= 100 ? 'Course completed — well done!' : 'Keep learning to reach 100%.'}
+                            {(activeEnrollment.progress ?? 0) >= 100 ? 'Course completed — well done!' : 'Keep learning to reach 100%.'}
                           </p>
                         </div>
                       )}
@@ -224,6 +226,26 @@ const CourseDetailPage = () => {
               course={course}
               batch={activeBatch}
             />
+
+            {/* Mobile sticky-bottom enroll bar — desktop sidebar handles this above lg. */}
+            {!activeEnrollment && (
+              <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/60 shadow-[0_-8px_24px_-12px_hsl(var(--foreground)/0.15)] px-4 py-3 flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Course fee</p>
+                  <p className="text-lg font-bold text-primary leading-tight">
+                    {course.price > 0 ? `৳${course.price}` : 'Free'}
+                  </p>
+                </div>
+                <Button
+                  size="lg"
+                  className="flex-shrink-0 h-12 px-6"
+                  onClick={() => setEnrollOpen(true)}
+                  disabled={!hasOpenBatch && (batches?.length ?? 0) > 0}
+                >
+                  Enroll now
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </main>

@@ -1,12 +1,16 @@
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, GraduationCap } from 'lucide-react';
 import { useCourses } from '@/hooks/useCourses';
+import { useCoursesNextBatches } from '@/hooks/useCourseNextBatch';
 import { CourseCard } from '@/components/academy/CourseCard';
 import { CourseSkeleton } from '@/components/academy/CourseSkeleton';
 
 export const FeaturedCoursesGrid = () => {
   const { data: courses, isLoading } = useCourses({ limit: 6 });
+  const courseIds = useMemo(() => (courses ?? []).map((c) => c.id), [courses]);
+  const { data: nextBatches } = useCoursesNextBatches(courseIds);
 
   return (
     <section className="py-14 sm:py-20 bg-gradient-to-b from-secondary/30 to-background" aria-labelledby="featured-courses">
@@ -30,7 +34,9 @@ export const FeaturedCoursesGrid = () => {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           {isLoading
             ? Array.from({ length: 3 }).map((_, i) => <CourseSkeleton key={i} />)
-            : (courses || []).map((c) => <CourseCard key={c.id} course={c} />)}
+            : (courses || []).map((c) => (
+                <CourseCard key={c.id} course={c} nextBatch={nextBatches?.get(c.id) ?? null} />
+              ))}
         </div>
 
         {!isLoading && (!courses || courses.length === 0) && (

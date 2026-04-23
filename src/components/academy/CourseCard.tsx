@@ -7,6 +7,7 @@ import { GraduationCap, Clock, MapPin, Calendar, Award, Sparkles } from 'lucide-
 import { cn } from '@/lib/utils';
 import type { Course } from '@/hooks/useCourses';
 import { useCourseBatches } from '@/hooks/useCourseBatches';
+import type { CourseNextBatch } from '@/hooks/useCourseNextBatch';
 import { usePrefetch } from '@/hooks/usePrefetch';
 import { getOptimizedUrl } from '@/lib/imageUtils';
 
@@ -33,12 +34,23 @@ function formatShort(d: string | null) {
 
 interface CourseCardProps extends React.HTMLAttributes<HTMLAnchorElement> {
   course: Course;
+  /**
+   * Optional pre-resolved "next batch" passed by a parent grid. When provided,
+   * the card SKIPS its own per-row `useCourseBatches` fetch — eliminates the
+   * N+1 query pattern on `/academy` and `/`.
+   */
+  nextBatch?: { start_date: string | null } | null;
 }
 
 export const CourseCard = React.forwardRef<HTMLAnchorElement, CourseCardProps>(
-  ({ course, className, ...rest }, ref) => {
-    const { data: batches } = useCourseBatches(course.id);
-    const nextBatch = batches?.find((b) => b.status === 'open' || b.status === 'filling') ?? null;
+  ({ course, className, nextBatch: nextBatchProp, ...rest }, ref) => {
+    // Only fall back to per-card fetch when the parent didn't supply data.
+    const skipFetch = nextBatchProp !== undefined;
+    const { data: batches } = useCourseBatches(skipFetch ? undefined : course.id);
+    const nextBatch =
+      nextBatchProp !== undefined
+        ? nextBatchProp
+        : batches?.find((b) => b.status === 'open' || b.status === 'filling') ?? null;
     const isFree = course.price <= 0;
     const prefetch = usePrefetch(`/course/${course.id}`);
     const [imgError, setImgError] = useState(false);
