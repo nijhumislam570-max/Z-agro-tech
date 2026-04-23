@@ -126,6 +126,15 @@ const DashboardPageInner = () => {
       />
       <main id="main-content" className="flex-1 animate-page-enter">
         <h1 className="sr-only">Your Z Agro Tech Dashboard</h1>
+        {/* L5: Skip-to-tabs — visible on focus only, lets keyboard users
+            jump past the bento grid straight to their order/course history. */}
+        <a
+          href="#dashboard-tabs"
+          onClick={skipToTabs}
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-3 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-lg"
+        >
+          Skip to your activity
+        </a>
 
         {/* HERO + Stat Grid */}
         <section
@@ -198,7 +207,7 @@ const DashboardPageInner = () => {
         </section>
 
         {/* DETAIL TABS */}
-        <section className="container mx-auto px-4 sm:px-6 py-8 md:py-10">
+        <section id="dashboard-tabs" ref={tabsRef} className="container mx-auto px-4 sm:px-6 py-8 md:py-10" tabIndex={-1}>
           <header className="mb-5">
             <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
               Your activity
