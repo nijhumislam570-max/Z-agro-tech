@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { enrollSchema } from '@/lib/validations';
+import { STALE_1MIN } from '@/lib/queryConstants';
 import type { Course } from './useCourses';
 import type { CourseBatch } from './useCourseBatches';
 
@@ -27,7 +28,7 @@ export function useMyEnrollments() {
   return useQuery({
     queryKey: ['enrollments', user?.id],
     enabled: !!user,
-    staleTime: 60_000,
+    staleTime: STALE_1MIN,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('enrollments')

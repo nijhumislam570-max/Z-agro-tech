@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from './useAdmin';
+import { STALE_2MIN } from '@/lib/queryConstants';
 import { startOfMonth, endOfMonth, subMonths, format, subDays, startOfDay, endOfDay } from 'date-fns';
 // Realtime invalidation for `orders/enrollments/contact_messages/products` is
 // handled centrally by useAdminRealtimeDashboard — page-level channel removed (audit P0).
@@ -342,6 +343,6 @@ export const useAdminAnalytics = (dateRange: DateRangePreset = 'all') => {
       };
     },
     enabled: isAdmin,
-    staleTime: 1000 * 60 * 2,
+    staleTime: STALE_2MIN,
   });
 };
