@@ -1,9 +1,11 @@
 import { useState, memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { HelpCircle, Search, X } from 'lucide-react';
+import { HelpCircle, Search, X, Sprout, ShoppingBag, GraduationCap, Lock, SearchX } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SEO from '@/components/SEO';
+import EmptyState from '@/components/ui/empty-state';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
   Accordion,
