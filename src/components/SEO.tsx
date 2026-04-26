@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { toAbsoluteUrl } from '@/lib/site';
 
 // Types for different schema types
 interface OrganizationSchema {
@@ -128,14 +129,14 @@ interface SEOProps {
  * <SEO 
  *   title="My Page" 
  *   description="Page description"
- *   schema={{ type: 'Organization', name: 'Z Agro Tech', url: 'https://zagrotech.lovable.app' }}
+ *   schema={{ type: 'Organization', name: 'Z Agro Tech', url: '/' }}
  * />
  * ```
  */
 export const SEO = ({
   title,
   description,
-  image = 'https://zagrotech.lovable.app/og-image.png',
+  image = '/og-image.png',
   url,
   type = 'website',
   schema,
@@ -144,6 +145,10 @@ export const SEO = ({
 }: SEOProps) => {
   
   useEffect(() => {
+    const resolvedImage = toAbsoluteUrl(image);
+    const resolvedUrl = toAbsoluteUrl(url);
+    const resolvedCanonicalUrl = toAbsoluteUrl(canonicalUrl);
+
     // Update document title
     if (title) {
       document.title = `${title} - Z Agro Tech`;
@@ -172,13 +177,13 @@ export const SEO = ({
       updateMeta('twitter:title', `${title} - Z Agro Tech`);
     }
     
-    if (image) {
-      updateMeta('og:image', image, true);
-      updateMeta('twitter:image', image);
+    if (resolvedImage) {
+      updateMeta('og:image', resolvedImage, true);
+      updateMeta('twitter:image', resolvedImage);
     }
     
-    if (url) {
-      updateMeta('og:url', url, true);
+    if (resolvedUrl) {
+      updateMeta('og:url', resolvedUrl, true);
     }
     
     updateMeta('og:type', type, true);
@@ -189,14 +194,14 @@ export const SEO = ({
     }
     
     // Canonical URL
-    if (canonicalUrl) {
+    if (resolvedCanonicalUrl) {
       let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
       if (!link) {
         link = document.createElement('link');
         link.rel = 'canonical';
         document.head.appendChild(link);
       }
-      link.href = canonicalUrl;
+      link.href = resolvedCanonicalUrl;
     }
     
     // Add JSON-LD structured data
@@ -252,8 +257,8 @@ function generateJsonLd(schema: Schema): object {
         ...baseContext,
         '@type': 'Organization',
         name: schema.name,
-        url: schema.url,
-        logo: schema.logo,
+        url: toAbsoluteUrl(schema.url),
+        logo: toAbsoluteUrl(schema.logo),
         description: schema.description,
         sameAs: schema.sameAs || [],
         address: {
@@ -280,8 +285,8 @@ function generateJsonLd(schema: Schema): object {
         } : undefined,
         telephone: schema.phone,
         email: schema.email,
-        image: schema.image,
-        url: schema.url,
+        image: toAbsoluteUrl(schema.image),
+        url: toAbsoluteUrl(schema.url),
         description: schema.description,
         priceRange: schema.priceRange || '৳৳',
         openingHours: schema.openingHours,
@@ -300,7 +305,7 @@ function generateJsonLd(schema: Schema): object {
         '@type': 'Product',
         name: schema.name,
         description: schema.description,
-        image: schema.image,
+        image: toAbsoluteUrl(schema.image),
         sku: schema.sku,
         brand: schema.brand ? {
           '@type': 'Brand',
@@ -312,7 +317,7 @@ function generateJsonLd(schema: Schema): object {
           price: schema.price,
           priceCurrency: schema.priceCurrency || 'BDT',
           availability: `https://schema.org/${schema.availability || 'InStock'}`,
-          url: schema.url,
+          url: toAbsoluteUrl(schema.url),
         },
         aggregateRating: schema.rating ? {
           '@type': 'AggregateRating',
@@ -329,15 +334,15 @@ function generateJsonLd(schema: Schema): object {
         '@type': 'Course',
         name: schema.name,
         description: schema.description,
-        image: schema.image,
-        url: schema.url,
+        image: toAbsoluteUrl(schema.image),
+        url: toAbsoluteUrl(schema.url),
         inLanguage: schema.language,
         educationalLevel: schema.difficulty,
         timeRequired: schema.duration,
         provider: {
           '@type': 'Organization',
           name: schema.provider || 'Z Agro Tech',
-          sameAs: schema.providerUrl || 'https://zagrotech.lovable.app',
+          sameAs: toAbsoluteUrl(schema.providerUrl || '/'),
         },
         offers: schema.price !== undefined ? {
           '@type': 'Offer',
@@ -345,7 +350,7 @@ function generateJsonLd(schema: Schema): object {
           priceCurrency: schema.priceCurrency || 'BDT',
           category: 'Paid',
           availability: 'https://schema.org/InStock',
-          url: schema.url,
+          url: toAbsoluteUrl(schema.url),
         } : undefined,
         hasCourseInstance: {
           '@type': 'CourseInstance',
@@ -369,7 +374,7 @@ function generateJsonLd(schema: Schema): object {
           '@type': 'ListItem',
           position: index + 1,
           name: item.name,
-          item: item.url,
+          item: toAbsoluteUrl(item.url),
         })),
       };
 
@@ -379,7 +384,7 @@ function generateJsonLd(schema: Schema): object {
         '@type': 'ItemList',
         name: schema.name,
         description: schema.description,
-        url: schema.url,
+        url: toAbsoluteUrl(schema.url),
         numberOfItems: schema.items.length,
         itemListElement: schema.items.map((entry, index) => ({
           '@type': 'ListItem',
@@ -387,8 +392,8 @@ function generateJsonLd(schema: Schema): object {
           item: {
             '@type': schema.itemListType || 'Thing',
             name: entry.name,
-            url: entry.url,
-            image: entry.image,
+            url: toAbsoluteUrl(entry.url),
+            image: toAbsoluteUrl(entry.image),
             ...(entry.price !== undefined
               ? {
                   offers: {

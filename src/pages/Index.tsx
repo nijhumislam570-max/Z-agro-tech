@@ -72,13 +72,13 @@ const Index = () => {
       <SEO
         title="Z Agro Tech — Premium Agriculture Supplies & Expert Courses"
         description="Shop premium agriculture products and learn from expert-led farming courses on Z Agro Tech — Bangladesh's trusted agritech platform."
-        url="https://zagrotech.lovable.app/"
-        canonicalUrl="https://zagrotech.lovable.app/"
+        url="/"
+        canonicalUrl="/"
         schema={{
           type: 'Organization',
           name: 'Z Agro Tech',
-          url: 'https://zagrotech.lovable.app',
-          logo: 'https://zagrotech.lovable.app/favicon.png',
+          url: '/',
+          logo: '/favicon.png',
           description: 'Bangladesh\'s trusted platform for premium agriculture supplies and expert-led farming courses.',
           sameAs: [],
         }}

@@ -95,14 +95,14 @@ const FAQPage = memo(() => {
       <SEO
         title="FAQs"
         description="Find answers to common questions about Z Agro Tech — products, orders, courses, delivery and account security."
-        url="https://zagrotech.lovable.app/faq"
-        canonicalUrl="https://zagrotech.lovable.app/faq"
+        url="/faq"
+        canonicalUrl="/faq"
         schema={[
           {
             type: 'BreadcrumbList',
             items: [
-              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
-              { name: 'FAQ', url: 'https://zagrotech.lovable.app/faq' },
+              { name: 'Home', url: '/' },
+              { name: 'FAQ', url: '/faq' },
             ],
           },
           {

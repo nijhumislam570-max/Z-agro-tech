@@ -122,14 +122,14 @@ const ContactPage = memo(() => {
       <SEO
         title="Contact Us"
         description="Have questions about Z Agro Tech? Get in touch with our team for support, product inquiries, or partnership opportunities."
-        url="https://zagrotech.lovable.app/contact"
-        canonicalUrl="https://zagrotech.lovable.app/contact"
+        url="/contact"
+        canonicalUrl="/contact"
         schema={[
           {
             type: 'Organization',
             name: 'Z Agro Tech',
-            url: 'https://zagrotech.lovable.app',
-            logo: 'https://zagrotech.lovable.app/favicon.png',
+            url: '/',
+            logo: '/favicon.png',
             description:
               "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
             sameAs: [],
@@ -137,8 +137,8 @@ const ContactPage = memo(() => {
           {
             type: 'BreadcrumbList',
             items: [
-              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
-              { name: 'Contact', url: 'https://zagrotech.lovable.app/contact' },
+              { name: 'Home', url: '/' },
+              { name: 'Contact', url: '/contact' },
             ],
           },
         ]}

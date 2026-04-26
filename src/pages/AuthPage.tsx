@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { useAuthUser, useAuthLoading, useAuthActions } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 import logo from '@/assets/zagrotech-logo-circle.png';
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validations';
 import SEO from '@/components/SEO';
@@ -88,7 +87,6 @@ const AuthPage = () => {
       // silently sending the user to a wrong route.
       navigate('/dashboard', { replace: true });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, fromPath]);
 
   useEffect(() => {
@@ -119,7 +117,12 @@ const AuthPage = () => {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('google', { redirect_uri: oauthRedirectUri });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: oauthRedirectUri,
+        },
+      });
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Google');
@@ -130,7 +133,12 @@ const AuthPage = () => {
   const handleAppleSignIn = async () => {
     setAppleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth('apple', { redirect_uri: oauthRedirectUri });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: oauthRedirectUri,
+        },
+      });
       if (error) throw error;
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to sign in with Apple');

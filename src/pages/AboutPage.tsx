@@ -43,14 +43,14 @@ const AboutPage = memo(() => {
       <SEO
         title="About Us"
         description="Z Agro Tech is Bangladesh's trusted hub for premium agriculture supplies and expert-led farming courses, built for modern farmers."
-        url="https://zagrotech.lovable.app/about"
-        canonicalUrl="https://zagrotech.lovable.app/about"
+        url="/about"
+        canonicalUrl="/about"
         schema={[
           {
             type: 'Organization',
             name: 'Z Agro Tech',
-            url: 'https://zagrotech.lovable.app',
-            logo: 'https://zagrotech.lovable.app/favicon.png',
+            url: '/',
+            logo: '/favicon.png',
             description:
               "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
             sameAs: [],
@@ -58,8 +58,8 @@ const AboutPage = memo(() => {
           {
             type: 'BreadcrumbList',
             items: [
-              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
-              { name: 'About', url: 'https://zagrotech.lovable.app/about' },
+              { name: 'Home', url: '/' },
+              { name: 'About', url: '/about' },
             ],
           },
         ]}

@@ -147,7 +147,7 @@ const TrackOrderPage = () => {
           title="Track Your Order"
           description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
           url="/track-order"
-          canonicalUrl="https://zagrotech.lovable.app/track-order"
+          canonicalUrl="/track-order"
         />
         <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">
           <h1 className="sr-only">Track Your Order</h1>
@@ -184,7 +184,7 @@ const TrackOrderPage = () => {
         title="Track Your Order"
         description="Track the status of your Z Agro Tech order with your Order ID or Tracking ID."
         url="/track-order"
-        canonicalUrl="https://zagrotech.lovable.app/track-order"
+        canonicalUrl="/track-order"
       />
 
       <main id="main-content" className="container mx-auto px-4 py-6 sm:py-8">

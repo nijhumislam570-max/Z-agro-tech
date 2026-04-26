@@ -54,7 +54,7 @@ const AcademyPage = () => {
     () =>
       filtered.slice(0, 10).map((c) => ({
         name: c.title,
-        url: `https://zagrotech.lovable.app/course/${c.id}`,
+        url: `/course/${c.id}`,
         image: c.thumbnail_url ?? undefined,
         price: c.price,
         priceCurrency: 'BDT',
@@ -67,15 +67,15 @@ const AcademyPage = () => {
       <SEO
         title="Academy — Z Agro Tech"
         description="Expert-led agriculture and farming training cohorts."
-        url="https://zagrotech.lovable.app/academy"
-        canonicalUrl="https://zagrotech.lovable.app/academy"
+        url="/academy"
+        canonicalUrl="/academy"
         schema={
           academyItemListItems.length > 0
             ? {
                 type: 'ItemList',
                 name: 'Z Agro Tech Academy — Courses',
                 description: 'Expert-led farming training cohorts',
-                url: 'https://zagrotech.lovable.app/academy',
+                url: '/academy',
                 itemListType: 'Course',
                 items: academyItemListItems,
               }

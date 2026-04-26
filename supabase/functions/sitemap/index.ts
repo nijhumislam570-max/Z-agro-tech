@@ -7,7 +7,10 @@ const corsHeaders = {
   'Cache-Control': 'public, max-age=3600',
 };
 
-const SITE_URL = 'https://zagrotech.lovable.app';
+const DEFAULT_SITE_URL = 'https://zagrotech.vercel.app';
+
+const getSiteUrl = () =>
+  (Deno.env.get('PUBLIC_SITE_URL') ?? DEFAULT_SITE_URL).replace(/\/+$/, '');
 
 interface SitemapUrl {
   loc: string;
@@ -25,6 +28,7 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const siteUrl = getSiteUrl();
 
     const urls: SitemapUrl[] = [];
     const now = new Date().toISOString().split('T')[0];
@@ -38,13 +42,13 @@ Deno.serve(async (req: Request) => {
       { path: '/contact', priority: 0.6, changefreq: 'monthly' as const },
       { path: '/faq', priority: 0.5, changefreq: 'monthly' as const },
       { path: '/track-order', priority: 0.4, changefreq: 'monthly' as const },
-      { path: '/privacy-policy', priority: 0.3, changefreq: 'yearly' as const },
+      { path: '/privacy', priority: 0.3, changefreq: 'yearly' as const },
       { path: '/terms', priority: 0.3, changefreq: 'yearly' as const },
     ];
 
     for (const page of staticPages) {
       urls.push({
-        loc: `${SITE_URL}${page.path}`,
+        loc: `${siteUrl}${page.path}`,
         lastmod: now,
         changefreq: page.changefreq,
         priority: page.priority,
@@ -62,7 +66,7 @@ Deno.serve(async (req: Request) => {
     if (products) {
       for (const product of products) {
         urls.push({
-          loc: `${SITE_URL}/product/${product.id}`,
+          loc: `${siteUrl}/product/${product.id}`,
           lastmod: product.created_at?.split('T')[0] || now,
           changefreq: 'weekly',
           priority: 0.7,
@@ -81,7 +85,7 @@ Deno.serve(async (req: Request) => {
     if (courses) {
       for (const course of courses) {
         urls.push({
-          loc: `${SITE_URL}/course/${course.id}`,
+          loc: `${siteUrl}/course/${course.id}`,
           lastmod: course.updated_at?.split('T')[0] || now,
           changefreq: 'weekly',
           priority: 0.8,

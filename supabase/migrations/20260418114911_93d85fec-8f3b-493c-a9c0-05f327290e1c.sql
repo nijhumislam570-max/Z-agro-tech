@@ -1,6 +1,6 @@
 -- =========================================================================
 -- Sprint 4 — Auth + RLS hardening sweep (Z Agro Tech) — rev 2
--- (Storage bucket deletion handled separately via Lovable Cloud UI)
+-- (Storage bucket deletion handled separately via Supabase dashboard)
 -- =========================================================================
 
 -- 1. Drop ALL legacy storage RLS policies referencing dead buckets

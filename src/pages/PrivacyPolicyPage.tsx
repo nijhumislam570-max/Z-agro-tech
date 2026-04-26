@@ -103,14 +103,14 @@ const PrivacyPolicyPage = memo(() => {
       <SEO
         title="Privacy Policy"
         description="Learn how Z Agro Tech collects, uses, and protects your personal information. Read our full privacy policy."
-        url="https://zagrotech.lovable.app/privacy"
-        canonicalUrl="https://zagrotech.lovable.app/privacy"
+        url="/privacy"
+        canonicalUrl="/privacy"
         schema={[
           {
             type: 'Organization',
             name: 'Z Agro Tech',
-            url: 'https://zagrotech.lovable.app',
-            logo: 'https://zagrotech.lovable.app/favicon.png',
+            url: '/',
+            logo: '/favicon.png',
             description:
               "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
             sameAs: [],
@@ -118,8 +118,8 @@ const PrivacyPolicyPage = memo(() => {
           {
             type: 'BreadcrumbList',
             items: [
-              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
-              { name: 'Privacy Policy', url: 'https://zagrotech.lovable.app/privacy' },
+              { name: 'Home', url: '/' },
+              { name: 'Privacy Policy', url: '/privacy' },
             ],
           },
         ]}

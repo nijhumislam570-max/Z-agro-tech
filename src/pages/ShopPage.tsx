@@ -390,7 +390,7 @@ const ShopPage = () => {
     () =>
       sortedProducts.slice(0, 10).map((p) => ({
         name: p.name,
-        url: `https://zagrotech.lovable.app/product/${p.id}`,
+        url: `/product/${p.id}`,
         image: p.image_url || undefined,
         price: p.discount ? Math.round(p.price * (1 - p.discount / 100)) : p.price,
         priceCurrency: 'BDT',
@@ -403,15 +403,15 @@ const ShopPage = () => {
       <SEO
         title="Shop — Premium Agriculture Supplies"
         description="Shop premium seeds, fertilizers, crop-protection, tools and farm equipment from trusted suppliers. Fast nationwide delivery across Bangladesh."
-        url="https://zagrotech.lovable.app/shop"
-        canonicalUrl="https://zagrotech.lovable.app/shop"
+        url="/shop"
+        canonicalUrl="/shop"
         schema={
           shopItemListItems.length > 0
             ? {
                 type: 'ItemList',
                 name: 'Z Agro Tech Shop — Featured Products',
                 description: 'Premium agriculture supplies in Bangladesh',
-                url: 'https://zagrotech.lovable.app/shop',
+                url: '/shop',
                 itemListType: 'Product',
                 items: shopItemListItems,
               }

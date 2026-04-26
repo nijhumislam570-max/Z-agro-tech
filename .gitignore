@@ -10,7 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.vercel
 *.local
+supabase/migration-bundle/04_bootstrap_admin.ready.sql
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +24,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.vercel

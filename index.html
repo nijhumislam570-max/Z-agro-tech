@@ -7,7 +7,7 @@
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' https://cdn.gpteng.co;
+      script-src 'self' 'unsafe-inline';
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: blob: https: http:;
@@ -29,7 +29,7 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://zagrotech.lovable.app/" />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
     
     
     <meta property="og:site_name" content="Z Agro Tech" />
@@ -41,15 +41,15 @@
     
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="https://zagrotech.lovable.app/" />
+    <link rel="canonical" href="%VITE_SITE_URL%/" />
     
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://agxayculciqwhaoaillq.supabase.co" crossorigin />
-    <link rel="dns-prefetch" href="https://agxayculciqwhaoaillq.supabase.co" />
+    <link rel="preconnect" href="%VITE_SUPABASE_URL%" crossorigin />
+    <link rel="dns-prefetch" href="%VITE_SUPABASE_URL%" />
     <!-- Preconnect to Supabase storage for images -->
-    <link rel="preconnect" href="https://agxayculciqwhaoaillq.supabase.co/storage" crossorigin />
+    <link rel="preconnect" href="%VITE_SUPABASE_URL%/storage" crossorigin />
     
     <!-- Preload critical fonts with optimized subset -->
     <link 
@@ -63,7 +63,7 @@
     </noscript>
     
     <!-- Sitemap for SEO crawlers -->
-    <link rel="sitemap" type="application/xml" href="https://agxayculciqwhaoaillq.supabase.co/functions/v1/sitemap" />
+    <link rel="sitemap" type="application/xml" href="%VITE_SUPABASE_URL%/functions/v1/sitemap" />
     
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
@@ -79,8 +79,8 @@
   <meta name="twitter:title" content="Z Agro Tech — Premium Agriculture Supplies &amp; Expert-Led Courses">
   <meta property="og:description" content="Z Agro Tech is your one-stop platform for premium agriculture products and expert-led farming courses. Shop seeds, fertilizers, tools, and learn from industry leaders.">
   <meta name="twitter:description" content="Z Agro Tech is your one-stop platform for premium agriculture products and expert-led farming courses. Shop seeds, fertilizers, tools, and learn from industry leaders.">
-  <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/29ab11f6-9bcf-463f-ab70-399058d1470c">
-  <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/29ab11f6-9bcf-463f-ab70-399058d1470c">
+  <meta property="og:image" content="%VITE_SITE_URL%/og-image.png">
+  <meta name="twitter:image" content="%VITE_SITE_URL%/og-image.png">
 </head>
 
   <body>

@@ -58,15 +58,15 @@ const CourseDetailPageInner = ({ id }: { id: string }) => {
         title={course?.title ?? 'Course'}
         description={course?.description ?? 'Expert-led farming course on Z Agro Tech Academy.'}
         image={course?.thumbnail_url ?? undefined}
-        url={`https://zagrotech.lovable.app/course/${id}`}
-        canonicalUrl={`https://zagrotech.lovable.app/course/${id}`}
+        url={`/course/${id}`}
+        canonicalUrl={`/course/${id}`}
         schema={course ? [
           {
             type: 'Course',
             name: course.title,
             description: course.description ?? undefined,
             image: course.thumbnail_url ?? undefined,
-            url: `https://zagrotech.lovable.app/course/${id}`,
+            url: `/course/${id}`,
             price: course.price,
             priceCurrency: 'BDT',
             language: course.language ?? 'en',
@@ -76,9 +76,9 @@ const CourseDetailPageInner = ({ id }: { id: string }) => {
           {
             type: 'BreadcrumbList',
             items: [
-              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
-              { name: 'Academy', url: 'https://zagrotech.lovable.app/academy' },
-              { name: course.title, url: `https://zagrotech.lovable.app/course/${id}` },
+              { name: 'Home', url: '/' },
+              { name: 'Academy', url: '/academy' },
+              { name: course.title, url: `/course/${id}` },
             ],
           },
         ] : undefined}

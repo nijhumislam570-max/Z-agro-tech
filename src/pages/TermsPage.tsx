@@ -154,14 +154,14 @@ const TermsPage = memo(() => {
       <SEO
         title="Terms of Service"
         description="Review the Terms of Service for using the Z Agro Tech platform — products, courses, payments, delivery, and liability."
-        url="https://zagrotech.lovable.app/terms"
-        canonicalUrl="https://zagrotech.lovable.app/terms"
+        url="/terms"
+        canonicalUrl="/terms"
         schema={[
           {
             type: 'Organization',
             name: 'Z Agro Tech',
-            url: 'https://zagrotech.lovable.app',
-            logo: 'https://zagrotech.lovable.app/favicon.png',
+            url: '/',
+            logo: '/favicon.png',
             description:
               "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
             sameAs: [],
@@ -169,8 +169,8 @@ const TermsPage = memo(() => {
           {
             type: 'BreadcrumbList',
             items: [
-              { name: 'Home', url: 'https://zagrotech.lovable.app/' },
-              { name: 'Terms of Service', url: 'https://zagrotech.lovable.app/terms' },
+              { name: 'Home', url: '/' },
+              { name: 'Terms of Service', url: '/terms' },
             ],
           },
         ]}

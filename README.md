@@ -14,8 +14,8 @@ practical training courses for farmers.
 - **Frontend:** React 18, TypeScript, Vite
 - **Styling:** Tailwind CSS, shadcn/ui
 - **State Management:** TanStack React Query, React Context
-- **Backend:** Lovable Cloud (authentication, database, storage, edge functions)
-- **Routing:** React Router v6
+- **Backend:** Supabase (authentication, database, storage, edge functions)
+- **Routing:** React Router v7
 
 ## Project Structure
 
@@ -45,9 +45,10 @@ supabase/
 
 | Variable | Description |
 |---|---|
-| `VITE_SUPABASE_URL` | Backend API URL (auto-configured) |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Backend public key (auto-configured) |
-| `VITE_SUPABASE_PROJECT_ID` | Backend project ID (auto-configured) |
+| `VITE_SUPABASE_URL` | Supabase project API URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
+| `VITE_SUPABASE_PROJECT_ID` | Supabase project ref |
+| `VITE_SITE_URL` | Public site URL used for canonical links and SEO |
 
 ## Development
 
@@ -57,6 +58,38 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## Project Ownership
+
+- GitHub remote: [nijhumislam570-max/Z-agro-tech](https://github.com/nijhumislam570-max/Z-agro-tech)
+- Supabase project ref: `hsosfeynosulypnpwbet`
+- Vercel deployment config: [vercel.json](/D:/Z%20agro%20tech%20code/z-agro/vercel.json)
+- Example frontend env file: [.env.example](/D:/Z%20agro%20tech%20code/z-agro/.env.example)
+
+## Backend Ownership
+
+- `supabase/functions/` contains the live edge-function source owned by this repo.
+- `supabase/migrations/` contains the schema history tracked in git.
+- `supabase/migration-bundle/` contains the full baseline migration bundle:
+  schema, data, storage setup, and admin bootstrap SQL for rebuilding the
+  project on your Supabase account.
+- Set the Supabase edge-function secret `PUBLIC_SITE_URL` to your final domain
+  so the sitemap function emits your project-owned URLs.
+
+## Migration Runbook
+
+1. Link the repo to Supabase:
+   `pwsh ./scripts/complete-supabase-link.ps1`
+2. Apply schema history:
+   `npx supabase db push --linked`
+3. Regenerate database types:
+   `npx supabase gen types typescript --linked > src/integrations/supabase/types.ts`
+4. Apply bundle data and storage SQL:
+   Use the files in [supabase/migration-bundle](/D:/Z%20agro%20tech%20code/z-agro/supabase/migration-bundle/README.md)
+5. Prepare and apply the admin bootstrap SQL:
+   `pwsh ./scripts/prepare-admin-bootstrap.ps1 -AdminUserId "<auth-user-uuid>"`
+6. Validate the live project:
+   `npm run validate:supabase`
 
 ## User Roles
 
