@@ -50,7 +50,6 @@ SELECT
   email,
   description,
   image_url,
-  cover_photo_url,
   opening_hours,
   services,
   rating,

@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict z8LWZX0tGv81U4DolV3NDvxreRseXjxO7L7ISlVCFL9wUwA9Kh4yRtKpdI3uEUX
+-- \restrict z8LWZX0tGv81U4DolV3NDvxreRseXjxO7L7ISlVCFL9wUwA9Kh4yRtKpdI3uEUX
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 17.9
@@ -186,5 +186,4 @@ INSERT INTO public.user_roles (id, user_id, role, created_at) VALUES ('3a320f0a-
 -- PostgreSQL database dump complete
 --
 
-\unrestrict z8LWZX0tGv81U4DolV3NDvxreRseXjxO7L7ISlVCFL9wUwA9Kh4yRtKpdI3uEUX
 

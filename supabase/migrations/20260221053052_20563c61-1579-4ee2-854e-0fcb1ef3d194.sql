@@ -1,7 +1,7 @@
 
 -- Add FK constraints for user_id references to auth.users with CASCADE delete
-ALTER TABLE public.appointment_waitlist
-  ADD CONSTRAINT appointment_waitlist_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+-- ALTER TABLE public.appointment_waitlist
+--   ADD CONSTRAINT appointment_waitlist_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 ALTER TABLE public.likes
   ADD CONSTRAINT likes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
