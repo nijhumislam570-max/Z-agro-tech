@@ -28,3 +28,5 @@ supabase/migration-bundle/04_bootstrap_admin.ready.sql
 *.sw?
 
 .vercel
+
+.vercel
