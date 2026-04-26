@@ -51,6 +51,14 @@ export interface EnrollmentStats {
   cancelled: number;
 }
 
+export interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image_url?: string;
+}
+
 export interface AnalyticsData {
   // Revenue & Orders
   totalRevenue: number;
@@ -251,7 +259,7 @@ export const useAdminAnalytics = (dateRange: DateRangePreset = 'all') => {
 
       activeOrdersList.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
-          (order.items as any[]).forEach((item: any) => {
+          (order.items as unknown as OrderItem[]).forEach((item) => {
             const product = productMap.get(item.id);
             if (product) {
               const category = product.category || 'Other';
@@ -275,7 +283,7 @@ export const useAdminAnalytics = (dateRange: DateRangePreset = 'all') => {
 
       activeOrdersList.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
-          (order.items as any[]).forEach((item: any) => {
+          (order.items as unknown as OrderItem[]).forEach((item) => {
             if (!productSalesMap[item.id]) {
               productSalesMap[item.id] = { quantity: 0, revenue: 0 };
             }

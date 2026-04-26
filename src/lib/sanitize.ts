@@ -138,7 +138,8 @@ export function sanitizeFilename(filename: string): string {
   return filename
     .replace(/[/\\]/g, '') // Remove slashes
     .replace(/\.\./g, '') // Remove directory traversal
-    .replace(/[<>:"|?*\x00-\x1f]/g, '') // Remove invalid Windows chars
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"|?*\u0000-\u001f]/g, '') // Remove invalid Windows chars
     .trim();
 }
 

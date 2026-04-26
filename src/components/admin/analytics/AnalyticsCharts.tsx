@@ -29,12 +29,25 @@ import type { AnalyticsData, DateRangePreset } from '@/hooks/useAdminAnalytics';
 
 const formatCurrency = (value: number) => `৳${value.toLocaleString()}`;
 
-const CustomTooltip = forwardRef<HTMLDivElement, any>(({ active, payload, label }, ref) => {
+interface TooltipPayload {
+  name: string;
+  value: number;
+  color: string;
+  payload: Record<string, unknown>;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+const CustomTooltip = forwardRef<HTMLDivElement, CustomTooltipProps>(({ active, payload, label }, ref) => {
   if (active && payload && payload.length) {
     return (
       <div ref={ref} className="bg-card border border-border rounded-lg p-2 sm:p-3 shadow-lg">
         <p className="text-xs sm:text-sm font-medium text-foreground mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        {payload.map((entry, index) => (
           <p key={index} className="text-[10px] sm:text-xs" style={{ color: entry.color }}>
             {entry.name}: {entry.name.toLowerCase().includes('revenue') ? formatCurrency(entry.value) : entry.value}
           </p>

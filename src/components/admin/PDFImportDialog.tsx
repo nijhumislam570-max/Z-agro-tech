@@ -133,7 +133,7 @@ export function PDFImportDialog({ open, onOpenChange }: PDFImportDialogProps) {
         .map((p) => p.image_url)
         .filter((url): url is string => !!url && url.startsWith('http'));
 
-      let imageMap: Record<string, string> = {};
+      const imageMap: Record<string, string> = {};
 
       if (imageUrls.length > 0) {
         const uniqueUrls = [...new Set(imageUrls)];

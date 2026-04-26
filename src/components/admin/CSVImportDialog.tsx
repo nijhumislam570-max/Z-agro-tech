@@ -93,7 +93,7 @@ export function CSVImportDialog({ open, onOpenChange }: CSVImportDialogProps) {
         .map((row) => row.image_url)
         .filter((url): url is string => !!url && url.startsWith('http'));
 
-      let imageMap: Record<string, string> = {};
+      const imageMap: Record<string, string> = {};
 
       // Re-host external images via edge function
       if (imageUrls.length > 0) {

@@ -33,10 +33,18 @@ interface OrderDetails {
   created_at: string;
   total_amount: number;
   shipping_address: string | null;
-  items: any[];
+  items: OrderItem[];
 }
 
 
+
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
 
 const TrackOrderPage = () => {
   const [searchParams] = useSearchParams();
@@ -345,7 +353,7 @@ const TrackOrderPage = () => {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
-                    {Array.isArray(order.items) && order.items.map((item: any, idx: number) => (
+                    {Array.isArray(order.items) && (order.items as OrderItem[]).map((item, idx) => (
                       <li key={idx} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-secondary/50">
                         <div className="flex items-center gap-3 min-w-0">
                           {item.image && (

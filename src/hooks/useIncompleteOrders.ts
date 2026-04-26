@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { OrderItem } from './useAdminAnalytics';
 // Realtime invalidation for `incomplete_orders` is handled centrally by
 // useAdminRealtimeDashboard — page-level channel removed (audit P0).
 
@@ -9,7 +10,7 @@ export interface IncompleteOrder {
   customer_name: string | null;
   customer_phone: string | null;
   customer_email: string | null;
-  items: any;
+  items: OrderItem[];
   cart_total: number;
   shipping_address: string | null;
   division: string | null;
