@@ -62,7 +62,7 @@ npm run preview
 ## Project Ownership
 
 - GitHub remote: [nijhumislam570-max/Z-agro-tech](https://github.com/nijhumislam570-max/Z-agro-tech)
-- Supabase project ref: `vbrpgfbhqrxdgjtqqynb`
+- Supabase project ref: `hsosfeynosulypnpwbet`
 - Vercel deployment config: [vercel.json](/D:/Z%20agro%20tech%20code/z-agro/vercel.json)
 - Example frontend env file: [.env.example](/D:/Z%20agro%20tech%20code/z-agro/.env.example)
 

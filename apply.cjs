@@ -3,7 +3,7 @@ const https = require('https');
 const path = require('path');
 
 const PAT = 'sbp_4d71848bc7eefbfa93f51c9e980d3dd8b767ea66';
-const REF = 'vbrpgfbhqrxdgjtqqynb';
+const REF = 'hsosfeynosulypnpwbet';
 
 async function runSql(filePath, ignoreErrors = false) {
   const query = fs.readFileSync(filePath, 'utf8');
