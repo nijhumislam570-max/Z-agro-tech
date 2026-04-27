@@ -27,7 +27,7 @@ const PublicShell = memo(() => {
   return (
     <div className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
       <Navbar />
-      <div key={location.pathname} className="animate-page-enter flex-1 flex flex-col">
+      <div className="animate-page-enter flex-1 flex flex-col">
         <Suspense fallback={<PublicPageSkeleton />}>
           <Outlet />
         </Suspense>

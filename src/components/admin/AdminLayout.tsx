@@ -139,7 +139,7 @@ export const AdminShell = () => {
             unreadMessages={pendingCounts?.unreadMessages}
           />
           <main className="flex-1 p-3 sm:p-4 lg:p-6 xl:p-8 overflow-x-hidden">
-            <div key={location.pathname} className="animate-page-enter">
+            <div className="animate-page-enter">
               <Suspense fallback={<AdminPageSkeleton />}>
                 <Outlet />
               </Suspense>
