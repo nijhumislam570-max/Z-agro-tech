@@ -230,33 +230,9 @@ export function prefetchAdminRoute(path: string, qc: QueryClient): void {
  * main thread or the initial dashboard render. Data prefetches are skipped
  * (they're warmed individually on hover/focus to respect staleTime).
  */
-let warmingStarted = false;
 export function warmAllAdminChunks(): void {
-  if (warmingStarted) return;
-  warmingStarted = true;
-
-  const paths = Object.keys(ADMIN_PREFETCH).filter(
-    (p) => ADMIN_PREFETCH[p].chunk && !prefetchedChunks.has(p),
-  );
-
-  const ric: (cb: () => void) => void =
-    typeof window !== 'undefined' && 'requestIdleCallback' in window
-      ? (cb) => (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(cb, { timeout: 2000 })
-      : (cb) => setTimeout(cb, 200) as unknown as void;
-
-  const loadNext = (i: number) => {
-    if (i >= paths.length) return;
-    const path = paths[i];
-    const entry = ADMIN_PREFETCH[path];
-    if (entry?.chunk && !prefetchedChunks.has(path)) {
-      prefetchedChunks.add(path);
-      entry.chunk()
-        .catch(() => prefetchedChunks.delete(path))
-        .finally(() => ric(() => loadNext(i + 1)));
-    } else {
-      ric(() => loadNext(i + 1));
-    }
-  };
-
-  ric(() => loadNext(0));
+  // Disabled: Eagerly warming all chunks stalls the Vite dev server compiler
+  // and blocks the network in production. We now rely entirely on hover/focus 
+  // prefetching which is targeted and resolves instantly.
+  return;
 }
