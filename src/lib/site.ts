@@ -34,4 +34,4 @@ export const toAbsoluteUrl = (value?: string | null) => {
 };
 
 export const getSupabaseSitemapUrl = () =>
-  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sitemap`;
+  `${import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sitemap`;
