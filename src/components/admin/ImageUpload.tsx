@@ -29,7 +29,7 @@ export function ImageUpload({
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
@@ -81,7 +81,7 @@ export function ImageUpload({
       setCompressing(false);
       setProgress(0);
     }
-  };
+  }, [bucket, folder, onChange]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -101,7 +101,7 @@ export function ImageUpload({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       uploadImage(e.dataTransfer.files[0]);
     }
-  }, []);
+  }, [uploadImage]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

@@ -78,7 +78,7 @@ export const useIncompleteOrders = () => {
   });
 
   const convertMutation = useMutation({
-    mutationFn: async ({ order, editedData, deliveryCharge = 0, grandTotal }: {
+    mutationFn: async ({ order, editedData }: {
       order: IncompleteOrder;
       editedData: {
         customer_name: string;
@@ -87,44 +87,21 @@ export const useIncompleteOrders = () => {
         shipping_address: string;
         division: string;
       };
-      deliveryCharge?: number;
-      grandTotal?: number;
     }) => {
-      await supabase.from('incomplete_orders').update({
-        customer_name: editedData.customer_name,
-        customer_phone: editedData.customer_phone,
-        customer_email: editedData.customer_email,
-        shipping_address: editedData.shipping_address,
-        division: editedData.division,
-        completeness: 100,
-      }).eq('id', order.id);
-
-      const shippingAddress = [
-        editedData.customer_name,
-        editedData.customer_phone,
-        editedData.shipping_address,
-        editedData.division,
-      ].filter(Boolean).join(', ');
-
-      const totalAmount = grandTotal ?? ((order.cart_total || 0) + deliveryCharge);
-      const userId = order.user_id || '00000000-0000-0000-0000-000000000000';
-
-      // Use atomic RPC to ensure stock is validated and decremented with FOR UPDATE row locks
+      // Admin recovery has a dedicated RPC because checkout recovery does not
+      // run as the customer account that originally started the cart.
       const { data: newOrderId, error: orderError } = await supabase
-        .rpc('create_order_with_stock', {
-          p_user_id: userId,
-          p_items: order.items,
-          p_total_amount: totalAmount,
-          p_shipping_address: shippingAddress,
+        .rpc('recover_incomplete_order', {
+          p_incomplete_order_id: order.id,
+          p_customer_name: editedData.customer_name,
+          p_customer_phone: editedData.customer_phone,
+          p_customer_email: editedData.customer_email || null,
+          p_shipping_address: editedData.shipping_address,
+          p_division: editedData.division,
           p_payment_method: 'cod',
         });
 
       if (orderError) throw orderError;
-
-      await supabase
-        .from('incomplete_orders')
-        .update({ status: 'recovered', recovered_order_id: newOrderId })
-        .eq('id', order.id);
 
       return { id: newOrderId };
     },

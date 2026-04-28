@@ -68,7 +68,7 @@ const RecoveryStatCard = ({
 );
 
 const AdminRecoveryAnalytics = () => {
-  useDocumentTitle('Recovery Analytics');
+  useDocumentTitle('Recovery Analytics - Admin');
   const navigate = useNavigate();
   const { orders, isLoading, totalIncomplete, totalRecovered, recoveryRate, lostRevenue, recoveredRevenue } = useIncompleteOrders();
   const [dateRange, setDateRange] = useState('14');

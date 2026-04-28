@@ -236,13 +236,13 @@ const AdminSidebarInner = ({
             {collapsed ? (
               <div className="relative mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <Logo to="/admin" size="sm" showText={false} />
+                <Logo to={undefined} size="sm" showText={false} />
               </div>
             ) : (
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <Logo to="/admin" size="sm" showText={false} />
+                  <Logo to={undefined} size="sm" showText={false} />
                 </div>
                 <div className="flex flex-col">
                   <span className="font-display font-bold text-base bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">

@@ -1,9 +1,10 @@
-import { memo, Suspense } from 'react';
+import { memo, Suspense, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import MobileNav from '@/components/MobileNav';
 import PublicPageSkeleton from '@/components/PublicPageSkeleton';
+import { warmRouteGroup } from '@/lib/routeWarmup';
 
 /**
  * Persistent layout shell for all public (non-admin, non-auth) routes.
@@ -19,13 +20,36 @@ import PublicPageSkeleton from '@/components/PublicPageSkeleton';
  * The Suspense fallback uses a layout-matched skeleton so cold chunk
  * loads paint a visible page shell instead of a blank area + thin top bar.
  *
- * `pb-20 md:pb-0` on the outer wrapper reserves space for the bottom
- * MobileNav on mobile and is a no-op on desktop.
+ * A footer-colored mobile spacer reserves room for the fixed MobileNav.
+ * Keeping the spacer after the footer prevents the light page background
+ * from showing as a white strip when users scroll to the very bottom.
  */
+const mobileNavSpacerStyle = { paddingBottom: 'env(safe-area-inset-bottom, 0px)' };
+
 const PublicShell = memo(() => {
   const location = useLocation();
+
+  useEffect(() => {
+    warmRouteGroup('public-shell-core', [
+      '/shop',
+      '/academy',
+      '/about',
+      '/contact',
+      '/faq',
+      '/privacy',
+      '/terms',
+      '/track-order',
+      '/auth',
+      '/cart',
+      '/checkout',
+      '/dashboard',
+      '/product',
+      '/course',
+    ]);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="animate-page-enter flex-1 flex flex-col" key={location.pathname}>
         <Suspense fallback={<PublicPageSkeleton />}>
@@ -33,6 +57,11 @@ const PublicShell = memo(() => {
         </Suspense>
       </div>
       <Footer />
+      <div
+        className="md:hidden h-14 sm:h-16 bg-[hsl(140,35%,10%)]"
+        style={mobileNavSpacerStyle}
+        aria-hidden="true"
+      />
       <MobileNav />
     </div>
   );

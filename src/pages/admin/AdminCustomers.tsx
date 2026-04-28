@@ -79,7 +79,7 @@ const AdminCustomers = () => {
   const { user } = useAuth();
   const [adminUserPage, setAdminUserPage] = useState(0);
   const { data: customersData, isLoading, error, refetch } = useAdminUsers(adminUserPage);
-  const customers = customersData?.users ?? [];
+  const customers = useMemo(() => customersData?.users ?? [], [customersData?.users]);
   
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -92,7 +92,6 @@ const AdminCustomers = () => {
 
   // Stats computed from data
   const stats = useMemo(() => {
-    if (!customers) return { total: 0, admins: 0, users: 0 };
     const admins = customers.filter(c =>
       (c.user_roles as CustomerRoleRow[] | null)?.some((r) => r.role === 'admin'),
     ).length;
@@ -101,7 +100,7 @@ const AdminCustomers = () => {
 
   // Filter customers
   const filteredCustomers = useMemo(() => {
-    let result = customers || [];
+    let result = customers;
 
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();

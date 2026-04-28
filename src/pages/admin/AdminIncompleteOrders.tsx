@@ -57,7 +57,7 @@ const CompletenessBadge = ({ value }: { value: number }) => {
 };
 
 const AdminIncompleteOrders = () => {
-  useDocumentTitle('Incomplete Orders');
+  useDocumentTitle('Incomplete Orders - Admin');
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const {
@@ -149,7 +149,7 @@ const AdminIncompleteOrders = () => {
   const handleConvert = async () => {
     if (!convertDialog || !isFormValid) return;
     try {
-      await convertOrder({ order: convertDialog, editedData: convertFormData, deliveryCharge, grandTotal: convertGrandTotal });
+      await convertOrder({ order: convertDialog, editedData: convertFormData });
       toast.success('Order converted successfully!');
       setConvertDialog(null);
     } catch {

@@ -807,15 +807,27 @@ export type Database = {
         }
         Returns: boolean
       }
-      increment_coupon_usage: {
-        Args: { p_coupon_id: string }
-        Returns: undefined
-      }
-      validate_coupon: {
-        Args: { p_code: string; p_subtotal: number }
-        Returns: {
-          code: string
-          discount_type: string
+        increment_coupon_usage: {
+          Args: { p_coupon_id: string }
+          Returns: undefined
+        }
+        recover_incomplete_order: {
+          Args: {
+            p_customer_email?: string | null
+            p_customer_name: string
+            p_customer_phone: string
+            p_division: string
+            p_incomplete_order_id: string
+            p_payment_method?: string
+            p_shipping_address: string
+          }
+          Returns: string
+        }
+        validate_coupon: {
+          Args: { p_code: string; p_subtotal: number }
+          Returns: {
+            code: string
+            discount_type: string
           discount_value: number
           id: string
           max_discount_amount: number

@@ -54,6 +54,8 @@ const sortOptions = [
   { value: 'top-rated', label: 'Top Rated' },
 ];
 
+const HIGH_FETCH_PRIORITY = { fetchpriority: 'high' } as const;
+
 const PAGE_SIZE = 20;
 
 // Product type from database
@@ -430,7 +432,7 @@ const ShopPage = () => {
             width={1280}
             height={896}
             className="w-full h-full object-cover"
-            fetchPriority="high"
+            {...HIGH_FETCH_PRIORITY}
           />
           {/* Warm gradient overlay for legibility */}
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40 sm:from-background/92 sm:via-background/70 sm:to-background/20" />

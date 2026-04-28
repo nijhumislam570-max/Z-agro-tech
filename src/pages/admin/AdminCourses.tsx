@@ -14,7 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -41,6 +41,7 @@ import { CourseBatchesTable } from '@/components/admin/CourseBatchesTable';
 import { ImageUpload } from '@/components/admin/ImageUpload';
 import { courseFormSchema, type CourseFormData } from '@/lib/validations';
 import { STALE_30S } from '@/lib/queryConstants';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 const defaultValues: CourseFormData = {
   title: '',
@@ -61,6 +62,7 @@ const defaultValues: CourseFormData = {
 };
 
 const AdminCourses = () => {
+  useDocumentTitle('Courses - Admin');
   const qc = useQueryClient();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -201,6 +203,9 @@ const AdminCourses = () => {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editing ? 'Edit course' : 'Create course'}</DialogTitle>
+                <DialogDescription>
+                  Add course details, pricing, media, and curriculum items for the academy.
+                </DialogDescription>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

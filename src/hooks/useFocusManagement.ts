@@ -1,6 +1,46 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 
+const ROUTE_ANNOUNCEMENTS: Record<string, string> = {
+  '/': 'Home - Z Agro Tech',
+  '/about': 'About - Z Agro Tech',
+  '/contact': 'Contact - Z Agro Tech',
+  '/faq': 'FAQ - Z Agro Tech',
+  '/privacy': 'Privacy Policy - Z Agro Tech',
+  '/terms': 'Terms - Z Agro Tech',
+  '/shop': 'Shop - Z Agro Tech',
+  '/cart': 'Cart - Z Agro Tech',
+  '/checkout': 'Checkout - Z Agro Tech',
+  '/track-order': 'Track Order - Z Agro Tech',
+  '/academy': 'Academy - Z Agro Tech',
+  '/dashboard': 'Dashboard - Z Agro Tech',
+  '/auth': 'Sign In - Z Agro Tech',
+  '/forgot-password': 'Forgot Password - Z Agro Tech',
+  '/reset-password': 'Reset Password - Z Agro Tech',
+  '/admin': 'Dashboard - Admin - Z Agro Tech',
+  '/admin/analytics': 'Analytics - Admin - Z Agro Tech',
+  '/admin/products': 'Products - Admin - Z Agro Tech',
+  '/admin/orders': 'Orders Management - Admin - Z Agro Tech',
+  '/admin/ecommerce-customers': 'E-Commerce Customers - Admin - Z Agro Tech',
+  '/admin/coupons': 'Coupons - Admin - Z Agro Tech',
+  '/admin/delivery-zones': 'Delivery Zones - Admin - Z Agro Tech',
+  '/admin/incomplete-orders': 'Incomplete Orders - Admin - Z Agro Tech',
+  '/admin/recovery-analytics': 'Recovery Analytics - Admin - Z Agro Tech',
+  '/admin/courses': 'Courses - Admin - Z Agro Tech',
+  '/admin/enrollments': 'Enrollments - Admin - Z Agro Tech',
+  '/admin/customers': 'User Management - Admin - Z Agro Tech',
+  '/admin/messages': 'Contact Messages - Admin - Z Agro Tech',
+  '/admin/settings': 'Settings - Admin - Z Agro Tech',
+};
+
+const getRouteAnnouncementTitle = (pathname: string): string => {
+  if (ROUTE_ANNOUNCEMENTS[pathname]) return ROUTE_ANNOUNCEMENTS[pathname];
+  if (pathname.startsWith('/product/')) return 'Product Details - Z Agro Tech';
+  if (pathname.startsWith('/course/')) return 'Course Details - Z Agro Tech';
+  if (pathname.startsWith('/admin/')) return 'Admin Page - Z Agro Tech';
+  return document.title || 'New page';
+};
+
 /**
  * Manages focus for route changes to improve accessibility
  * Announces page changes to screen readers.
@@ -26,6 +66,7 @@ export const useFocusManagement = () => {
     }
     if (previousPathRef.current === location.pathname) return;
     previousPathRef.current = location.pathname;
+    const nextPathname = location.pathname;
 
     // Defer to browser idle so we don't compete with the route's first paint.
     const ric: (cb: () => void) => number = (cb) => {
@@ -66,7 +107,7 @@ export const useFocusManagement = () => {
       }
 
       // Announce to screen readers.
-      const pageTitle = document.title || 'New page';
+      const pageTitle = getRouteAnnouncementTitle(nextPathname);
       announceToScreenReader(`Navigated to ${pageTitle}`);
     });
 

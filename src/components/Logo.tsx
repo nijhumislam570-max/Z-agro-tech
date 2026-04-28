@@ -26,14 +26,18 @@ const textSizeClasses = {
   xl: 'text-xl sm:text-2xl',
 };
 
+const HIGH_FETCH_PRIORITY = { fetchpriority: 'high' } as const;
+
 export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
-  to = '/',
   size = 'md',
   showText = true,
   showSubtitle = false,
   className,
   variant = 'default',
+  ...props
 }, ref) => {
+  const to = Object.prototype.hasOwnProperty.call(props, 'to') ? props.to : '/';
+
   const content = (
     <div ref={ref} className={cn('flex items-center gap-2 sm:gap-3 group', className)}>
       <div className="relative flex-shrink-0">
@@ -43,8 +47,8 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
           alt="Z Agro Tech logo"
           width={44}
           height={44}
-          fetchPriority="high"
           decoding="async"
+          {...HIGH_FETCH_PRIORITY}
           className={cn(
             'relative rounded-full object-cover bg-white shadow-soft transition-all duration-300',
             'border-2 border-primary/20 group-hover:border-primary/40 group-hover:scale-105',
@@ -54,20 +58,24 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
       </div>
       {showText && (
         <div className={cn(variant === 'footer' && 'text-card')}>
-          <span className={cn(
-            'block font-display font-bold leading-tight tracking-tight',
-            textSizeClasses[size],
-            variant === 'default' && 'text-foreground',
-            variant === 'footer' && 'text-card',
-            variant === 'admin' && 'bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent',
-          )}>
+          <span
+            className={cn(
+              'block font-display font-bold leading-tight tracking-tight',
+              textSizeClasses[size],
+              variant === 'default' && 'text-foreground',
+              variant === 'footer' && 'text-card',
+              variant === 'admin' && 'bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent',
+            )}
+          >
             Z Agro Tech
           </span>
           {showSubtitle && (
-            <p className={cn(
-              'text-xs',
-              variant === 'footer' ? 'text-card/70' : 'text-muted-foreground',
-            )}>
+            <p
+              className={cn(
+                'text-xs',
+                variant === 'footer' ? 'text-card/70' : 'text-muted-foreground',
+              )}
+            >
               Cultivating Innovation
             </p>
           )}
@@ -77,7 +85,7 @@ export const Logo = forwardRef<HTMLDivElement, LogoProps>(({
   );
 
   if (to) {
-    return <Link to={to} aria-label="Z Agro Tech — Go to homepage">{content}</Link>;
+    return <Link to={to} aria-label="Z Agro Tech - Go to homepage">{content}</Link>;
   }
 
   return content;

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +35,7 @@ function checkRateLimit(key: string): { allowed: boolean; retryAfterSeconds: num
   return { allowed: true, retryAfterSeconds: 0 };
 }
 
-serve(async (req) => {
+serve((req) => withSentry("geocode", req, async () => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -145,4 +146,4 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));

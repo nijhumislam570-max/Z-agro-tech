@@ -13,6 +13,7 @@ dist-ssr
 .vercel
 .env
 .env.local
+.env.sentry-build-plugin
 *.local
 supabase/migration-bundle/04_bootstrap_admin.ready.sql
 

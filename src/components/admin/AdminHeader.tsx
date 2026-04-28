@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { AdminMobileNav } from './AdminMobileNav';
 import logo from '@/assets/zagrotech-logo-circle.png';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -77,6 +77,10 @@ const AdminHeaderInner = ({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[88vw] max-w-[340px] h-[100dvh] max-h-[100dvh] overflow-hidden border-r-0 shadow-2xl">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Admin navigation</SheetTitle>
+                <SheetDescription>Open admin sections, pending actions, and management pages.</SheetDescription>
+              </SheetHeader>
               <AdminMobileNav pendingOrders={pendingOrders} />
             </SheetContent>
           </Sheet>

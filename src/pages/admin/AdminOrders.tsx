@@ -91,7 +91,7 @@ const AdminOrders = () => {
   void isAdmin;
   const [adminOrderPage, setAdminOrderPage] = useState(0);
   const { data: ordersData, isLoading, isError, error: ordersError, refetch } = useAdminOrders(adminOrderPage);
-  const orders = ordersData?.orders ?? [];
+  const orders = useMemo(() => ordersData?.orders ?? [], [ordersData?.orders]);
   
   const [searchParams, setSearchParams] = useSearchParams();
   const initialStatus = searchParams.get('status') || 'all';
@@ -142,8 +142,8 @@ const AdminOrders = () => {
   };
 
   // Split active vs trashed
-  const activeOrders = useMemo(() => orders?.filter(o => !o.trashed_at) || [], [orders]);
-  const trashedOrders = useMemo(() => orders?.filter(o => !!o.trashed_at) || [], [orders]);
+  const activeOrders = useMemo(() => orders.filter(o => !o.trashed_at), [orders]);
+  const trashedOrders = useMemo(() => orders.filter(o => !!o.trashed_at), [orders]);
 
   // Time-filtered orders (only from active)
   const timeFilteredOrders = useMemo(() => {
@@ -410,7 +410,7 @@ const AdminOrders = () => {
       }
       return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
     });
-  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap, sortKey, sortDir]);
+  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap, sortKey, sortDir, getCustomerName]);
 
   // Bulk selection helpers (depend on filteredOrders)
   const pendingFilteredIds = useMemo(() => 

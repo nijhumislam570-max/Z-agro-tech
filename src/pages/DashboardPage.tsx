@@ -119,7 +119,7 @@ const DashboardPageInner = () => {
   return (
     <>
       <SEO
-        title="Dashboard — Z Agro Tech"
+        title="Dashboard"
         description="Your personalized farm hub: orders, courses, and recommended agri-inputs."
         url="/dashboard"
         noIndex

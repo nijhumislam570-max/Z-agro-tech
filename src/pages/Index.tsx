@@ -1,5 +1,4 @@
 import SEO from '@/components/SEO';
-import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import HeroSection from '@/components/home/HeroSection';
 import PartnersStrip from '@/components/home/PartnersStrip';
 import FeaturedProductsGrid from '@/components/home/FeaturedProductsGrid';
@@ -57,7 +56,7 @@ const valueProps = [
   {
     icon: HeartHandshake,
     title: 'Farmer-first support',
-    desc: 'Real humans, real answers — dedicated 24/7 farmer helpline in Bangla and English.',
+    desc: 'Real humans, real answers â€” dedicated 24/7 farmer helpline in Bangla and English.',
     accent: 'from-primary/15 to-primary/5',
     iconBg: 'bg-primary/15 text-primary',
     span: 'sm:col-span-2 lg:col-span-2',
@@ -65,13 +64,11 @@ const valueProps = [
 ];
 
 const Index = () => {
-  useDocumentTitle('Home');
-
   return (
     <>
       <SEO
-        title="Z Agro Tech — Premium Agriculture Supplies & Expert Courses"
-        description="Shop premium agriculture products and learn from expert-led farming courses on Z Agro Tech — Bangladesh's trusted agritech platform."
+        title="Premium Agriculture Supplies & Expert Courses"
+        description="Shop premium agriculture products and learn from expert-led farming courses on Z Agro Tech â€” Bangladesh's trusted agritech platform."
         url="/"
         canonicalUrl="/"
         schema={{
@@ -79,7 +76,7 @@ const Index = () => {
           name: 'Z Agro Tech',
           url: '/',
           logo: '/favicon.png',
-          description: 'Bangladesh\'s trusted platform for premium agriculture supplies and expert-led farming courses.',
+          description: "Bangladesh's trusted platform for premium agriculture supplies and expert-led farming courses.",
           sameAs: [],
         }}
       />
@@ -103,7 +100,7 @@ const Index = () => {
               Built for the modern Bangladesh farmer
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Quality products, expert knowledge, and reliable support — everything you need in one place.
+              Quality products, expert knowledge, and reliable support â€” everything you need in one place.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -127,7 +124,7 @@ const Index = () => {
                     />
                   )}
 
-                  {/* Corner accent — small circle on large cards */}
+                  {/* Corner accent â€” small circle on large cards */}
                   {isLarge && (
                     <span
                       aria-hidden="true"
@@ -172,7 +169,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Below-the-fold sections — `content-visibility: auto` lets the
+        {/* Below-the-fold sections â€” `content-visibility: auto` lets the
             browser skip layout/paint until the section nears the viewport.
             We hint a min-height per section so the scrollbar doesn't jitter
             as off-screen sections are skipped. */}

@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,7 +20,7 @@ interface SitemapUrl {
   priority?: number;
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve((req: Request) => withSentry("sitemap", req, async () => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -105,7 +106,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   }
-});
+}));
 
 function generateSitemapXml(urls: SitemapUrl[]): string {
   const urlEntries = urls.map(url => {

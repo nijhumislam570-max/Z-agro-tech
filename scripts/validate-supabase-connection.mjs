@@ -57,6 +57,14 @@ const supabase = createClient(supabaseUrl, publishableKey, {
 });
 
 const checks = [];
+const functionEndpoints = [
+  "sitemap",
+  "geocode",
+  "steadfast",
+  "upload-image-url",
+  "parse-product-pdf",
+  "delete-user",
+];
 
 const formatError = (error) => {
   if (error instanceof Error) {
@@ -144,6 +152,30 @@ await runCheck("public sitemap function", async () => {
     status: response.status,
     hasUrlSet: body.includes("<urlset"),
   };
+});
+
+await runCheck("edge function deployment", async () => {
+  const results = [];
+
+  for (const name of functionEndpoints) {
+    const response = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
+      method: "OPTIONS",
+      headers: {
+        apikey: publishableKey,
+      },
+    });
+
+    if (response.status === 404) {
+      throw new Error(`Missing function: ${name}`);
+    }
+
+    results.push({
+      name,
+      status: response.status,
+    });
+  }
+
+  return results;
 });
 
 console.log(JSON.stringify(checks, null, 2));

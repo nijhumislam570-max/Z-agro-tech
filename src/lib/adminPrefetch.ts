@@ -220,19 +220,3 @@ export function prefetchAdminRoute(path: string, qc: QueryClient): void {
   }
 }
 
-/**
- * Eagerly warm ALL admin route chunks during browser idle time once the
- * admin enters /admin. This makes every subsequent sidebar click an
- * instant cache hit (no network round-trip, no parse delay) — the single
- * biggest win for "feels-like-native" admin navigation.
- *
- * Chunks are loaded one-at-a-time on the idle queue so we never block the
- * main thread or the initial dashboard render. Data prefetches are skipped
- * (they're warmed individually on hover/focus to respect staleTime).
- */
-export function warmAllAdminChunks(): void {
-  // Disabled: Eagerly warming all chunks stalls the Vite dev server compiler
-  // and blocks the network in production. We now rely entirely on hover/focus 
-  // prefetching which is targeted and resolves instantly.
-  return;
-}

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, memo, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { getOptimizedUrl, type ImagePreset } from '@/lib/imageUtils';
 
+const HIGH_FETCH_PRIORITY = { fetchpriority: 'high' } as const;
+
 interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   /** Supabase storage preset for server-side resizing */
   preset?: ImagePreset;
@@ -99,7 +101,7 @@ const OptimizedImage = memo(
               height={height}
               loading={priority ? 'eager' : 'lazy'}
               decoding="async"
-              {...(priority ? { fetchPriority: 'high' as const } : {})}
+              {...(priority ? HIGH_FETCH_PRIORITY : {})}
               onLoad={() => setLoaded(true)}
               onError={() => setError(true)}
               className={cn(

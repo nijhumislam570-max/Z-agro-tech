@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import SentryScopeSync from "@/components/SentryScopeSync";
 import { useFocusManagement } from "@/hooks/useFocusManagement";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
@@ -90,6 +91,7 @@ const App = () => (
             <Sonner />
             <OfflineIndicator />
             <BrowserRouter>
+              <SentryScopeSync />
               <ScrollToTop />
               <RouteProgress />
               <ErrorBoundary>

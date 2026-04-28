@@ -5,6 +5,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { captureException as captureSentryException } from '@/lib/sentry';
 
 // Web Vitals metrics types
 interface WebVitalsMetric {
@@ -184,6 +185,10 @@ export function trackError(error: Error, context?: Record<string, unknown>): voi
     logger.error('[Error Tracking]', error, context);
     return;
   }
+
+  captureSentryException(error, {
+    extra: context,
+  });
 
   // In production, you could send to an error tracking service
   // For now, we'll store in session storage for debugging

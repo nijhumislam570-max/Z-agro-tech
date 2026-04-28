@@ -1,5 +1,5 @@
 import { Users, GraduationCap, Smile, Award } from 'lucide-react';
-import heroImage from '@/assets/hero-agriculture-field.jpg';
+import heroImage from '@/assets/hero-agriculture-field-1440.jpg';
 
 const stats = [
   { icon: Users, value: '5,000+', label: 'Farmers trained', percent: 92 },

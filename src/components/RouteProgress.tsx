@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocation, useNavigationType } from 'react-router-dom';
 
 /**
@@ -51,13 +51,14 @@ export const RouteProgress = () => {
 
   const intentTick = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  const cancelRaf = () => {
+  const cancelRaf = useCallback(() => {
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
-  };
-  const clearTimers = () => {
+  }, []);
+
+  const clearTimers = useCallback(() => {
     cancelRaf();
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
@@ -67,9 +68,9 @@ export const RouteProgress = () => {
       clearTimeout(safetyTimerRef.current);
       safetyTimerRef.current = null;
     }
-  };
+  }, [cancelRaf]);
 
-  const begin = () => {
+  const begin = useCallback(() => {
     clearTimers();
     setVisible(true);
     setProgress(20);
@@ -85,9 +86,9 @@ export const RouteProgress = () => {
       });
     };
     rafRef.current = requestAnimationFrame(tick);
-  };
+  }, [clearTimers]);
 
-  const finish = () => {
+  const finish = useCallback(() => {
     cancelRaf();
     setProgress(100);
     hideTimerRef.current = setTimeout(() => {
@@ -95,7 +96,7 @@ export const RouteProgress = () => {
       setProgress(0);
       hideTimerRef.current = null;
     }, 180);
-  };
+  }, [cancelRaf]);
 
   // Imperative trigger — paint immediately on click intent
   useEffect(() => {
@@ -108,8 +109,7 @@ export const RouteProgress = () => {
         safetyTimerRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [intentTick]);
+  }, [intentTick, begin, finish]);
 
   // Reactive completion on actual route change
   useEffect(() => {
@@ -121,11 +121,10 @@ export const RouteProgress = () => {
     if (!visible) begin();
     finish();
     return clearTimers;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, navType]);
+  }, [pathname, navType, visible, begin, finish, clearTimers]);
 
   // Cleanup on unmount
-  useEffect(() => clearTimers, []);
+  useEffect(() => clearTimers, [clearTimers]);
 
   if (!visible) return null;
 

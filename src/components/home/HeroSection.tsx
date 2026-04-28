@@ -12,6 +12,8 @@ const heroStats = [
   { icon: Smile, value: BRAND_STATS.satisfaction.value, label: 'Satisfaction' },
 ];
 
+const HIGH_FETCH_PRIORITY = { fetchpriority: 'high' } as const;
+
 export const HeroSection = () => (
   <section className="relative overflow-hidden">
     {/* Background image with overlay — responsive srcset cuts mobile bytes by ~75% */}
@@ -24,8 +26,8 @@ export const HeroSection = () => (
         width={1920}
         height={1088}
         className="w-full h-full object-cover"
-        fetchPriority="high"
         decoding="async"
+        {...HIGH_FETCH_PRIORITY}
       />
       <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/85 to-background/65" />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />

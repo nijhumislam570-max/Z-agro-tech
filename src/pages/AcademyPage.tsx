@@ -65,7 +65,7 @@ const AcademyPage = () => {
   return (
     <>
       <SEO
-        title="Academy — Z Agro Tech"
+        title="Academy"
         description="Expert-led agriculture and farming training cohorts."
         url="/academy"
         canonicalUrl="/academy"

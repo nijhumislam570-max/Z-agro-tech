@@ -49,6 +49,14 @@ supabase/
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key |
 | `VITE_SUPABASE_PROJECT_ID` | Supabase project ref |
 | `VITE_SITE_URL` | Public site URL used for canonical links and SEO |
+| `VITE_SENTRY_DSN` | Browser Sentry DSN for the frontend app |
+| `VITE_SENTRY_ENVIRONMENT` | Frontend Sentry environment name |
+| `VITE_SENTRY_RELEASE` | Frontend release identifier sent with events |
+| `VITE_SENTRY_TRACES_SAMPLE_RATE` | Frontend performance sample rate (`0` to `1`) |
+| `SENTRY_AUTH_TOKEN` | Build-time auth token for source map upload |
+| `SENTRY_ORG` | Sentry organization slug for source map upload |
+| `SENTRY_PROJECT` | Frontend Sentry project slug for source map upload |
+| `SENTRY_RELEASE` | Build-time release name used by the Vite Sentry plugin |
 
 ## Development
 
@@ -75,6 +83,21 @@ npm run preview
   project on your Supabase account.
 - Set the Supabase edge-function secret `PUBLIC_SITE_URL` to your final domain
   so the sitemap function emits your project-owned URLs.
+
+## Sentry Setup
+
+- Frontend runtime capture is wired through `@sentry/react` in [src/lib/sentry.ts](/D:/Z%20agro%20tech%20code/z-agro/src/lib/sentry.ts) and is enabled only when `VITE_SENTRY_DSN` is present.
+- Route changes and signed-in user IDs are synced into Sentry by [src/components/SentryScopeSync.tsx](/D:/Z%20agro%20tech%20code/z-agro/src/components/SentryScopeSync.tsx).
+- Supabase client calls are traced through Sentry's Supabase integration.
+- Edge functions share a common helper in [supabase/functions/_shared/sentry.ts](/D:/Z%20agro%20tech%20code/z-agro/supabase/functions/_shared/sentry.ts) and expect the secrets `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE`, and optionally `SENTRY_TRACES_SAMPLE_RATE`.
+- Source map upload is optional and only activates during frontend builds when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` are all set.
+
+### Recommended Project Layout
+
+1. Create one Sentry project for the frontend web app.
+2. Create one Sentry project for Supabase edge functions, or reuse a shared backend project if you prefer a single backend bucket.
+3. Put the frontend DSN in `VITE_SENTRY_DSN`.
+4. Put the edge-function DSN in the Supabase secret `SENTRY_DSN`.
 
 ## Migration Runbook
 

@@ -29,6 +29,7 @@ export const useCheckoutTracking = (
   const { user } = useAuth();
   const incompleteOrderId = useRef<string | null>(null);
   const hasCreated = useRef(false);
+  const isCreating = useRef(false);
 
   // Field-scoped subscriptions — only this hook re-runs on field change.
   const fullName = useWatch({ control, name: 'fullName' }) || '';
@@ -61,17 +62,24 @@ export const useCheckoutTracking = (
   // If the cart is emptied (e.g. user removes all items), reset so a new record
   // can be created if items reappear later.
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      hasCreated.current = false;
+      incompleteOrderId.current = null;
+      isCreating.current = false;
+      return;
+    }
 
     if (items.length === 0) {
       hasCreated.current = false;
       incompleteOrderId.current = null;
+      isCreating.current = false;
       return;
     }
 
-    if (hasCreated.current) return;
+    if (hasCreated.current || isCreating.current) return;
 
     const createRecord = async () => {
+      isCreating.current = true;
       try {
         const { data, error } = await supabase
           .from('incomplete_orders')
@@ -92,11 +100,13 @@ export const useCheckoutTracking = (
         }
       } catch {
         // Silent fail - tracking is non-critical
+      } finally {
+        isCreating.current = false;
       }
     };
 
     createRecord();
-  }, [user, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [items, totalAmount, user]);
 
   // Update record when debounced field values change.
   useEffect(() => {
@@ -128,8 +138,10 @@ export const useCheckoutTracking = (
     debouncedDivision,
     debouncedDistrict,
     debouncedThana,
+    items,
     totalAmount,
-  ]); // eslint-disable-line react-hooks/exhaustive-deps
+    user,
+  ]);
 
   // Mark as recovered when order completes
   const markRecovered = useCallback(async (orderId: string) => {
