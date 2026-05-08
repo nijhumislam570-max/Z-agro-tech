@@ -15,7 +15,7 @@ function stockBadge(stock: number | null) {
     return { label: 'Out of Stock', cls: 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft' };
   if (s < 5)
     return { label: 'Low Stock', cls: 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft' };
-  return { label: 'In Stock', cls: 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft' };
+  return { label: 'In Stock', cls: 'bg-success-soft text-success border-success-border hover:bg-success-soft' };
 }
 
 function MiniProduct({ product }: { product: RecommendedProduct }) {
@@ -53,7 +53,7 @@ function MiniProduct({ product }: { product: RecommendedProduct }) {
         </Link>
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-bold text-foreground">৳{Number(product.price).toFixed(0)}</span>
-          <Badge variant="outline" className={`${badge.cls} text-[10px] px-1.5 py-0`}>{badge.label}</Badge>
+          <Badge variant="outline" className={`${badge.cls} shrink-0 whitespace-nowrap text-[10px] px-1.5 py-0`}>{badge.label}</Badge>
         </div>
       </div>
       <Button size="sm" className="w-full h-8 text-xs" onClick={onAdd}>

@@ -15,7 +15,7 @@ interface AlertItem {
 const toneClasses: Record<AlertItem['tone'], string> = {
   warning: 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-light',
   info: 'bg-info-soft text-info border-info-border hover:bg-info-light',
-  success: 'bg-success-soft text-success-foreground border-success-border hover:bg-success-light',
+  success: 'bg-success-soft text-success border-success-border hover:bg-success-light',
 };
 
 const iconToneClasses: Record<AlertItem['tone'], string> = {

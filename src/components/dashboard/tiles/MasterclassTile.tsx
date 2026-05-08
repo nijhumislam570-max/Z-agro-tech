@@ -11,7 +11,7 @@ import { usePrefetch } from '@/hooks/usePrefetch';
 function difficultyClass(level: string) {
   const l = level.toLowerCase();
   if (l.includes('begin'))
-    return 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft';
+    return 'bg-success-soft text-success border-success-border hover:bg-success-soft';
   if (l.includes('inter'))
     return 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft';
   if (l.includes('adv'))

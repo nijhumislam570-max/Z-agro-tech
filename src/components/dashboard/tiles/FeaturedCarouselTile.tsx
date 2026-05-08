@@ -17,7 +17,7 @@ import { getCourseImage, getProductImage } from '@/lib/agriImages';
 function difficultyTone(level: string) {
   const l = level.toLowerCase();
   if (l.includes('begin'))
-    return 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft';
+    return 'bg-success-soft text-success border-success-border hover:bg-success-soft';
   if (l.includes('inter'))
     return 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft';
   if (l.includes('adv'))
@@ -31,7 +31,7 @@ function stockTone(stock: number | null) {
     return { label: 'Out of Stock', cls: 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft' };
   if (s < 5)
     return { label: 'Low Stock', cls: 'bg-warning-soft text-warning-foreground border-warning-border hover:bg-warning-soft' };
-  return { label: 'In Stock', cls: 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft' };
+  return { label: 'In Stock', cls: 'bg-success-soft text-success border-success-border hover:bg-success-soft' };
 }
 
 function FeaturedSlide({ item }: { item: FeaturedItem }) {
@@ -56,7 +56,7 @@ function FeaturedSlide({ item }: { item: FeaturedItem }) {
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] capitalize hover:bg-primary/10">
               <ShoppingCart className="h-3 w-3" /> AgroShop
             </Badge>
-            <Badge variant="outline" className={`${stock.cls} text-[10px]`}>{stock.label}</Badge>
+            <Badge variant="outline" className={`${stock.cls} shrink-0 whitespace-nowrap text-[10px]`}>{stock.label}</Badge>
           </div>
           <h4 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight min-h-[2.5rem]">
             {item.title}

@@ -46,7 +46,7 @@ export const getPaymentStatusColor = (status: string | null) => {
 export const statusBadgeClass = (status: string | null | undefined): string => {
   const s = (status ?? 'pending').toLowerCase();
   if (s === 'delivered' || s === 'completed' || s === 'confirmed' || s === 'approved')
-    return 'bg-success-soft text-success-foreground border-success-border hover:bg-success-soft';
+    return 'bg-success-soft text-success border-success-border hover:bg-success-soft';
   if (s === 'cancelled' || s === 'rejected')
     return 'bg-danger-soft text-danger border-danger-border hover:bg-danger-soft';
   if (s === 'shipped' || s === 'processing')

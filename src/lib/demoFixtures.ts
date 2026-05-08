@@ -6,6 +6,8 @@ import type { CourseNextBatch } from '@/hooks/useCourseNextBatch';
 import type { Enrollment } from '@/hooks/useEnrollments';
 import type { CartItem } from '@/contexts/CartContext';
 import type { UserRoleType } from '@/hooks/useUserRole';
+import smartFarmingImage from '@/assets/category-farm.jpg';
+import plantProtectionImage from '@/assets/shop-hero-agriculture.jpg';
 
 export type DemoRole = 'user';
 
@@ -186,7 +188,7 @@ export const DEMO_COURSES: Course[] = [
     title: 'Smart Farming Foundations',
     description: 'Learn soil preparation, crop planning, irrigation basics, and practical farm record keeping for modern Bangladeshi farms.',
     price: 0,
-    thumbnail_url: '/placeholder.svg',
+    thumbnail_url: smartFarmingImage,
     video_url: null,
     instructor_id: null,
     difficulty: 'beginner',
@@ -213,7 +215,7 @@ export const DEMO_COURSES: Course[] = [
     title: 'Plant Protection Masterclass',
     description: 'Identify common crop diseases and pests, then choose safer integrated protection strategies before yield loss spreads.',
     price: 1500,
-    thumbnail_url: '/placeholder.svg',
+    thumbnail_url: plantProtectionImage,
     video_url: null,
     instructor_id: null,
     difficulty: 'intermediate',
