@@ -17,6 +17,11 @@ dist-ssr
 *.local
 supabase/migration-bundle/04_bootstrap_admin.ready.sql
 
+# Local test/run artifacts
+*.err
+scratch/
+testsprite_tests/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

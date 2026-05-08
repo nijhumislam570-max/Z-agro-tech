@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { STALE_1MIN } from '@/lib/queryConstants';
+import { getDemoOrders, isDemoAuthUser } from '@/lib/demoFixtures';
 
 export function useMyOrders() {
   const { user } = useAuth();
@@ -10,6 +11,8 @@ export function useMyOrders() {
     enabled: !!user,
     staleTime: STALE_1MIN,
     queryFn: async () => {
+      if (isDemoAuthUser(user)) return getDemoOrders(user);
+
       const { data, error } = await supabase
         .from('orders')
         .select('id,status,total_amount,created_at,items,tracking_id,payment_method,shipping_address,consignment_id,rejection_reason,payment_status')

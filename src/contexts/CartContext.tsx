@@ -1,4 +1,5 @@
 import { useSyncExternalStore, useCallback, useMemo } from 'react';
+import { authSubscribe, getAuthUser } from '@/contexts/AuthContext';
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ export interface CartItem {
 
 const CART_STORAGE_KEY = 'zagrotech-cart';
 const LEGACY_CART_STORAGE_KEY = 'vetmedix-cart';
+const PENDING_CART_ITEM_KEY = 'zagrotech-pending-cart-item';
 
 function readStoredCart(): CartItem[] {
   try {
@@ -87,6 +89,26 @@ function addItemToStore(item: Omit<CartItem, 'quantity'> & { quantity?: number }
   emitChange();
 }
 
+function queuePendingCartItem(item: Omit<CartItem, 'quantity'> & { quantity?: number }) {
+  localStorage.setItem(PENDING_CART_ITEM_KEY, JSON.stringify(item));
+}
+
+function consumePendingCartItem() {
+  const user = getAuthUser();
+  if (!user) return;
+  try {
+    const raw = localStorage.getItem(PENDING_CART_ITEM_KEY);
+    if (!raw) return;
+    const item = JSON.parse(raw) as Omit<CartItem, 'quantity'> & { quantity?: number };
+    localStorage.removeItem(PENDING_CART_ITEM_KEY);
+    if (item?.id && item?.name) addItemToStore(item);
+  } catch {
+    localStorage.removeItem(PENDING_CART_ITEM_KEY);
+  }
+}
+
+authSubscribe(consumePendingCartItem);
+
 function updateItemStockInStore(id: string, stock: number) {
   let changed = false;
   cartItems = cartItems.map((i) => {
@@ -152,6 +174,10 @@ export function useCart() {
     addItemToStore(item);
   }, []);
 
+  const queuePendingItem = useCallback((item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
+    queuePendingCartItem(item);
+  }, []);
+
   const removeItem = useCallback((id: string) => {
     removeItemFromStore(id);
   }, []);
@@ -178,6 +204,7 @@ export function useCart() {
   return {
     items,
     addItem,
+    queuePendingItem,
     removeItem,
     updateQuantity,
     clearCart,

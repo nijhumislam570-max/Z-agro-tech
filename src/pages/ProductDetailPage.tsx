@@ -55,7 +55,7 @@ const ProductDetailPage = () => {
 
 const ProductDetailPageInner = ({ id }: { id: string }) => {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, queuePendingItem } = useCart();
   const { user } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const { addProduct: addToRecentlyViewed } = useRecentlyViewed();
@@ -198,7 +198,7 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
 
   const handleAddToCart = useCallback(() => {
     if (!product) return;
-    addItem({
+    const cartItem = {
       id: product.id,
       name: product.name,
       price: product.discount
@@ -209,9 +209,18 @@ const ProductDetailPageInner = ({ id }: { id: string }) => {
       stock: product.stock ?? undefined,
       // Add full quantity in a single store update instead of looping.
       quantity,
-    });
+    };
+
+    if (!user) {
+      queuePendingItem(cartItem);
+      toast.info('Please sign in to add this item to your cart.');
+      navigate('/auth?redirect=/cart', { state: { from: { pathname: '/cart', search: '', hash: '' } } });
+      return;
+    }
+
+    addItem(cartItem);
     toast.success(`${quantity} item(s) added to cart!`);
-  }, [product, addItem, quantity]);
+  }, [product, user, addItem, queuePendingItem, quantity, navigate]);
 
   const handleScrollToReviews = useCallback(() => {
     reviewsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { STALE_5MIN } from '@/lib/queryConstants';
 import type { BatchStatus } from './useCourseBatches';
+import { getDemoNextBatches } from '@/lib/demoFixtures';
 
 export interface CourseNextBatch {
   course_id: string;
@@ -32,6 +33,10 @@ export function useCoursesNextBatches(courseIds: string[] | undefined) {
     enabled: sortedIds.length > 0,
     staleTime: STALE_5MIN,
     queryFn: async () => {
+      const demoMap = getDemoNextBatches(sortedIds);
+      const liveIds = sortedIds.filter((id) => !demoMap.has(id));
+      if (liveIds.length === 0) return demoMap;
+
       // Cast through unknown — generated types haven't picked up the new view yet.
       const { data, error } = await (supabase as unknown as {
         from: (t: string) => {
@@ -42,9 +47,9 @@ export function useCoursesNextBatches(courseIds: string[] | undefined) {
       })
         .from('course_next_batch')
         .select('course_id,batch_id,name,start_date,end_date,status,total_seats,enrolled_count')
-        .in('course_id', sortedIds);
+        .in('course_id', liveIds);
       if (error) throw error;
-      const map = new Map<string, CourseNextBatch>();
+      const map = new Map<string, CourseNextBatch>(demoMap);
       (data ?? []).forEach((row) => map.set(row.course_id, row));
       return map;
     },

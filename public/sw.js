@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zagrotech-v1';
+const CACHE_NAME = 'zagrotech-v2';
 const STATIC_ASSETS = [
   '/favicon.png',
 ];

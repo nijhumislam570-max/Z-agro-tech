@@ -41,6 +41,7 @@ import { checkoutSchema, type CheckoutFormData } from '@/lib/validations';
 import { useCheckoutTracking } from '@/hooks/useCheckoutTracking';
 import { getDivisions, getDistricts, getThanas } from '@/lib/bangladeshRegions';
 import SEO from '@/components/SEO';
+import { isDemoAuthUser, saveDemoOrder } from '@/lib/demoFixtures';
 
 // Only payment methods that are actually live ship in the UI. Add new methods
 // here when they launch — keeping a single source of truth avoids "Coming Soon"
@@ -61,6 +62,7 @@ const CheckoutPageInner = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const couponInputRef = useRef<HTMLInputElement>(null);
+  const orderFinalizedRef = useRef(false);
 
   const [orderPlaced, setOrderPlaced] = useState(false);
 
@@ -68,12 +70,13 @@ const CheckoutPageInner = () => {
 
   // Redirect to cart if empty (must be before conditional returns)
   useEffect(() => {
-    if (items.length === 0 && !orderPlaced) {
+    if (items.length === 0 && !orderPlaced && !orderFinalizedRef.current) {
       navigate('/cart');
     }
   }, [items.length, orderPlaced, navigate]);
 
   const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
+  const [placedTrackingId, setPlacedTrackingId] = useState<string | null>(null);
   const [placedItems, setPlacedItems] = useState<typeof items>([]);
   const [placedTotal, setPlacedTotal] = useState(0);
   const [couponCode, setCouponCode] = useState('');
@@ -212,46 +215,56 @@ const CheckoutPageInner = () => {
     }
 
     try {
-      // H4: Session-staleness guard. If the token expired in another tab the
-      // RPC call would 401 with a confusing error. Verify (and let supabase
-      // silently refresh) before firing the mutation.
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        toast.error('Your session expired. Please sign in again.');
-        navigate('/auth', { state: { from: location }, replace: true });
-        return;
-      }
-
       const shippingAddress = `${validatedData.fullName}, ${validatedData.phone}, ${validatedData.address}, ${validatedData.thana}, ${validatedData.district}, ${validatedData.division}`;
+      let orderData: { id: string | null; tracking_id?: string | null } | null = null;
 
-      // Atomic order creation + stock decrement via DB function.
-      // p_division is passed explicitly so the server doesn't have to
-      // comma-split shipping_address (broken when address has commas).
-      const { data: orderId, error } = await supabase.rpc('create_order_with_stock', {
-        p_user_id: user.id,
-        p_items: JSON.parse(JSON.stringify(items)),
-        p_total_amount: grandTotal,
-        p_shipping_address: shippingAddress,
-        p_payment_method: validatedData.paymentMethod,
-        p_coupon_id: appliedCoupon?.id || null,
-        p_division: validatedData.division,
-      });
-
-      if (error) {
-        // Surface stock-related errors clearly
-        if (error.message.includes('Insufficient stock')) {
-          toast.error(error.message, { description: 'Some items may have sold out. Please review your cart.' });
+      if (isDemoAuthUser(user)) {
+        orderData = saveDemoOrder(user, {
+          items: [...items],
+          totalAmount: grandTotal,
+          shippingAddress,
+          paymentMethod: validatedData.paymentMethod,
+        });
+      } else {
+        // H4: Session-staleness guard. If the token expired in another tab the
+        // RPC call would 401 with a confusing error. Verify (and let supabase
+        // silently refresh) before firing the mutation.
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          toast.error('Your session expired. Please sign in again.');
+          navigate('/auth', { state: { from: location }, replace: true });
           return;
         }
-        if (error.message.includes('Product not found')) {
-          toast.error('A product in your cart is no longer available.', { description: 'Please remove it and try again.' });
+
+        // Atomic order creation + stock decrement via DB function.
+        // p_division is passed explicitly so the server doesn't have to
+        // comma-split shipping_address (broken when address has commas).
+        const { data: orderId, error } = await supabase.rpc('create_order_with_stock', {
+          p_user_id: user.id,
+          p_items: JSON.parse(JSON.stringify(items)),
+          p_total_amount: grandTotal,
+          p_shipping_address: shippingAddress,
+          p_payment_method: validatedData.paymentMethod,
+          p_coupon_id: appliedCoupon?.id || null,
+          p_division: validatedData.division,
+        });
+
+        if (error) {
+          // Surface stock-related errors clearly
+          if (error.message.includes('Insufficient stock')) {
+            toast.error(error.message, { description: 'Some items may have sold out. Please review your cart.' });
+            return;
+          }
+          if (error.message.includes('Product not found')) {
+            toast.error('A product in your cart is no longer available.', { description: 'Please remove it and try again.' });
+            return;
+          }
+          toast.error('Failed to place order. Please try again.', { description: error.message });
           return;
         }
-        toast.error('Failed to place order. Please try again.', { description: error.message });
-        return;
+
+        orderData = { id: orderId };
       }
-
-      const orderData = { id: orderId };
 
       // Mark incomplete order as recovered
       if (orderData?.id) {
@@ -260,11 +273,13 @@ const CheckoutPageInner = () => {
 
       // Store order details before clearing cart
       setPlacedOrderId(orderData?.id || null);
+      setPlacedTrackingId(orderData?.tracking_id || null);
       setPlacedItems([...items]);
       setPlacedTotal(grandTotal);
-      
-      clearCart();
+
+      orderFinalizedRef.current = true;
       setOrderPlaced(true);
+      clearCart();
       toast.success('Your order has been placed successfully!');
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Unknown error';
@@ -283,11 +298,23 @@ const CheckoutPageInner = () => {
                 <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-success" />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Order Confirmed!</h1>
-              {placedOrderId && (
-                <p className="text-sm text-muted-foreground">
-                  Order ID: <span className="font-mono font-medium text-foreground">{placedOrderId.slice(0, 8).toUpperCase()}</span>
-                </p>
-              )}
+              <p className="text-sm text-muted-foreground mb-2">
+                Thank you for your order. We received it and will prepare it shortly.
+              </p>
+              <div className="space-y-1 text-sm text-muted-foreground">
+                {placedTrackingId && (
+                  <p>
+                    Tracking ID:{' '}
+                    <span className="font-mono font-medium text-foreground break-all">{placedTrackingId}</span>
+                  </p>
+                )}
+                {placedOrderId && (
+                  <p>
+                    Order ID:{' '}
+                    <span className="font-mono font-medium text-foreground break-all">{placedOrderId}</span>
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Order Summary Card */}
@@ -344,6 +371,16 @@ const CheckoutPageInner = () => {
               <Button onClick={() => navigate('/shop')} size="lg" className="rounded-xl">
                 Continue Shopping
               </Button>
+              {(placedTrackingId || placedOrderId) && (
+                <Button
+                  onClick={() => navigate(`/track-order?id=${encodeURIComponent(placedTrackingId || placedOrderId || '')}`)}
+                  variant="secondary"
+                  size="lg"
+                  className="rounded-xl"
+                >
+                  Track Order
+                </Button>
+              )}
               <Button onClick={() => navigate('/dashboard')} variant="outline" size="lg" className="rounded-xl">
                 View Orders
               </Button>

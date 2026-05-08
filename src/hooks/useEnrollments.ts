@@ -6,6 +6,7 @@ import { enrollSchema } from '@/lib/validations';
 import { STALE_1MIN } from '@/lib/queryConstants';
 import type { Course } from './useCourses';
 import type { CourseBatch } from './useCourseBatches';
+import { getDemoEnrollment, getDemoEnrollments, isDemoAuthUser, saveDemoEnrollment } from '@/lib/demoFixtures';
 
 export type EnrollmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -30,6 +31,8 @@ export function useMyEnrollments() {
     enabled: !!user,
     staleTime: STALE_1MIN,
     queryFn: async () => {
+      if (isDemoAuthUser(user)) return getDemoEnrollments(user);
+
       const { data, error } = await supabase
         .from('enrollments')
         .select(
@@ -52,6 +55,8 @@ export function useIsEnrolled(courseId: string | undefined) {
     queryKey: ['enrollment', user?.id, courseId],
     enabled: !!user && !!courseId,
     queryFn: async () => {
+      if (isDemoAuthUser(user)) return getDemoEnrollment(user, courseId);
+
       const { data, error } = await supabase
         .from('enrollments')
         .select('id, status, progress')
@@ -83,6 +88,16 @@ export function useEnroll() {
       const parsed = enrollSchema.safeParse(payload);
       if (!parsed.success) {
         throw new Error(parsed.error.errors[0]?.message ?? 'Invalid enrollment data');
+      }
+
+      if (isDemoAuthUser(user)) {
+        saveDemoEnrollment(user, {
+          courseId: parsed.data.courseId,
+          batchId: parsed.data.batchId ?? null,
+          contactPhone: parsed.data.contactPhone ?? null,
+          notes: parsed.data.notes ?? null,
+        });
+        return;
       }
 
       const { error } = await supabase.from('enrollments').insert({

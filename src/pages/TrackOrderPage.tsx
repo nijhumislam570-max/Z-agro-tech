@@ -23,6 +23,7 @@ import { useAuthUser, useAuthLoading } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import SEO from '@/components/SEO';
 import { isUuid } from '@/hooks/useUuidParam';
+import { findDemoOrder } from '@/lib/demoFixtures';
 
 interface OrderDetails {
   id: string;
@@ -68,7 +69,7 @@ const TrackOrderPage = () => {
       const cols =
         'id, status, tracking_id, consignment_id, rejection_reason, created_at, total_amount, shipping_address, items';
 
-      let data: OrderDetails | null = null;
+      let data: OrderDetails | null = findDemoOrder(id) as OrderDetails | null;
 
       // Only attempt by-UUID lookup if the input looks like one — otherwise
       // Postgres rejects the cast with a 400 and we lose the chance to fall
@@ -147,7 +148,8 @@ const TrackOrderPage = () => {
     fetchOrder(searchInput.trim());
   }, [searchInput, fetchOrder]);
 
-  // Show login prompt if not authenticated
+  // Show login prompt if not authenticated. Order rows are owner/admin-only
+  // under RLS, so browser-side public tracking lookups cannot be trusted.
   if (!authLoading && !user) {
     return (
       <>
@@ -262,6 +264,7 @@ const TrackOrderPage = () => {
               {/* Order Status Card */}
               <Card>
                 <CardHeader>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Tracking details</p>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
                       {(() => {
@@ -393,9 +396,9 @@ const TrackOrderPage = () => {
                 <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                   <AlertCircle className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                 </div>
-                <h2 className="font-semibold text-foreground mb-1">Order not found</h2>
+                <h2 className="font-semibold text-foreground mb-1">No results found</h2>
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Please check your Order ID or Tracking ID and try again. You can only view orders placed with your account.
+                  Please check your Order ID or Tracking ID and try again.
                 </p>
               </CardContent>
             </Card>
@@ -403,6 +406,7 @@ const TrackOrderPage = () => {
             <Card>
               <CardContent className="py-12 text-center">
                 <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" aria-hidden="true" />
+                <h2 className="font-semibold text-foreground mb-1">Tracking details</h2>
                 <p className="text-muted-foreground">
                   Enter an Order ID or Tracking ID above to track your order
                 </p>

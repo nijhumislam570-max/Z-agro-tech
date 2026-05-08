@@ -1,7 +1,8 @@
-import { useSyncExternalStore, useCallback } from 'react';
+import { useSyncExternalStore, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { authSubscribe, getAuthUser } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { getDemoWishlistIds, isDemoAuthUser, saveDemoWishlistIds } from '@/lib/demoFixtures';
 
 // ─── Module-level wishlist store ─────────────────────────────────────
 
@@ -32,6 +33,14 @@ function getSnapshot(): WishlistSnapshot {
 }
 
 async function fetchWishlist(userId: string) {
+  const user = getAuthUser();
+  if (isDemoAuthUser(user)) {
+    wishlistIds = new Set(getDemoWishlistIds(user));
+    loading = false;
+    emitChange();
+    return;
+  }
+
   loading = true;
   emitChange();
   try {
@@ -62,6 +71,11 @@ async function toggleWishlistAction(productId: string): Promise<boolean> {
   emitChange();
 
   try {
+    if (isDemoAuthUser(user)) {
+      saveDemoWishlistIds(user, Array.from(wishlistIds));
+      return true;
+    }
+
     if (isCurrently) {
       await supabase.from('wishlists').delete()
         .eq('user_id', user.id).eq('product_id', productId);
@@ -104,6 +118,20 @@ export const WishlistProvider = ({ children }: { children: React.ReactNode }) =>
 
 export const useWishlist = () => {
   const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+
+  useEffect(() => {
+    const user = getAuthUser();
+    const newUserId = user?.id ?? null;
+    if (newUserId === currentUserId) return;
+
+    currentUserId = newUserId;
+    if (newUserId) {
+      void fetchWishlist(newUserId);
+    } else {
+      wishlistIds = new Set();
+      emitChange();
+    }
+  }, []);
 
   const isWishlisted = useCallback((productId: string) => {
     return state.wishlistIds.has(productId);

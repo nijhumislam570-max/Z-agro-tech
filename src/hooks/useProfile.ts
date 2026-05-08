@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { profileSchema } from '@/lib/validations';
 import { STALE_5MIN } from '@/lib/queryConstants';
+import { getDemoProfile, isDemoAuthUser, saveDemoProfile } from '@/lib/demoFixtures';
 
 export interface ProfileRow {
   id: string;
@@ -41,11 +42,12 @@ const profileKey = (userId: string | null) => ['profile', userId] as const;
 export const useProfile = () => {
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const demoProfile = getDemoProfile(user);
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: profileKey(userId),
-    enabled: !!userId,
+    enabled: !!userId && !demoProfile,
     staleTime: STALE_5MIN, // profile rarely changes
     queryFn: async (): Promise<ProfileRow | null> => {
       if (!userId) return null;
@@ -76,6 +78,8 @@ export const useProfile = () => {
         throw new Error(parsed.error.errors[0]?.message ?? 'Invalid profile data');
       }
 
+      if (user && isDemoAuthUser(user)) return saveDemoProfile(user, patch);
+
       // Upsert handles legacy users whose profile row may be missing.
       const { data, error } = await supabase
         .from('profiles')
@@ -88,7 +92,7 @@ export const useProfile = () => {
     onSuccess: (data) => {
       if (data) queryClient.setQueryData(profileKey(userId), data);
       queryClient.invalidateQueries({ queryKey: profileKey(userId) });
-      toast.success('Profile updated');
+      toast.success('Profile updated successfully');
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Could not save profile';
@@ -110,8 +114,8 @@ export const useProfile = () => {
   );
 
   return {
-    profile: query.data ?? null,
-    loading: query.isLoading,
+    profile: demoProfile ?? query.data ?? null,
+    loading: demoProfile ? false : query.isLoading,
     saving: mutation.isPending,
     updateProfile,
     refetch: query.refetch,

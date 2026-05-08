@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { batchUpsertSchema, type BatchUpsertInput } from '@/lib/validations/courseActions';
 import { STALE_5MIN } from '@/lib/queryConstants';
+import { getDemoCourseBatches } from '@/lib/demoFixtures';
 
 export type BatchStatus = 'open' | 'filling' | 'closed' | 'completed';
 
@@ -25,6 +26,9 @@ export function useCourseBatches(courseId: string | undefined) {
     enabled: !!courseId,
     staleTime: STALE_5MIN,
     queryFn: async () => {
+      const demoBatches = getDemoCourseBatches(courseId);
+      if (demoBatches.length > 0) return demoBatches;
+
       const { data, error } = await supabase
         .from('course_batches')
         .select('*')

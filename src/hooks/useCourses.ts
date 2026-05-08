@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getDemoCourse, getDemoCourses } from '@/lib/demoFixtures';
 
 export type CourseCategory =
   | 'plant_doctor'
@@ -63,15 +64,25 @@ export function useCourses(opts?: UseCoursesOpts) {
   return useQuery({
     queryKey: ['courses', { category }],
     queryFn: async () => {
+      const demoCourses = getDemoCourses(category);
       let q = supabase
         .from('courses')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       if (category) q = q.eq('category', category);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data || []).map(mapCourse);
+      try {
+        const { data, error } = await q;
+        if (error) {
+          if (demoCourses.length > 0) return demoCourses;
+          throw error;
+        }
+        const liveCourses = (data || []).map(mapCourse);
+        return liveCourses.length > 0 ? liveCourses : demoCourses;
+      } catch (error) {
+        if (demoCourses.length > 0) return demoCourses;
+        throw error;
+      }
     },
     select: (rows) => (limit ? rows.slice(0, limit) : rows),
   });
@@ -82,6 +93,9 @@ export function useCourse(id: string | undefined) {
     queryKey: ['course', id],
     enabled: !!id,
     queryFn: async () => {
+      const demoCourse = getDemoCourse(id);
+      if (demoCourse) return demoCourse;
+
       const { data, error } = await supabase
         .from('courses')
         .select('*')

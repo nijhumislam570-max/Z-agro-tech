@@ -3,6 +3,13 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import type { QueryClient } from '@tanstack/react-query';
+import {
+  buildDemoSession,
+  clearDemoSession,
+  findDemoUserByCredentials,
+  persistDemoSession,
+  readStoredDemoSession,
+} from '@/lib/demoFixtures';
 
 // ─── Module-level auth store (external store pattern) ────────────────
 
@@ -15,6 +22,7 @@ interface AuthState {
 
 let state: AuthState = { user: null, session: null, loading: true, error: null };
 let queryClientRef: QueryClient | null = null;
+let authSequence = 0;
 
 const listeners = new Set<() => void>();
 
@@ -37,17 +45,47 @@ function getSnapshot(): AuthState {
 export const authSubscribe = subscribe;
 export function getAuthUser(): User | null { return state.user; }
 
+function applySession(nextSession: Session | null) {
+  authSequence += 1;
+  state.session = nextSession;
+  state.user = nextSession?.user ?? null;
+  state.loading = false;
+  state.error = null;
+  emitChange();
+}
+
+async function bootstrapSession() {
+  const startedAt = authSequence;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      logger.error('Error loading auth session:', error);
+    }
+    if (authSequence !== startedAt) return;
+
+    const demoSession = data.session ? null : readStoredDemoSession();
+    applySession(data.session ?? demoSession);
+  } catch (error) {
+    logger.error('Error loading auth session:', error);
+    if (authSequence === startedAt) {
+      applySession(readStoredDemoSession());
+    }
+  }
+}
+
 // Start the Supabase auth listener immediately at module load
 supabase.auth.onAuthStateChange((event, currentSession) => {
   if (event === 'SIGNED_OUT' && queryClientRef) {
     queryClientRef.clear();
   }
-  state.session = currentSession;
-  state.user = currentSession?.user ?? null;
-  state.loading = false;
-  state.error = null;
-  emitChange();
+  if (event === 'SIGNED_OUT') {
+    clearDemoSession();
+  }
+
+  const demoSession = currentSession ? null : readStoredDemoSession();
+  applySession(currentSession ?? demoSession);
 });
+void bootstrapSession();
 
 // ─── Auth actions (pure, module-scope, stable identity) ──────────────
 
@@ -75,6 +113,14 @@ async function signUpAction(email: string, password: string, fullName: string) {
 
 async function signInAction(email: string, password: string) {
   try {
+    const demoUser = findDemoUserByCredentials(email, password);
+    if (demoUser) {
+      const demoSession = buildDemoSession(demoUser);
+      persistDemoSession(demoSession);
+      applySession(demoSession);
+      return { error: null };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
@@ -90,7 +136,10 @@ async function signInAction(email: string, password: string) {
 
 async function signOutAction() {
   try {
+    clearDemoSession();
     await supabase.auth.signOut();
+    applySession(null);
+    if (queryClientRef) queryClientRef.clear();
   } catch (err) {
     logger.error('Error signing out:', err);
   }

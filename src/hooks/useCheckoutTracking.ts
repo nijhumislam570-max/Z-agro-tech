@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { CheckoutFormData } from '@/lib/validations';
+import { isDemoAuthUser } from '@/lib/demoFixtures';
 
 interface CartItem {
   id: string;
@@ -62,7 +63,7 @@ export const useCheckoutTracking = (
   // If the cart is emptied (e.g. user removes all items), reset so a new record
   // can be created if items reappear later.
   useEffect(() => {
-    if (!user) {
+    if (!user || isDemoAuthUser(user)) {
       hasCreated.current = false;
       incompleteOrderId.current = null;
       isCreating.current = false;

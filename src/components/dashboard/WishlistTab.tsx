@@ -23,7 +23,7 @@ const WishlistTab = () => {
     return (
       <EmptyState
         icon={Heart}
-        title="Save items you love"
+        title="Your wishlist is empty"
         description="Tap the heart on any product to keep it here for later."
         action={
           <Link to="/shop">

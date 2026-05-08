@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useAuthUser, useAuthLoading, useAuthActions } from '@/contexts/AuthContext';
+import { DEMO_CUSTOMER_EMAIL, DEMO_PASSWORD, getDemoUserRole, isLocalDemoModeEnabled } from '@/lib/demoFixtures';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/zagrotech-logo-circle.png';
@@ -83,6 +84,11 @@ const AuthPage = () => {
       navigate(fromPath, { replace: true });
       return;
     }
+    const demoRole = getDemoUserRole(user);
+    if (demoRole) {
+      navigate(demoRole === 'admin' ? '/admin' : '/dashboard', { replace: true });
+      return;
+    }
     try {
       const { data: roleData, error } = await supabase
         .from('user_roles')
@@ -96,7 +102,7 @@ const AuthPage = () => {
       // silently sending the user to a wrong route.
       navigate('/dashboard', { replace: true });
     }
-  }, [navigate, fromPath]);
+  }, [navigate, fromPath, user]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -398,6 +404,12 @@ const AuthPage = () => {
 
               {/* ─── SIGN IN ─── */}
               <TabsContent value="signin" className="mt-0">
+                {isLocalDemoModeEnabled() && (
+                  <div className="mb-4 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                    <p className="font-medium text-foreground">Local test accounts</p>
+                    <p>Customer: {DEMO_CUSTOMER_EMAIL} / {DEMO_PASSWORD}</p>
+                  </div>
+                )}
                 <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4" noValidate>
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>

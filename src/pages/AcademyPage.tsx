@@ -328,6 +328,12 @@ const AcademyPage = () => {
 
         {/* GRID */}
         <section id="course-grid" className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 scroll-mt-24">
+          <div className="mb-4 sm:mb-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">Curriculum</p>
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground">
+              Course curriculum
+            </h2>
+          </div>
           {!isLoading && (
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <p className="text-sm text-muted-foreground">

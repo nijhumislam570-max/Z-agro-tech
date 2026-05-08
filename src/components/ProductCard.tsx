@@ -25,7 +25,7 @@ interface ProductCardProps {
 
 const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(({ id, name, price, category, image, badge, discount, stock, avgRating, reviewCount }, ref) => {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, queuePendingItem } = useCart();
   const { user } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const productPath = id ? `/product/${id}` : '/shop';
@@ -42,7 +42,14 @@ const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(({ id, nam
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isOutOfStock) return;
-    addItem({ id: id || name, name, price: finalPrice, image, category, stock: stock ?? undefined });
+    const cartItem = { id: id || name, name, price: finalPrice, image, category, stock: stock ?? undefined };
+    if (!user) {
+      queuePendingItem(cartItem);
+      toast.info('Please sign in to add this item to your cart.');
+      navigate('/auth?redirect=/cart', { state: { from: { pathname: '/cart', search: '', hash: '' } } });
+      return;
+    }
+    addItem(cartItem);
     toast.success(name + ' added to cart!');
   };
 
@@ -146,7 +153,7 @@ const ProductCard = memo(forwardRef<HTMLDivElement, ProductCardProps>(({ id, nam
           ) : (
             <>
               <ShoppingCart className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1" />
-              Add to Cart
+              Add to cart
             </>
           )}
         </Button>

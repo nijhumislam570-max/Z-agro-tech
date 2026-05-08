@@ -22,7 +22,16 @@ export const FeaturedProductsGrid = () => {
         .eq('is_featured', true)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as ShopProduct[];
+      if (data?.length) return data as ShopProduct[];
+
+      const fallback = await supabase
+        .from('products')
+        .select('id, name, price, compare_price, image_url, category, stock, description, is_featured, created_at')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(6);
+      if (fallback.error) throw fallback.error;
+      return (fallback.data || []) as ShopProduct[];
     },
     staleTime: STALE_5MIN,
   });

@@ -69,10 +69,14 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
     onOpenChange(false);
   };
 
+  const handleSignInContinue = () => {
+    onOpenChange(false);
+    navigate(`/auth?redirect=${encodeURIComponent(`/course/${course.id}`)}`);
+  };
+
   const onSubmit = async (values: EnrollFormData) => {
     if (!user) {
-      onOpenChange(false);
-      navigate(`/auth?redirect=${encodeURIComponent(`/course/${course.id}`)}`);
+      handleSignInContinue();
       return;
     }
     try {
@@ -199,8 +203,9 @@ export const EnrollDialog = ({ open, onOpenChange, course, batch }: Props) => {
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
+                  type={user ? 'submit' : 'button'}
                   variant="secondary"
+                  onClick={user ? undefined : handleSignInContinue}
                   disabled={enroll.isPending}
                   className="gap-2"
                 >

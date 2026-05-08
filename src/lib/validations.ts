@@ -76,7 +76,11 @@ export const checkoutSchema = z.object({
 export type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export const profileSchema = z.object({
-  full_name: z.string().max(100).regex(noXSSRegex, 'Name cannot contain < or > characters').optional().or(z.literal('')),
+  full_name: z
+    .string()
+    .min(1, 'Full name is required')
+    .max(100)
+    .regex(noXSSRegex, 'Name cannot contain < or > characters'),
   phone: z
     .string()
     .max(20)

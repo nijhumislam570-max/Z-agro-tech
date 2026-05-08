@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCart } from '@/contexts/CartContext';
+import { useAuthUser } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -26,6 +27,7 @@ const PREVIEW_LIMIT = 3;
 export const CartQuickPeek = ({ children }: Props) => {
   const [open, setOpen] = React.useState(false);
   const { items, totalItems, totalAmount, updateQuantity, removeItem } = useCart();
+  const user = useAuthUser();
 
   const visibleItems = items.slice(0, PREVIEW_LIMIT);
   const remaining = Math.max(0, items.length - PREVIEW_LIMIT);
@@ -51,7 +53,24 @@ export const CartQuickPeek = ({ children }: Props) => {
           </SheetTitle>
         </SheetHeader>
 
-        {items.length === 0 ? (
+        {!user ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+              <ShoppingCart className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-display font-semibold text-foreground">Sign in Required</h3>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Please sign in to view your cart and continue checkout.
+              </p>
+            </div>
+            <Link to="/auth?redirect=/cart" state={{ from: { pathname: '/cart' } }} onClick={close}>
+              <Button className="gap-2">
+                Sign in to view cart <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
               <ShoppingBag className="h-7 w-7 text-muted-foreground" aria-hidden="true" />

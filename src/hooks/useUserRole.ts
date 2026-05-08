@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDemoUserRole } from '@/lib/demoFixtures';
 
 /**
  * Z Agro Tech roles. The DB enum is `admin | user`. The frontend treats
@@ -28,6 +29,7 @@ const ROLE_PRIORITY: UserRoleType[] = ['admin', 'user'];
 
 export const useUserRole = (): UserRoleData => {
   const { user, loading: authLoading } = useAuth();
+  const demoRole = getDemoUserRole(user);
 
   const { data: roles, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['user-roles-all', user?.id],
@@ -48,7 +50,7 @@ export const useUserRole = (): UserRoleData => {
       const mapped = (data ?? []).map((r) => (r.role === 'admin' ? 'admin' : 'user') as UserRoleType);
       return Array.from(new Set(mapped));
     },
-    enabled: !!user?.id && !authLoading,
+    enabled: !!user?.id && !authLoading && !demoRole,
     // Roles only change via DB migration / SQL — keep cache fresh for the whole session.
     staleTime: 1000 * 60 * 30,
     gcTime: 1000 * 60 * 60,
@@ -58,14 +60,14 @@ export const useUserRole = (): UserRoleData => {
     retry: 2,
   });
 
-  const currentRoles = roles ?? [];
+  const currentRoles = demoRole ? [demoRole] : (roles ?? []);
   const primaryRole = ROLE_PRIORITY.find((r) => currentRoles.includes(r)) ?? 'user';
 
   return {
     roles: currentRoles,
     primaryRole,
-    isLoading: isLoading || authLoading,
-    isError,
+    isLoading: demoRole ? false : (isLoading || authLoading),
+    isError: demoRole ? false : isError,
     error: (error as Error | null) ?? null,
     isAdmin: currentRoles.includes('admin'),
     refetch,

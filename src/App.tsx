@@ -18,7 +18,9 @@ import { AdminShell } from "@/components/admin/AdminLayout";
 import AdminNotFound from "@/components/admin/AdminNotFound";
 import PublicShell from "@/components/PublicShell";
 import ProfileRedirect from "@/components/ProfileRedirect";
+import DashboardTabRedirect from "@/components/DashboardTabRedirect";
 import RouteProgress from "@/components/RouteProgress";
+import NotFound from "./pages/NotFound";
 
 // Public pages
 const Index = lazy(() => import("./pages/Index"));
@@ -38,7 +40,6 @@ const FAQPage = lazy(() => import("./pages/FAQPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
 const TrackOrderPage = lazy(() => import("./pages/TrackOrderPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -128,6 +129,8 @@ const App = () => (
 
                     {/* User dashboard */}
                     <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+                    <Route path="/account/profile" element={<RequireAuth><DashboardTabRedirect tab="profile" /></RequireAuth>} />
+                    <Route path="/account/wishlist" element={<RequireAuth><DashboardTabRedirect tab="wishlist" /></RequireAuth>} />
 
                     <Route path="*" element={<NotFound />} />
                   </Route>

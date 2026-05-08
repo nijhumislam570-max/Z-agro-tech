@@ -13,6 +13,7 @@ import { passwordSchema } from '@/lib/validations';
 import { useAuthUser, useAuthLoading } from '@/contexts/AuthContext';
 import SEO from '@/components/SEO';
 import PasswordStrengthHints from '@/components/auth/PasswordStrengthHints';
+import { isLocalDemoModeEnabled } from '@/lib/demoFixtures';
 
 const RECOVERY_TIMEOUT_MS = 8000;
 
@@ -65,6 +66,10 @@ const ResetPasswordPage = () => {
     const hash = window.location.hash;
     const hasRecoveryToken = hash.includes('type=recovery') || hash.includes('access_token');
     if (!hasRecoveryToken) {
+      if (isLocalDemoModeEnabled()) {
+        setSessionReady(true);
+        return;
+      }
       setSessionError(true);
       return;
     }
@@ -102,6 +107,13 @@ const ResetPasswordPage = () => {
 
     setLoading(true);
     try {
+      if (!user && isLocalDemoModeEnabled()) {
+        setSuccess(true);
+        toast.success('Password validation passed');
+        scheduleNavigate('/auth', 3000);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
@@ -150,7 +162,7 @@ const ResetPasswordPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [password, confirmPassword, scheduleNavigate]);
+  }, [password, confirmPassword, scheduleNavigate, user]);
 
   // Loading state while auth is initializing
   if (authLoading) {

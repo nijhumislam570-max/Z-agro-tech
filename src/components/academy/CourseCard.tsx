@@ -154,7 +154,7 @@ export const CourseCard = React.forwardRef<HTMLAnchorElement, CourseCardProps>(
                 <p className="text-base sm:text-lg font-bold text-primary">৳{course.price}</p>
               )}
               <span className="text-[11px] sm:text-xs font-semibold text-primary-foreground bg-primary px-2.5 py-1 rounded-full group-hover:bg-primary/90 transition-colors whitespace-nowrap">
-                View
+                Curriculum
               </span>
             </div>
           </CardContent>

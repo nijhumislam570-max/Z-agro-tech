@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, memo } from 'react';
-import { Mail, Phone, MapPin, Send, Loader2, CheckCircle, LogIn } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,13 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import SEO from '@/components/SEO';
 import { supabase } from '@/integrations/supabase/client';
 import { contactSchema, type ContactFormData } from '@/lib/validations';
-import { safeMutation } from '@/lib/supabaseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { toast } from 'sonner';
+import { isLocalDemoModeEnabled } from '@/lib/demoFixtures';
 
 const COOLDOWN_SECONDS = 30;
 
@@ -44,7 +44,6 @@ const contactInfo = [
 const ContactPage = memo(() => {
   const { user } = useAuth();
   const { profile } = useProfile();
-  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   // Use a Date.now() deadline so background-tab throttling can't drift the timer.
   const [deadline, setDeadline] = useState(0);
@@ -88,27 +87,21 @@ const ContactPage = memo(() => {
   const onSubmit = async (data: ContactFormData) => {
     if (cooldown > 0) return;
 
-    const insertPromise = Promise.resolve(
-      supabase.from('contact_messages').insert({
-        name: data.name.trim(),
-        email: data.email.trim(),
-        subject: data.subject?.trim() || null,
-        message: data.message.trim(),
-      }).select()
-    );
-
-    // Pass an empty `successMsg` so the toast is suppressed — we show an
-    // inline confirmation card instead, avoiding the double-success signal.
-    const result = await safeMutation(insertPromise, {
-      successMsg: '',
-      errorMsg: 'Failed to send message. Please try again.',
+    const { error } = await supabase.from('contact_messages').insert({
+      name: data.name.trim(),
+      email: data.email.trim(),
+      subject: data.subject?.trim() || null,
+      message: data.message.trim(),
     });
 
-    if (!result.error) {
-      setSubmitted(true);
-      setDeadline(Date.now() + COOLDOWN_SECONDS * 1000);
-      form.reset();
+    if (error && !isLocalDemoModeEnabled()) {
+      toast.error('Failed to send message. Please try again.');
+      return;
     }
+
+    setSubmitted(true);
+    setDeadline(Date.now() + COOLDOWN_SECONDS * 1000);
+    form.reset();
   };
 
   const handleSendAnother = useCallback(() => {
@@ -211,26 +204,14 @@ const ContactPage = memo(() => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {!user ? (
-                    <div className="text-center py-8">
-                      <LogIn className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">Sign in Required</h3>
-                      <p className="text-muted-foreground mb-4">
-                        Please sign in to send us a message. This helps us prevent spam and respond to you faster.
-                      </p>
-                      <Button onClick={() => navigate('/auth?redirect=/contact')} className="min-h-[44px]">
-                        <LogIn className="h-4 w-4 mr-2" />
-                        Sign In to Contact Us
-                      </Button>
-                    </div>
-                  ) : submitted ? (
+                  {submitted ? (
                     <div className="text-center py-8">
                       <div className="w-16 h-16 bg-success-light rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle className="h-8 w-8 text-success" />
                       </div>
                       <h3 className="text-lg font-semibold mb-2">Message Sent!</h3>
                       <p className="text-muted-foreground mb-4">
-                        Thank you for contacting us. We'll respond to your inquiry shortly.
+                        Thank you for your message. We'll respond to your inquiry shortly.
                       </p>
                       {cooldown > 0 && (
                         <div
