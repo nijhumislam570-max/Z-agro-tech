@@ -106,7 +106,7 @@ export const contactSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100).regex(noXSSRegex, 'Name cannot contain < or > characters'),
   email: emailSchema,
   subject: z.string().max(200).regex(noXSSRegex, 'Subject cannot contain < or > characters').optional().or(z.literal('')),
-  message: z.string().min(1, 'Message is required').max(2000).regex(noXSSRegex, 'Message cannot contain < or > characters'),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(2000).regex(noXSSRegex, 'Message cannot contain < or > characters'),
 });
 export type ContactFormData = z.infer<typeof contactSchema>;
 

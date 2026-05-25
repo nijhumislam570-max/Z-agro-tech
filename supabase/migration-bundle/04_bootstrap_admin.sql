@@ -10,11 +10,11 @@
 
 -- 1. Grant admin role (the enforce_single_admin trigger will verify the email)
 INSERT INTO public.user_roles (user_id, role)
-VALUES ('<NEW_ADMIN_USER_ID>', 'admin'::public.app_role)
+VALUES ('2cfb8b6b-2737-45bc-a974-1bcd327f7a2d', 'admin'::public.app_role)
 ON CONFLICT (user_id, role) DO NOTHING;
 
 -- 2. Re-seed admin_settings (these came from the old project)
 INSERT INTO public.admin_settings (key, value) VALUES
   ('whatsapp_number', '"+8801763585500"'::jsonb),
-  ('protected_admin_user_id', to_jsonb('<NEW_ADMIN_USER_ID>'::text))
+  ('protected_admin_user_id', to_jsonb('2cfb8b6b-2737-45bc-a974-1bcd327f7a2d'::text))
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;

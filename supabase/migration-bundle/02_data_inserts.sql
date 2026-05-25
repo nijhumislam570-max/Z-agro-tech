@@ -76,8 +76,6 @@ INSERT INTO public.courses (id, title, description, price, thumbnail_url, video_
 -- Data for Name: incomplete_orders; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.incomplete_orders (id, user_id, customer_name, customer_phone, customer_email, items, cart_total, shipping_address, division, completeness, status, recovered_order_id, expires_at, created_at, updated_at, trashed_at) VALUES ('83ac5536-92b1-4d63-9248-b569115b3cb4', 'e3d1e576-8b46-46f3-b79e-bf01cd4dbb43', NULL, NULL, 'nijhumislam570@gmail.com', '[{"id": "dde7d9b9-a50b-44b6-89ad-49152a78795a", "name": "Hybrid Maize Seed Pacific-984 (500g)", "image": "https://images.unsplash.com/photo-1601593768799-76d3a3eee329?w=800&auto=format&fit=crop", "price": 450, "category": "Crops", "quantity": 1}]', 450, NULL, NULL, 0, 'incomplete', NULL, '2026-05-23 11:45:51.868894+00', '2026-04-23 11:45:51.868894+00', '2026-04-23 11:45:51.868894+00', NULL);
-INSERT INTO public.incomplete_orders (id, user_id, customer_name, customer_phone, customer_email, items, cart_total, shipping_address, division, completeness, status, recovered_order_id, expires_at, created_at, updated_at, trashed_at) VALUES ('b9dc50ca-9f1c-4603-a5d9-4720ac5635e8', 'e3d1e576-8b46-46f3-b79e-bf01cd4dbb43', NULL, NULL, 'nijhumislam570@gmail.com', '[{"id": "dde7d9b9-a50b-44b6-89ad-49152a78795a", "name": "Hybrid Maize Seed Pacific-984 (500g)", "image": "https://images.unsplash.com/photo-1601593768799-76d3a3eee329?w=800&auto=format&fit=crop", "price": 450, "category": "Crops", "quantity": 1}]', 450, NULL, NULL, 0, 'incomplete', NULL, '2026-05-23 11:45:51.868868+00', '2026-04-23 11:45:51.868868+00', '2026-04-23 11:45:51.868868+00', NULL);
 
 
 --
@@ -154,7 +152,6 @@ INSERT INTO public.products (id, name, description, price, category, product_typ
 -- Data for Name: profiles; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.profiles (id, user_id, full_name, phone, address, division, district, thana, avatar_url, created_at, updated_at, cover_photo_url) VALUES ('391a2ca6-c3c3-4387-8cd4-ff9efc122bce', 'e3d1e576-8b46-46f3-b79e-bf01cd4dbb43', 'Nijhum Islam', NULL, NULL, NULL, NULL, NULL, NULL, '2026-04-18 11:32:32.268054+00', '2026-04-18 11:32:32.268054+00', NULL);
 
 
 --
@@ -173,7 +170,6 @@ INSERT INTO public.profiles (id, user_id, full_name, phone, address, division, d
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.user_roles (id, user_id, role, created_at) VALUES ('3a320f0a-15f0-4a3f-8df3-5bfde61ac758', 'e3d1e576-8b46-46f3-b79e-bf01cd4dbb43', 'admin', '2026-04-18 10:51:49.568264+00');
 
 
 --

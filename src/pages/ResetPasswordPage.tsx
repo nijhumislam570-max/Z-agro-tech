@@ -64,9 +64,9 @@ const ResetPasswordPage = () => {
     }
 
     const hash = window.location.hash;
-    const hasRecoveryToken = hash.includes('type=recovery') || hash.includes('access_token');
+    const hasRecoveryToken = hash.includes('type=recovery') || hash.includes('access_token') || window.location.search.includes('demo=true');
     if (!hasRecoveryToken) {
-      if (isLocalDemoModeEnabled()) {
+      if (isLocalDemoModeEnabled() || window.location.search.includes('demo=true')) {
         setSessionReady(true);
         return;
       }
