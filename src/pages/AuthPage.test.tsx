@@ -20,6 +20,8 @@ vi.mock('@/integrations/supabase/client', () => ({
       signInWithOAuth: vi.fn().mockResolvedValue({ error: null }),
     },
   },
+  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
 }));
 
 vi.mock('sonner', () => ({
