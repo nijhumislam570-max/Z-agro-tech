@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuthUser, useAuthLoading, useAuthActions } from '@/contexts/AuthContext';
 import { DEMO_CUSTOMER_EMAIL, DEMO_PASSWORD, getDemoUserRole, isLocalDemoModeEnabled } from '@/lib/demoFixtures';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '@/integrations/supabase/client';
 import logo from '@/assets/zagrotech-logo-circle.png';
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from '@/lib/validations';
 import SEO from '@/components/SEO';
@@ -117,11 +117,8 @@ const AuthPage = () => {
     let cancelled = false;
 
     const loadOauthProviders = async () => {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-      const publishableKey =
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-        import.meta.env.VITE_SUPABASE_ANON_KEY ||
-        import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabaseUrl = SUPABASE_URL;
+      const publishableKey = SUPABASE_PUBLISHABLE_KEY;
 
       if (!supabaseUrl || !publishableKey) {
         if (!cancelled) {
