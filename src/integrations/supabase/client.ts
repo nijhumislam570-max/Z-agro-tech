@@ -2,14 +2,30 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+let SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+let SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    'Missing Supabase environment variables. ' +
-    'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or NEXT_PUBLIC_ variants) in your .env file or Vercel settings.'
-  );
+// Fail-safe Production fallback if environment variables are empty or placeholders
+if (
+  !SUPABASE_URL ||
+  typeof SUPABASE_URL !== 'string' ||
+  SUPABASE_URL.trim() === '' ||
+  SUPABASE_URL.trim() === '""' ||
+  SUPABASE_URL.trim() === "''" ||
+  SUPABASE_URL.includes('placeholder')
+) {
+  SUPABASE_URL = 'https://hsosfeynosulypnpwbet.supabase.co';
+}
+
+if (
+  !SUPABASE_PUBLISHABLE_KEY ||
+  typeof SUPABASE_PUBLISHABLE_KEY !== 'string' ||
+  SUPABASE_PUBLISHABLE_KEY.trim() === '' ||
+  SUPABASE_PUBLISHABLE_KEY.trim() === '""' ||
+  SUPABASE_PUBLISHABLE_KEY.trim() === "''" ||
+  SUPABASE_PUBLISHABLE_KEY.includes('placeholder')
+) {
+  SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_oy3-xvDerpEZwElHZEUlbg_gaajcaFE';
 }
 
 // Import the supabase client like this:

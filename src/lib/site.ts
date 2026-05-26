@@ -33,5 +33,17 @@ export const toAbsoluteUrl = (value?: string | null) => {
   return new URL(path, base).toString();
 };
 
-export const getSupabaseSitemapUrl = () =>
-  `${import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sitemap`;
+export const getSupabaseSitemapUrl = () => {
+  let url = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (
+    !url ||
+    typeof url !== 'string' ||
+    url.trim() === '' ||
+    url.trim() === '""' ||
+    url.trim() === "''" ||
+    url.includes('placeholder')
+  ) {
+    url = 'https://hsosfeynosulypnpwbet.supabase.co';
+  }
+  return `${url}/functions/v1/sitemap`;
+};
