@@ -91,16 +91,21 @@ void bootstrapSession();
 
 async function signUpAction(email: string, password: string, fullName: string) {
   try {
+    // Use VITE_SITE_URL so confirmation emails always redirect back to the
+    // production domain, not just wherever the current window is hosted.
+    const siteUrl =
+      (import.meta.env.VITE_SITE_URL as string | undefined) ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: siteUrl,
         data: { full_name: fullName },
       },
     });
     if (error) {
-      if (error.message.includes('already registered')) {
+      if (error.message.includes('already registered') || error.message.includes('User already registered')) {
         return { error: new Error('This email is already registered. Please sign in instead.'), user: null };
       }
       return { error, user: null };
